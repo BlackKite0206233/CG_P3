@@ -1,0 +1,7 @@
+.vs/
+x64/*/*.exe
+x64/*/*.ilk
+x64/*/*.pdb
+Win32/
+Roller\ Coaster/x64/
+ipch/
