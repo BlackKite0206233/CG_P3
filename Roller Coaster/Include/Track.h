@@ -26,18 +26,32 @@
 #pragma once
 
 #include <vector>
+#include "ControlPoint.h"
+
+#define DIVIDE_LINE 100
 
 using std::vector; // avoid having to say std::vector all of the time
 
 // make use of other data structures from this project
-#include "ControlPoint.h"
+
+enum CurveType {
+	Linear,
+	Cardinal,
+	Cubic
+};
+
+enum TrackType {
+	Line,
+	Track,
+	Road,
+};
 
 class CTrack {
-	public:		
+public:		
 		// Constructor
 		CTrack();
 
-	public:
+public:
 		// when we want to clear the control points, we really "reset" them 
 		// to have 4 default positions (since we should never have fewer
 		// than 4 points)
@@ -48,7 +62,9 @@ class CTrack {
 		void readPoints(const char* filename);
 		void writePoints(const char* filename);
 
-	public:
+		void draw(bool doingShadows);
+
+public:
 		// rather than have generic objects, we make a special case for these few
 		// objects that we know that all implementations are going to need and that
 		// we're going to have to handle specially
@@ -60,4 +76,6 @@ class CTrack {
 		// the state of the train - basically, all I need to remember is where
 		// it is in parameter space
 		float trainU;
+		int curve;
+		int track;
 };

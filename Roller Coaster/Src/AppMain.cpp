@@ -18,8 +18,8 @@ AppMain::AppMain(QWidget *parent)
 	this->canpan = false;
 	this->isHover = false;
 	this->trainview->camera = 0;
-	this->trainview->track = 0;
-	this->trainview->curve = 0;
+	this->trainview->m_pTrack->track = 0;
+	this->trainview->m_pTrack->curve = 0;
 	this->trainview->isrun = false;
 
 	setWindowTitle( "Roller Coaster" );
@@ -247,15 +247,15 @@ void AppMain::ChangeCurveType( QString type )
 {
 	if( type == "Linear" )
 	{
-		this->trainview->curve = 0;
+		this->trainview->m_pTrack->curve = 0;
 	}
 	else if( type == "Cardinal" )
 	{
-		this->trainview->curve = 1;
+		this->trainview->m_pTrack->curve = 1;
 	}
 	else if( type == "Cubic" )
 	{
-		this->trainview->curve = 2;
+		this->trainview->m_pTrack->curve = 2;
 	}
 
 
@@ -265,15 +265,15 @@ void AppMain::ChangeTrackType( QString type )
 {
 	if( type == "Line" )
 	{
-		this->trainview->track = 0;
+		this->trainview->m_pTrack->track = 0;
 	}
 	else if( type == "Track" )
 	{
-		this->trainview->track = 1;
+		this->trainview->m_pTrack->track = 1;
 	}
 	else if( type == "Road" )
 	{
-		this->trainview->track = 2;
+		this->trainview->m_pTrack->track = 2;
 	}
 }
 
@@ -408,32 +408,32 @@ void AppMain::ChangeCamToTrain()
 
 void AppMain::ChangeCurveToLinear()
 {
-	this->trainview->curve = 0;
+	this->trainview->m_pTrack->curve = Linear;
 }
 
 void AppMain::ChangeCurveToCardinal()
 {
-	this->trainview->curve = 1;
+	this->trainview->m_pTrack->curve = Cardinal;
 }
 
 void AppMain::ChangeCurveToCubic()
 {
-	this->trainview->curve = 2;
+	this->trainview->m_pTrack->curve = Cubic;
 }
 
 void AppMain::ChangeTrackToLine()
 {
-	this->trainview->track = 0;
+	this->trainview->m_pTrack->track = Line;
 }
 
 void AppMain::ChangeTrackToTrack()
 {
-	this->trainview->track = 1;
+	this->trainview->m_pTrack->track = Track;
 }
 
 void AppMain::ChangeTrackToRoad()
 {
-	this->trainview->track = 2;
+	this->trainview->m_pTrack->track = Road;
 }
 
 void AppMain::UpdateCameraState( int index )

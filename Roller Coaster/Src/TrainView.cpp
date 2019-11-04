@@ -149,7 +149,7 @@ void TrainView::paintGL()
 		//Bind square's texture
 		Textures[0]->bind();
 		//pass texture to shader
-		square->shaderProgram->setUniformValue("Texture",0);
+		square->shaderProgram->setUniformValue("Texture", 0);
 		//Call square's render function, pass ModelViewMatrex and ProjectionMatrex
 		square->Paint(ProjectionMatrex,ModelViewMatrex);
 	square->End();
@@ -244,7 +244,7 @@ void TrainView::drawStuff(bool doingShadows)
 #ifdef EXAMPLE_SOLUTION
 	drawTrack(this, doingShadows);
 #endif
-
+	this->m_pTrack->draw(doingShadows);
 	// draw the train
 	//####################################################################
 	// TODO: 

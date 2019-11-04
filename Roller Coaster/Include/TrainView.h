@@ -60,8 +60,6 @@ public:
 	CTrack*			m_pTrack;		// The track of the entire scene
 
 	int camera;
-	int curve;
-	int track;
 	bool isrun;
 	Triangle* triangle;
 	Square* square;

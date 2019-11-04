@@ -26,6 +26,9 @@
 
 #include "Track.h"
 
+#include <windows.h>
+#include <GL/gl.h>
+
 //****************************************************************************
 //
 // * Constructor
@@ -173,4 +176,65 @@ writePoints(const char* filename)
 				points[i].orient.x, points[i].orient.y, points[i].orient.z);
 		fclose(fp);
 	}
+}
+
+void CTrack::draw(bool doingShadows) {
+	if (!doingShadows) {
+		glColor3d(1, 1, 1);
+	}
+	glLineWidth(4);
+	
+	ControlPoint prev = points.back();
+	double percent = 1.0 / DIVIDE_LINE;
+	vector<ControlPoint> pList;
+	ControlPoint qt;
+	for (const auto& p : points) {
+		double t = 0;
+		pList.push_back(prev);
+		for (int i = 0; i < DIVIDE_LINE; i++) {
+			t += percent;
+			switch (curve)
+			{
+			case Linear:
+				qt.pos    = (1 - t) * prev.pos + t * p.pos;
+				qt.orient = (1 - t) * prev.orient + t * p.orient;
+				break;
+			case Cardinal:
+				break;
+			case Cubic:
+				break;
+			default:
+				break;
+			}
+			pList.push_back(qt);
+		}
+		prev = p;
+	}
+
+	Pnt3f w;
+	Pnt3f pnt;
+	prev = pList.back();
+	glBegin(GL_LINE_LOOP);
+	for (const auto& p : pList) {
+		w = Pnt3f::CrossProduct(p.pos - prev.pos, prev.orient);
+		w.normalize();
+		w = w * 2;
+		pnt = (p.pos + w);
+		glVertex3d(pnt.x, pnt.y, pnt.z);
+		prev = p;
+	}
+	glEnd();
+
+	prev = pList.back();
+	glBegin(GL_LINE_LOOP);
+	for (const auto& p : pList) {
+		w = Pnt3f::CrossProduct(p.pos - prev.pos, prev.orient);
+		w.normalize();
+		w = w * 2;
+		pnt = (p.pos - w);
+		glVertex3d(pnt.x, pnt.y, pnt.z);
+		prev = p;
+	}
+	glEnd();
+	glLineWidth(4);
 }

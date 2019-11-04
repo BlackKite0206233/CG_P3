@@ -86,6 +86,9 @@
     <ClCompile Include="Src\Square.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="AppMain.ui">
@@ -124,6 +127,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Include\Track.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Point3d.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
