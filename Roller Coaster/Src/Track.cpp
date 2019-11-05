@@ -25,9 +25,10 @@
 *************************************************************************/
 
 #include "Track.h"
-
 #include <windows.h>
 #include <GL/gl.h>
+#include <queue>
+using namespace std;
 
 //****************************************************************************
 //
@@ -110,51 +111,43 @@ void CTrack::
 readPoints(const char* filename)
 //============================================================================
 {
-	FILE* fp = fopen(filename,"r");
-	if (!fp) {
+	ifstream fs = ifstream(filename);
+	if (!fs.is_open()) {
 		printf("Can't Open File!\n");
 	} 
 	else {
-		char buf[512];
+		int n;
+		fs >> n;
 
-		// first line = number of points
-		fgets(buf,512,fp);
-		size_t npts = (size_t) atoi(buf);
-
-		if( (npts<4) || (npts>65535)) {
+		if((n < 4)) {
 			printf("Illegal Number of Points Specified in File");
 		} else {
 			points.clear();
 			// get lines until EOF or we have enough points
-			while( (points.size() < npts) && fgets(buf,512,fp) ) {
-				Pnt3f pos,orient;
-				vector<const char*> words;
-				breakString(buf,words);
-				if (words.size() >= 3) {
-					pos.x = (float) strtod(words[0],0);
-					pos.y = (float) strtod(words[1],0);
-					pos.z = (float) strtod(words[2],0);
-				} else {
-					pos.x=0;
-					pos.y=0;
-					pos.z=0;
-				}
-				if (words.size() >= 6) {
-					orient.x = (float) strtod(words[3],0);
-					orient.y = (float) strtod(words[4],0);
-					orient.z = (float) strtod(words[5],0);
-				} else {
-					orient.x = 0;
-					orient.y = 1;
-					orient.z = 0;
-				}
-				orient.normalize();
-				points.push_back(ControlPoint(pos,orient));
+			for (int i = 0; i < n; i++) {
+				ControlPoint p;
+				double x, y, z, ox, oy, oz;
+				fs >> p.pos.x >> p.pos.y >> p.pos.z >> p.orient.x >> p.orient.y >> p.orient.z;
+				p.orient.normalize();
+				points.push_back(p);
 			}
 		}
-		fclose(fp);
+		fs >> pathN;
+		if (pathN < 4) {
+			cout << "error" << endl;
+		}
+		else {
+			for (int i = 0; i < pathN; i++) {
+				int parent, child;
+				fs >> parent >> child;
+				points[parent].children.insert(child);
+				points[child].parents.insert(parent);
+			}
+		}
+		fs.close();
 	}
 	trainU = 0;
+	BuildTrack();
 }
 
 //****************************************************************************
@@ -165,20 +158,23 @@ void CTrack::
 writePoints(const char* filename)
 //============================================================================
 {
-	FILE* fp = fopen(filename,"w");
-	if (!fp) {
+	ofstream fs = ofstream(filename);
+	if (!fs.is_open()) {
 		printf("Can't open file for writing");
 	} else {
-		fprintf(fp,"%d\n",points.size());
-		for(size_t i=0; i<points.size(); ++i)
-			fprintf(fp,"%g %g %g %g %g %g\n",
-				points[i].pos.x, points[i].pos.y, points[i].pos.z, 
-				points[i].orient.x, points[i].orient.y, points[i].orient.z);
-		fclose(fp);
+		fs << points.size() << endl;
+		for (const auto& p : points)
+			fs << p.pos.x << " " << p.pos.y << " " << p.pos.z << " " << p.orient.x << " " << p.orient.y << " " << p.orient.z << endl;
+		fs << pathN;
+		for (int i = 0; i < points.size(); i++)
+			for (const auto& c : points[i].children)
+				fs << i << " " << c << endl;
+		fs.close();
 	}
 }
 
-void calParam(const ControlPoint& p0, const ControlPoint& p1, const ControlPoint& p2, const ControlPoint& p3, 		  int curve, ControlPoint& a, ControlPoint& b, ControlPoint& c, ControlPoint& d) {
+void calParam(const ControlPoint& p0, const ControlPoint& p1, const ControlPoint& p2, const ControlPoint& p3, 
+							int curve, ControlPoint& a, ControlPoint& b, ControlPoint& c, ControlPoint& d) {
 	if (curve == Cardinal) {
 		a.pos = -0.5 * p0.pos + 1.5 * p1.pos - 1.5 * p2.pos + 0.5 * p3.pos;
 		b.pos =        p0.pos - 2.5 * p1.pos + 2   * p2.pos - 0.5 * p3.pos;
@@ -199,6 +195,33 @@ void calParam(const ControlPoint& p0, const ControlPoint& p1, const ControlPoint
 		b.orient =  0.5     * p0.orient -           p1.orient + 0.5     * p2.orient;
 		c.orient = -0.5     * p0.orient +                     + 0.5     * p2.orient;
 		d.orient =  1 / 6.0 * p0.orient + 2 / 3.0 * p1.orient + 1 / 6.0 * p2.orient;
+	}
+}
+
+void CTrack::BuildTrack() {
+	vertices.clear();
+	for (auto& p : points) {
+		p.visited = false;
+		p.visIter = p.children.begin();
+	}
+	int start;
+	queue<int> q;
+	for (int i = 0; i < points.size(); i++) {
+		if (points[i].visited)
+			continue;
+		q.push(i);
+		while (!q.empty()) {
+			int idx = q.front();
+			points[idx].visited = true;
+			q.pop();
+			if (curve == Linear) {
+				for (const auto& child : points[idx].children) {
+					if (!points[child].visited)
+						q.push(child);
+
+				}
+			}
+		}
 	}
 }
 

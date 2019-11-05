@@ -21,6 +21,12 @@ class CTrack;
 // be drawn, or adjust the lighting, or ...
 //#######################################################################
 
+enum CameraType {
+	World,
+	Top,
+	Train
+};
+
 
 class TrainView : public QGLWidget, protected QOpenGLFunctions_4_3_Core
 {  

@@ -228,17 +228,17 @@ void AppMain::ChangeCameraType( QString type )
 {
 	if( type == "World" )
 	{
-		this->trainview->camera = 0;
+		this->trainview->camera = World;
 		update();
 	}
 	else if( type == "Top" )
 	{
-		this->trainview->camera = 1;
+		this->trainview->camera = Top;
 		update();
 	}
 	else if( type == "Train" )
 	{
-		this->trainview->camera = 2;
+		this->trainview->camera = Train;
 		update();
 	}
 }
@@ -247,15 +247,15 @@ void AppMain::ChangeCurveType( QString type )
 {
 	if( type == "Linear" )
 	{
-		this->trainview->m_pTrack->curve = 0;
+		this->trainview->m_pTrack->curve = Linear;
 	}
 	else if( type == "Cardinal" )
 	{
-		this->trainview->m_pTrack->curve = 1;
+		this->trainview->m_pTrack->curve = Cardinal;
 	}
 	else if( type == "Cubic" )
 	{
-		this->trainview->m_pTrack->curve = 2;
+		this->trainview->m_pTrack->curve = Cubic;
 	}
 
 
@@ -265,15 +265,15 @@ void AppMain::ChangeTrackType( QString type )
 {
 	if( type == "Line" )
 	{
-		this->trainview->m_pTrack->track = 0;
+		this->trainview->m_pTrack->track = Line;
 	}
 	else if( type == "Track" )
 	{
-		this->trainview->m_pTrack->track = 1;
+		this->trainview->m_pTrack->track = Track;
 	}
 	else if( type == "Road" )
 	{
-		this->trainview->m_pTrack->track = 2;
+		this->trainview->m_pTrack->track = Road;
 	}
 }
 

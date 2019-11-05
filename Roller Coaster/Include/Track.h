@@ -25,12 +25,16 @@
 *************************************************************************/
 #pragma once
 
+#include <fstream>
+#include <iostream>
+#include <utility>
 #include <vector>
 #include "ControlPoint.h"
 
 #define DIVIDE_LINE 100
 
 using std::vector; // avoid having to say std::vector all of the time
+using std::pair;
 
 // make use of other data structures from this project
 
@@ -64,11 +68,13 @@ public:
 
 		void draw(bool doingShadows);
 
+		void BuildTrack();
 public:
 		// rather than have generic objects, we make a special case for these few
 		// objects that we know that all implementations are going to need and that
 		// we're going to have to handle specially
 		vector<ControlPoint> points;
+		vector<pair<ControlPoint, ControlPoint>> vertices;
 
 		//###################################################################
 		// TODO: you might want to do this differently
@@ -78,4 +84,5 @@ public:
 		float trainU;
 		int curve;
 		int track;
+		int pathN;
 };

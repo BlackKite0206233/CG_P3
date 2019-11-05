@@ -31,13 +31,14 @@
 #include "ControlPoint.h"
 #include "Utilities/3dUtils.h"
 
+using namespace std;
 //****************************************************************************
 //
 // * Default contructor
 //============================================================================
 ControlPoint::
 ControlPoint() 
-	: pos(0,0,0), orient(0,1,0)
+	: pos(0,0,0), orient(0,1,0), children(set<int>()), parents(set<int>())
 //============================================================================
 {
 }
@@ -48,7 +49,7 @@ ControlPoint()
 //============================================================================
 ControlPoint::
 ControlPoint(const Pnt3f &_pos) 
-	: pos(_pos), orient(0,1,0)
+	: pos(_pos), orient(0,1,0), children(set<int>()), parents(set<int>())
 //============================================================================
 {
 }
@@ -59,7 +60,7 @@ ControlPoint(const Pnt3f &_pos)
 //============================================================================
 ControlPoint::
 ControlPoint(const Pnt3f &_pos, const Pnt3f &_orient) 
-	: pos(_pos), orient(_orient)
+	: pos(_pos), orient(_orient), children(set<int>()), parents(set<int>())
 //============================================================================
 {
 	orient.normalize();

@@ -24,11 +24,13 @@
 
 *************************************************************************/
 #pragma once
-
+#include <set>
 #include "Utilities/Pnt3f.h"
 
+using namespace std;
+
 class ControlPoint {
-	public:
+public:
 		// constructors
 		// need a default constructor for making arrays
 		ControlPoint();					
@@ -42,7 +44,11 @@ class ControlPoint {
 		// draw the control point - assumes the color is correct
 		void draw();
 
-	public:
+public:
 		Pnt3f pos;         // Position of this control point
 		Pnt3f orient;		 // Orientation of this control point
+		set<int> children;
+		set<int> parents;
+		bool visited = false;
+		set<int>::iterator visIter;
 };
