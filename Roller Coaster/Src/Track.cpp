@@ -180,24 +180,24 @@ writePoints(const char* filename)
 
 void calParam(const ControlPoint& p0, const ControlPoint& p1, const ControlPoint& p2, const ControlPoint& p3, 		  int curve, ControlPoint& a, ControlPoint& b, ControlPoint& c, ControlPoint& d) {
 	if (curve == Cardinal) {
-		a.pos = -1 / 2.0 * p0.pos + 3 * p1.pos - 3       * p2.pos + 1 / 2.0 * p3.pos;
-		b.pos =  2       * p0.pos - 5 * p1.pos + 4       * p2.pos - 1 / 2.0 * p3.pos;
-		c.pos = -1 / 2.0 * p0.pos +            + 1 / 2.0 * p2.pos;
-		d.pos =                     2 * p1.pos;
+		a.pos = -0.5 * p0.pos + 1.5 * p1.pos - 1.5 * p2.pos + 0.5 * p3.pos;
+		b.pos =        p0.pos - 2.5 * p1.pos + 2   * p2.pos - 0.5 * p3.pos;
+		c.pos = -0.5 * p0.pos                + 0.5 * p2.pos;
+		d.pos =                       p1.pos;
 
-		a.orient = -1 / 2.0 * p0.orient + 3 * p1.orient - 3       * p2.orient + 1 / 2.0 * p3.orient;
-		b.orient =  2       * p0.orient - 5 * p1.orient + 4       * p2.orient - 1 / 2.0 * p3.orient;
-		c.orient = -1 / 2.0 * p0.orient +               + 1 / 2.0 * p2.orient;
-		d.orient =                        2 * p1.orient;
+		a.orient = -0.5 * p0.orient + 1.5 * p1.orient - 1.5 * p2.orient + 0.5 * p3.orient;
+		b.orient =        p0.orient - 2.5 * p1.orient + 2   * p2.orient - 0.5 * p3.orient;
+		c.orient = -0.5 * p0.orient                   + 0.5 * p2.orient;
+		d.orient =                          p1.orient;
 	} else {
-		a.pos = -1 / 6.0 * p0.pos + 1 / 2.0 * p1.pos - 1 / 2.0 * p2.pos + 1 / 6.0 * p3.pos;
-		b.pos =  1 / 2.0 * p0.pos - 1       * p1.pos + 1 / 2.0 * p2.pos;
-		c.pos = -1 / 2.0 * p0.pos +                  + 1 / 2.0 * p2.pos;
+		a.pos = -1 / 6.0 * p0.pos + 0.5     * p1.pos - 0.5     * p2.pos + 1 / 6.0 * p3.pos;
+		b.pos =  0.5     * p0.pos -           p1.pos + 0.5     * p2.pos;
+		c.pos = -0.5     * p0.pos +                  + 0.5     * p2.pos;
 		d.pos =  1 / 6.0 * p0.pos + 2 / 3.0 * p1.pos + 1 / 6.0 * p2.pos;
 
-		a.orient = -1 / 6.0 * p0.orient + 1 / 2.0 * p1.orient - 1 / 2.0 * p2.orient + 1 / 6.0 * p3.orient;
-		b.orient =  1 / 2.0 * p0.orient - 1       * p1.orient + 1 / 2.0 * p2.orient;
-		c.orient = -1 / 2.0 * p0.orient +                     + 1 / 2.0 * p2.orient;
+		a.orient = -1 / 6.0 * p0.orient + 0.5     * p1.orient - 0.5     * p2.orient + 1 / 6.0 * p3.orient;
+		b.orient =  0.5     * p0.orient -           p1.orient + 0.5     * p2.orient;
+		c.orient = -0.5     * p0.orient +                     + 0.5     * p2.orient;
 		d.orient =  1 / 6.0 * p0.orient + 2 / 3.0 * p1.orient + 1 / 6.0 * p2.orient;
 	}
 }
@@ -212,8 +212,8 @@ void CTrack::draw(bool doingShadows) {
 	if (curve == Linear) {
 		tmpPoints.push_back(points.front());
 	} else {
-		tmpPoints.push_back(points[0]]);
-		tmpPoints.push_back(points[1]]);
+		tmpPoints.push_back(points[0]);
+		tmpPoints.push_back(points[1]);
 		tmpPoints.insert(tmpPoints.begin(), points.back());
 	}
 
@@ -242,12 +242,11 @@ void CTrack::draw(bool doingShadows) {
 			}
 			pList.push_back(qt);
 		}
-		prev = p;
 	}
 
 	Pnt3f w;
 	Pnt3f pnt;
-	prev = pList.back();
+	ControlPoint prev = pList.back();
 	glBegin(GL_LINE_LOOP);
 	for (const auto& p : pList) {
 		w = Pnt3f::CrossProduct(p.pos - prev.pos, prev.orient);
