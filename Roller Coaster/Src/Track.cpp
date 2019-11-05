@@ -178,33 +178,67 @@ writePoints(const char* filename)
 	}
 }
 
+void calParam(const ControlPoint& p0, const ControlPoint& p1, const ControlPoint& p2, const ControlPoint& p3, 		  int curve, ControlPoint& a, ControlPoint& b, ControlPoint& c, ControlPoint& d) {
+	if (curve == Cardinal) {
+		a.pos = -1 / 2.0 * p0.pos + 3 * p1.pos - 3       * p2.pos + 1 / 2.0 * p3.pos;
+		b.pos =  2       * p0.pos - 5 * p1.pos + 4       * p2.pos - 1 / 2.0 * p3.pos;
+		c.pos = -1 / 2.0 * p0.pos +            + 1 / 2.0 * p2.pos;
+		d.pos =                     2 * p1.pos;
+
+		a.orient = -1 / 2.0 * p0.orient + 3 * p1.orient - 3       * p2.orient + 1 / 2.0 * p3.orient;
+		b.orient =  2       * p0.orient - 5 * p1.orient + 4       * p2.orient - 1 / 2.0 * p3.orient;
+		c.orient = -1 / 2.0 * p0.orient +               + 1 / 2.0 * p2.orient;
+		d.orient =                        2 * p1.orient;
+	} else {
+		a.pos = -1 / 6.0 * p0.pos + 1 / 2.0 * p1.pos - 1 / 2.0 * p2.pos + 1 / 6.0 * p3.pos;
+		b.pos =  1 / 2.0 * p0.pos - 1       * p1.pos + 1 / 2.0 * p2.pos;
+		c.pos = -1 / 2.0 * p0.pos +                  + 1 / 2.0 * p2.pos;
+		d.pos =  1 / 6.0 * p0.pos + 2 / 3.0 * p1.pos + 1 / 6.0 * p2.pos;
+
+		a.orient = -1 / 6.0 * p0.orient + 1 / 2.0 * p1.orient - 1 / 2.0 * p2.orient + 1 / 6.0 * p3.orient;
+		b.orient =  1 / 2.0 * p0.orient - 1       * p1.orient + 1 / 2.0 * p2.orient;
+		c.orient = -1 / 2.0 * p0.orient +                     + 1 / 2.0 * p2.orient;
+		d.orient =  1 / 6.0 * p0.orient + 2 / 3.0 * p1.orient + 1 / 6.0 * p2.orient;
+	}
+}
+
 void CTrack::draw(bool doingShadows) {
 	if (!doingShadows) {
 		glColor3d(1, 1, 1);
 	}
 	glLineWidth(4);
-	
-	ControlPoint prev = points.back();
+
+	vector<ControlPoint> tmpPoints = points;
+	if (curve == Linear) {
+		tmpPoints.push_back(points.front());
+	} else {
+		tmpPoints.push_back(points[0]]);
+		tmpPoints.push_back(points[1]]);
+		tmpPoints.insert(tmpPoints.begin(), points.back());
+	}
+
 	double percent = 1.0 / DIVIDE_LINE;
+	double t;
+	int idx;
 	vector<ControlPoint> pList;
 	ControlPoint qt;
-	for (const auto& p : points) {
-		double t = 0;
-		pList.push_back(prev);
-		for (int i = 0; i < DIVIDE_LINE; i++) {
-			t += percent;
-			switch (curve)
-			{
-			case Linear:
-				qt.pos    = (1 - t) * prev.pos + t * p.pos;
-				qt.orient = (1 - t) * prev.orient + t * p.orient;
-				break;
-			case Cardinal:
-				break;
-			case Cubic:
-				break;
-			default:
-				break;
+	ControlPoint a, b, c, d;
+	for (int i = 0; i < points.size(); i++) {
+		idx = i + (curve != Linear);
+		t   = 0;
+
+		if (curve != Linear) {
+			calParam(tmpPoints[idx - 1], tmpPoints[idx], tmpPoints[idx + 1], tmpPoints[idx + 2], curve, 
+					 a, b, c, d);
+		}
+
+		for (int j = 0; j < DIVIDE_LINE; j++, t += percent) {
+			if (curve == Linear) {
+				qt.pos    = (1 - t) * tmpPoints[idx].pos    + t * tmpPoints[idx + 1].pos;
+				qt.orient = (1 - t) * tmpPoints[idx].orient + t * tmpPoints[idx + 1].orient;
+			} else {
+				qt.pos    = pow(t, 3) * a.pos    + pow(t, 2) * b.pos    + t * c.pos    + d.pos;
+				qt.orient = pow(t, 3) * a.orient + pow(t, 2) * b.orient + t * c.orient + d.orient;
 			}
 			pList.push_back(qt);
 		}

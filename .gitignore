@@ -1,4 +1,5 @@
 .vs/
+.vscode/
 x64/*/*.exe
 x64/*/*.ilk
 x64/*/*.pdb
