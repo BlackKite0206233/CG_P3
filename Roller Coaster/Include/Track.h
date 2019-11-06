@@ -29,12 +29,14 @@
 #include <iostream>
 #include <utility>
 #include <vector>
+#include <map>
 #include "ControlPoint.h"
 
 #define DIVIDE_LINE 100
 
 using std::vector; // avoid having to say std::vector all of the time
 using std::pair;
+using std::map;
 
 // make use of other data structures from this project
 
@@ -76,7 +78,7 @@ public:
 		// objects that we know that all implementations are going to need and that
 		// we're going to have to handle specially
 		vector<ControlPoint> points;
-		vector<Path> path;
+		vector<Path> paths;
 
 		//###################################################################
 		// TODO: you might want to do this differently
@@ -89,7 +91,16 @@ public:
 		int pathN;
 };
 
+struct MapComp {
+	bool operator() (const pair<int, int>& a, const pair<int, int>& b) const {
+		if (a.first < b.first) return true;
+		if (a.first > b.first) return false;
+		return a.second < b.second;
+	}
+};
+
 class Path {
 public:
-	vector<ControlPoint> points;
+	ControlPoint p0, p1;
+	map<pair<int, int>, vector<ControlPoint>, MapComp> points;
 };
