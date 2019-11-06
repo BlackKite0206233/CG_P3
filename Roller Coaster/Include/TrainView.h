@@ -1,6 +1,7 @@
 #ifndef TRAINVIEW_H  
 #define TRAINVIEW_H  
 #include <QGLWidget> 
+#include <vector>
 #include <QtGui>  
 #include <QtOpenGL>  
 #include <GL/GLU.h>
@@ -11,6 +12,9 @@
 #include "Track.H"
 #include "Triangle.h"
 #include "Square.h"
+#include "Train.h"
+
+using namespace std;
 
 class AppMain;
 class CTrack;
@@ -74,6 +78,6 @@ public:
 	GLfloat ProjectionMatrex[16];
 	GLfloat ModelViewMatrex[16];
 	QVector<QOpenGLTexture*> Textures;
-
+	vector<CTrain> trains;
 };  
 #endif // TRAINVIEW_H  

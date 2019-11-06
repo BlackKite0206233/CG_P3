@@ -3,6 +3,7 @@
 TrainView::TrainView(QWidget *parent) :  
 QGLWidget(parent)  
 {  
+	QWidget::setFocusPolicy(Qt::StrongFocus);
 	resetArcball();
 	
 }  
@@ -77,7 +78,7 @@ void TrainView::paintGL()
 	glEnable(GL_LIGHT0);
 
 	// top view only needs one light
-	if (this->camera == 1) {
+	if (this->camera == Top) {
 		glDisable(GL_LIGHT1);
 		glDisable(GL_LIGHT2);
 	} else {
@@ -128,7 +129,7 @@ void TrainView::paintGL()
 	drawStuff();
 
 	// this time drawing is for shadows (except for top view)
-	if (this->camera != 1) {
+	if (this->camera != Top) {
 		setupShadows();
 		drawStuff(true);
 		unsetupShadows();
@@ -139,6 +140,7 @@ void TrainView::paintGL()
 	//Get projection matrix
  	glGetFloatv(GL_PROJECTION_MATRIX,ProjectionMatrex);
 
+	/*
 	//Call triangle's render function, pass ModelViewMatrex and ProjectionMatrex
  	triangle->Paint(ProjectionMatrex,ModelViewMatrex);
     
@@ -153,6 +155,7 @@ void TrainView::paintGL()
 		//Call square's render function, pass ModelViewMatrex and ProjectionMatrex
 		square->Paint(ProjectionMatrex,ModelViewMatrex);
 	square->End();
+	*/
 }
 
 //************************************************************************
@@ -169,11 +172,11 @@ setProjection()
 	float aspect = static_cast<float>(width()) / static_cast<float>(height());
 
 	// Check whether we use the world camp
-	if (this->camera == 0){
+	if (this->camera == World){
 		arcball.setProjection(false);
 		update();
 	// Or we use the top cam
-	}else if (this->camera == 1) {
+	}else if (this->camera == Top) {
 		float wi, he;
 		if (aspect >= 1) {
 			wi = 110;
@@ -223,7 +226,7 @@ void TrainView::drawStuff(bool doingShadows)
 	// Draw the control points
 	// don't draw the control points if you're driving 
 	// (otherwise you get sea-sick as you drive through them)
-	if (this->camera != 2) {
+	if (this->camera != Train) {
 		for(size_t i = 0; i < this->m_pTrack->points.size(); ++i) {
 			if (!doingShadows) {
 				if ( ((int) i) != selectedCube)
@@ -244,7 +247,10 @@ void TrainView::drawStuff(bool doingShadows)
 #ifdef EXAMPLE_SOLUTION
 	drawTrack(this, doingShadows);
 #endif
-	this->m_pTrack->draw(doingShadows);
+	this->m_pTrack->Draw(doingShadows);
+	for (auto& train : trains) {
+		train.Draw(doingShadows);
+	}
 	// draw the train
 	//####################################################################
 	// TODO: 

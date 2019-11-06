@@ -1,5 +1,8 @@
 #pragma once
 #include "ControlPoint.h"
+#include <vector>
+
+using namespace std;
 
 class CTrain
 {
@@ -8,10 +11,13 @@ public:
 
 public:
 	void Move();
+	void Draw(bool doingShadows);
 
 public:
 	double speed;
 	bool isMove;
-	ControlPoint poistion;
+	Pnt3f pos;  
+	Pnt3f orient;
+	vector<CTrain> car;
 };
 

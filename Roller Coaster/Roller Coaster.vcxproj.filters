@@ -89,7 +89,7 @@
     <ClCompile Include="Src\Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Train.cpp">
+    <ClCompile Include="Src\Train.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -138,7 +138,7 @@
     <ClInclude Include="Include\Point3d.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Train.h">
+    <ClInclude Include="Include\Train.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
