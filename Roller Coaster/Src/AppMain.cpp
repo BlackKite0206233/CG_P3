@@ -80,7 +80,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 	}
 
 	if (e->type() == QEvent::MouseButtonRelease) {
-		this->canpan = false;
+		// this->canpan = false;
 		this->isHover = false;
 		trainview->arcball.mode = trainview->arcball.None;
 	}
@@ -133,10 +133,19 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 	}
 
 	if(e->type() == QEvent::KeyPress){
-		 QKeyEvent *event = static_cast< QKeyEvent*> (e);
+		QKeyEvent *event = static_cast< QKeyEvent*> (e);
 		// Set up the mode
-		if (event->key() == Qt::Key_Alt) 
+		if (event->key() == Qt::Key_Alt) {
 			this->canpan = true;
+		}
+	}
+
+	if (e->type() == QEvent::KeyRelease) {
+		QKeyEvent* event = static_cast<QKeyEvent*> (e);
+		// Set up the mode
+		if (event->key() == Qt::Key_Alt) {
+			this->canpan = false;
+		}
 	}
 
 	return QWidget::eventFilter(watched, e);
