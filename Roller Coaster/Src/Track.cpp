@@ -278,10 +278,12 @@ void CTrack::BuildTrack() {
 							path.points[pair<int, int>(p0Id, p3Id)] = pointSet;
 							continue;
 						}
+
 						for (int j = 0; j < DIVIDE_LINE; j++, t += percent) {
 							pushInterpolation(pointSet, t, curve, a, b, c, d);
 						}
 						pushInterpolation(pointSet, t, curve, a, b, c, d);
+
 						path.points[pair<int, int>(p0Id, p3Id)] = pointSet;
 						paths.push_back(path);
 					}
@@ -325,16 +327,16 @@ void drawTrack(const vector<ControlPoint>& pointSet) {
 
 void drawRoad(const vector<ControlPoint>& pointSet) {
 	Pnt3f w;
-	glBegin(GL_QUADS);
+	glBegin(GL_TRIANGLE_STRIP);
 	for (int i = 0; i < pointSet.size() - 1; i++) {
 		w = Pnt3f::CrossProduct(pointSet[i + 1].pos - pointSet[i].pos, pointSet[i].orient);
 		w.normalize();
 		w = w * 2.4;
 		glVertex3dv((pointSet[i    ].pos + w).v());
-		glVertex3dv((pointSet[i + 1].pos + w).v());
-		glVertex3dv((pointSet[i + 1].pos - w).v());
 		glVertex3dv((pointSet[i    ].pos - w).v());
 	}
+	glVertex3dv((pointSet.back().pos + w).v());
+	glVertex3dv((pointSet.back().pos - w).v());
 	glEnd();
 }
 
