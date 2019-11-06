@@ -293,33 +293,70 @@ void CTrack::BuildTrack() {
 
 void drawLine(const vector<ControlPoint>& pointSet, int side) {
 	Pnt3f w;
-	Pnt3f pnt;
 	glBegin(GL_LINE_STRIP);
 	for (int i = 0; i < pointSet.size() - 1; i++) {
 		w = Pnt3f::CrossProduct(pointSet[i + 1].pos - pointSet[i].pos, pointSet[i].orient);
 		w.normalize();
 		w = w * 2.5;
-		pnt = (pointSet[i].pos + side * w);
-		glVertex3d(pnt.x, pnt.y, pnt.z);
+		glVertex3dv((pointSet[i].pos + side * w).v());
 	}
-	pnt = (pointSet.back().pos + side * w);
-	glVertex3d(pnt.x, pnt.y, pnt.z);
+	glVertex3dv((pointSet.back().pos + side * w).v());
 	glEnd();
 }
 
-void CTrack::draw(bool doingShadows) {
-	if (!doingShadows) {
-		glColor3d(1, 1, 1);
+void drawTrack(const vector<ControlPoint>& pointSet) {
+	Pnt3f w, v;
+	Pnt3f p;
+	glBegin(GL_QUADS);
+	for (int i = 0; i < pointSet.size(); i += 5) {
+		v = pointSet[i + 1].pos - pointSet[i].pos;
+		v.normalize();
+		w = Pnt3f::CrossProduct(v, pointSet[i].orient);
+		w.normalize();
+		w = w * 5;
+		p = pointSet[i].pos - pointSet[i].orient;
+		glVertex3dv((p + w + v).v());
+		glVertex3dv((p + w - v).v());
+		glVertex3dv((p - w - v).v());
+		glVertex3dv((p - w + v).v());
 	}
+	glEnd();
+}
+
+void drawRoad(const vector<ControlPoint>& pointSet) {
+	Pnt3f w;
+	glBegin(GL_QUADS);
+	for (int i = 0; i < pointSet.size() - 1; i++) {
+		w = Pnt3f::CrossProduct(pointSet[i + 1].pos - pointSet[i].pos, pointSet[i].orient);
+		w.normalize();
+		w = w * 2.4;
+		glVertex3dv((pointSet[i    ].pos + w).v());
+		glVertex3dv((pointSet[i + 1].pos + w).v());
+		glVertex3dv((pointSet[i + 1].pos - w).v());
+		glVertex3dv((pointSet[i    ].pos - w).v());
+	}
+	glEnd();
+}
+
+void CTrack::Draw(bool doingShadows) {
 	glLineWidth(4);
 
-	Pnt3f w;
-	Pnt3f pnt;
 	for (const auto& path : paths) {
 		for (const auto& pointSet : path.points) {
+			if (!doingShadows) {
+				glColor3d(0.22, 0.18, 0.04);
+			}
 			drawLine(pointSet.second, 1);
 			drawLine(pointSet.second, -1);
+			if (!doingShadows) {
+				glColor3d(0.49, 0.38, 0.11);
+			}
+			if (track == Track)
+				drawTrack(pointSet.second);
+			else if (track == Road)
+				drawRoad(pointSet.second);
 		}
 	}
+
 	glLineWidth(1);
 }

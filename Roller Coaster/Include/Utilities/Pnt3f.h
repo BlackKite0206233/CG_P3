@@ -53,7 +53,7 @@ public:
 
 public:
 		// if you want to treat this thing as a C vector (point to float)
-		float* v();
+		double* v();
 
 		// some useful operators - not the complete set, but just some basic ones
 		Pnt3f operator * (const Pnt3f&) const;	/* cross product */
@@ -70,9 +70,9 @@ public:
 public:
 		// for simplicity, we just make this public so everything can access
 		// it. real software engineers would make the internal data private.
-		float x;			/* isn't this obvious */
-		float y;
-		float z;
+		double x;			/* isn't this obvious */
+		double y;
+		double z;
 };
 //*****************************************************************************
 //
@@ -84,7 +84,7 @@ public:
 //
 // *
 //=============================================================================
-inline float* Pnt3f::
+inline double* Pnt3f::
 v()
 //=============================================================================
 {

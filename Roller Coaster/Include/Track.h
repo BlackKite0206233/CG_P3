@@ -70,7 +70,7 @@ public:
 		void readPoints(const char* filename);
 		void writePoints(const char* filename);
 
-		void draw(bool doingShadows);
+		void Draw(bool doingShadows);
 
 		void BuildTrack();
 public:
