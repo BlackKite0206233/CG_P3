@@ -58,6 +58,8 @@ public:
 	void initializeGL();
 	void initializeTexture();
 
+	void DrawTrain();
+
 
 public:
 	ArcBallCam		arcball;			// keep an ArcBall for the UI
