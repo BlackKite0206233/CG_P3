@@ -199,27 +199,63 @@ void calParam(const ControlPoint& p0, const ControlPoint& p1, const ControlPoint
 }
 
 void CTrack::BuildTrack() {
-	vertices.clear();
+	path.clear();
 	for (auto& p : points) {
 		p.visited = false;
-		p.visIter = p.children.begin();
 	}
+
+	double percent = 1.0 / DIVIDE_LINE;
+	double t;
 	int start;
 	queue<int> q;
 	for (int i = 0; i < points.size(); i++) {
 		if (points[i].visited)
 			continue;
 		q.push(i);
+		start = i;
 		while (!q.empty()) {
 			int idx = q.front();
-			points[idx].visited = true;
 			q.pop();
-			if (curve == Linear) {
-				for (const auto& child : points[idx].children) {
-					if (!points[child].visited)
-						q.push(child);
 
+			if (points[idx].visited)
+				continue;
+
+			points[idx].visited = true;
+			for (const auto& child : points[idx].children) {
+				if (!points[child].visited)
+					q.push(child);
+
+				ControlPoint p0, p1, p2, p3, a, b, c, d, qt, qt_1;
+				if (curve != Linear) {
+					p1 = points[idx];
+					p0 = p1.parents.size()  ? points[*p1.parents.begin()]  : points[start];
+					p2 = points[child];
+					p3 = p2.children.size() ? points[*p2.children.begin()] : points[start];
+					calParam(p0, p1, p2, p3, curve, a, b, c, d);
 				}
+
+				t = 0;
+				path.push_back(Path());
+				for (int j = 0; j < DIVIDE_LINE; j++, t += percent) {
+					if (curve == Linear) {
+						qt.pos    = (1 - t) * points[idx].pos    + t * points[child].pos;
+						qt.orient = (1 - t) * points[idx].orient + t * points[child].orient;
+					}
+					else {
+						qt.pos    = pow(t, 3) * a.pos    + pow(t, 2) * b.pos    + t * c.pos    + d.pos;
+						qt.orient = pow(t, 3) * a.orient + pow(t, 2) * b.orient + t * c.orient + d.orient;
+					}
+					path.back().points.push_back(qt);
+				}
+				if (curve == Linear) {
+					qt.pos    = (1 - t) * points[idx].pos    + t * points[child].pos;
+					qt.orient = (1 - t) * points[idx].orient + t * points[child].orient;
+				}
+				else {
+					qt.pos    = pow(t, 3) * a.pos    + pow(t, 2) * b.pos    + t * c.pos    + d.pos;
+					qt.orient = pow(t, 3) * a.orient + pow(t, 2) * b.orient + t * c.orient + d.orient;
+				}
+				path.back().points.push_back(qt);
 			}
 		}
 	}
@@ -231,66 +267,33 @@ void CTrack::draw(bool doingShadows) {
 	}
 	glLineWidth(4);
 
-	vector<ControlPoint> tmpPoints = points;
-	if (curve == Linear) {
-		tmpPoints.push_back(points.front());
-	} else {
-		tmpPoints.push_back(points[0]);
-		tmpPoints.push_back(points[1]);
-		tmpPoints.insert(tmpPoints.begin(), points.back());
-	}
-
-	double percent = 1.0 / DIVIDE_LINE;
-	double t;
-	int idx;
-	vector<ControlPoint> pList;
-	ControlPoint qt;
-	ControlPoint a, b, c, d;
-	for (int i = 0; i < points.size(); i++) {
-		idx = i + (curve != Linear);
-		t   = 0;
-
-		if (curve != Linear) {
-			calParam(tmpPoints[idx - 1], tmpPoints[idx], tmpPoints[idx + 1], tmpPoints[idx + 2], curve, 
-					 a, b, c, d);
-		}
-
-		for (int j = 0; j < DIVIDE_LINE; j++, t += percent) {
-			if (curve == Linear) {
-				qt.pos    = (1 - t) * tmpPoints[idx].pos    + t * tmpPoints[idx + 1].pos;
-				qt.orient = (1 - t) * tmpPoints[idx].orient + t * tmpPoints[idx + 1].orient;
-			} else {
-				qt.pos    = pow(t, 3) * a.pos    + pow(t, 2) * b.pos    + t * c.pos    + d.pos;
-				qt.orient = pow(t, 3) * a.orient + pow(t, 2) * b.orient + t * c.orient + d.orient;
-			}
-			pList.push_back(qt);
-		}
-	}
-
 	Pnt3f w;
 	Pnt3f pnt;
-	ControlPoint prev = pList.back();
-	glBegin(GL_LINE_LOOP);
-	for (const auto& p : pList) {
-		w = Pnt3f::CrossProduct(p.pos - prev.pos, prev.orient);
-		w.normalize();
-		w = w * 2;
-		pnt = (p.pos + w);
+	for (const auto& p : path) {
+		glBegin(GL_LINE_STRIP);
+		for (int i = 0; i < p.points.size() - 1; i++) {
+			w = Pnt3f::CrossProduct(p.points[i + 1].pos - p.points[i].pos, p.points[i].orient);
+			w.normalize();
+			w = w * 2;
+			pnt = (p.points[i].pos + w);
+			glVertex3d(pnt.x, pnt.y, pnt.z);
+		}
+		pnt = (p.points.back().pos + w);
 		glVertex3d(pnt.x, pnt.y, pnt.z);
-		prev = p;
-	}
-	glEnd();
+		glEnd();
 
-	prev = pList.back();
-	glBegin(GL_LINE_LOOP);
-	for (const auto& p : pList) {
-		w = Pnt3f::CrossProduct(p.pos - prev.pos, prev.orient);
-		w.normalize();
-		w = w * 2;
-		pnt = (p.pos - w);
+		glBegin(GL_LINE_STRIP);
+		for (int i = 0; i < p.points.size() - 1; i++) {
+			w = Pnt3f::CrossProduct(p.points[i + 1].pos - p.points[i].pos, p.points[i].orient);
+			w.normalize();
+			w = w * 2;
+			pnt = (p.points[i].pos - w);
+			glVertex3d(pnt.x, pnt.y, pnt.z);
+		}
+		pnt = (p.points.back().pos - w);
 		glVertex3d(pnt.x, pnt.y, pnt.z);
-		prev = p;
+		glEnd();
 	}
-	glEnd();
-	glLineWidth(4);
+
+	glLineWidth(1);
 }

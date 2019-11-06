@@ -50,6 +50,8 @@ enum TrackType {
 	Road,
 };
 
+class Path;
+
 class CTrack {
 public:		
 		// Constructor
@@ -74,7 +76,7 @@ public:
 		// objects that we know that all implementations are going to need and that
 		// we're going to have to handle specially
 		vector<ControlPoint> points;
-		vector<pair<ControlPoint, ControlPoint>> vertices;
+		vector<Path> path;
 
 		//###################################################################
 		// TODO: you might want to do this differently
@@ -85,4 +87,9 @@ public:
 		int curve;
 		int track;
 		int pathN;
+};
+
+class Path {
+public:
+	vector<ControlPoint> points;
 };

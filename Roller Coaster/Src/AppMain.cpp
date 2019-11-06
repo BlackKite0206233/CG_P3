@@ -122,6 +122,8 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			cp->pos.x = (float) rx;
 			cp->pos.y = (float) ry;
 			cp->pos.z = (float) rz;
+
+			trainview->m_pTrack->BuildTrack();
 		}
 		if(trainview->arcball.mode != trainview->arcball.None) { // we're taking the drags
 			float x,y;
@@ -257,8 +259,7 @@ void AppMain::ChangeCurveType( QString type )
 	{
 		this->trainview->m_pTrack->curve = Cubic;
 	}
-
-
+	trainview->m_pTrack->BuildTrack();
 }
 
 void AppMain::ChangeTrackType( QString type )
@@ -393,32 +394,35 @@ void AppMain::RotateControlPointSubZ()
 
 void AppMain::ChangeCamToWorld()
 {
-	this->trainview->camera = 0;
+	this->trainview->camera = World;
 }
 
 void AppMain::ChangeCamToTop()
 {
-	this->trainview->camera = 1;
+	this->trainview->camera = Top;
 }
 
 void AppMain::ChangeCamToTrain()
 {
-	this->trainview->camera = 2;
+	this->trainview->camera = Train;
 }
 
 void AppMain::ChangeCurveToLinear()
 {
 	this->trainview->m_pTrack->curve = Linear;
+	trainview->m_pTrack->BuildTrack();
 }
 
 void AppMain::ChangeCurveToCardinal()
 {
 	this->trainview->m_pTrack->curve = Cardinal;
+	trainview->m_pTrack->BuildTrack();
 }
 
 void AppMain::ChangeCurveToCubic()
 {
 	this->trainview->m_pTrack->curve = Cubic;
+	trainview->m_pTrack->BuildTrack();
 }
 
 void AppMain::ChangeTrackToLine()
