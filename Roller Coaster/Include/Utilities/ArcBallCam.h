@@ -169,6 +169,11 @@ class ArcBallCam {
 			Pan
 		} mode;	
 
+		enum {
+			Perspective,
+			Orthogonal
+		} type;
+
 			
 		
 		float				panX;		// this keeps track of the panning - the current pan is 

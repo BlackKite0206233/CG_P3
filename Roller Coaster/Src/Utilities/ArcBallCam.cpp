@@ -120,15 +120,34 @@ setProjection(bool doClear)
 
   // Compute the aspect ratio so we don't distort things
   double aspect = (wind->width() / wind->height());
-  gluPerspective(fieldOfView, aspect, .1, 1000);
+	if (type == Perspective) {
+		gluPerspective(fieldOfView, aspect, .1, 1000);
+	}
+	else {
+		float wi, he;
+		if (aspect >= 1) {
+			wi = 110;
+			he = wi / aspect;
+		}
+		else {
+			he = 110;
+			wi = he * aspect;
+		}
+		glOrtho(-wi, wi, -he, he, 1000, -1000);
+	}
 
   // Put the camera where we want it to be
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
   // Use the transformation in the ArcBall
-  glTranslatef(-eyeX, -eyeY, -eyeZ);
-  multMatrix();
+	glTranslatef(-eyeX, -eyeY, -eyeZ);
+	if (type == Perspective) {
+		multMatrix();
+	}
+	else {
+		glRotatef(-90, 1, 0, 0);
+	}
 }
 
 //**************************************************************************

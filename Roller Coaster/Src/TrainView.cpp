@@ -5,6 +5,12 @@ QGLWidget(parent)
 {  
 	QWidget::setFocusPolicy(Qt::StrongFocus);
 	cameras = vector<ArcBallCam>(3);
+	cameras[0].setup(this, 40, 250, .2f, .4f, 0);
+	cameras[0].type = ArcBallCam::Perspective;
+	cameras[1].setup(this, 40, 250, 1, 0, 0);
+	cameras[1].type = ArcBallCam::Orthogonal;
+	cameras[2].setup(this, 40, 250, .2f, .4f, 0);
+	cameras[2].type = ArcBallCam::Perspective;
 	SetCamera(World);
 	resetArcball();
 }  
@@ -198,8 +204,8 @@ setProjection()
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 		glRotatef(-90,1,0,0);
-		update();
 		*/
+		update();
 	} 
 	// Or do the train view or other view here
 	//####################################################################

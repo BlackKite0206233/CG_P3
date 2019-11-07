@@ -90,6 +90,9 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 
 			if(this->canpan)
 				trainview->arcball->mode = trainview->arcball->Pan;
+			else {
+				trainview->arcball->mode = trainview->arcball->None;
+			}
 		}
 		if(event->button()==Qt::RightButton){
 			trainview->arcball->mode = trainview->arcball->Rotate;
@@ -168,6 +171,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 		switch (event->key()) {
 		case Qt::Key_Alt:
 			this->canpan = false;
+			trainview->arcball->mode = trainview->arcball->None;
 			break;
 
 		case Qt::Key_P:
