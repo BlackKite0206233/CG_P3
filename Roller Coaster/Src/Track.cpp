@@ -255,8 +255,8 @@ void CTrack::BuildTrack() {
 					p3Set.insert(start);
 				
 				Path path;
-				path.p0 = points[idx];
-				path.p1 = points[child];
+				path.p0 = idx;
+				path.p1 = child;
 
 				bool isFirst = true;
 				for (const auto& p0Id : p1.parents) {
@@ -285,7 +285,7 @@ void CTrack::BuildTrack() {
 						pushInterpolation(pointSet, t, curve, a, b, c, d);
 
 						path.points[pair<int, int>(p0Id, p3Id)] = pointSet;
-						paths.push_back(path);
+						paths[pair<int, int>(idx, child)] = path;
 					}
 				}
 			}
@@ -332,8 +332,8 @@ void drawRoad(const vector<ControlPoint>& pointSet) {
 		w = Pnt3f::CrossProduct(pointSet[i + 1].pos - pointSet[i].pos, pointSet[i].orient);
 		w.normalize();
 		w = w * 2.4;
-		glVertex3dv((pointSet[i    ].pos + w).v());
-		glVertex3dv((pointSet[i    ].pos - w).v());
+		glVertex3dv((pointSet[i ].pos + w).v());
+		glVertex3dv((pointSet[i ].pos - w).v());
 	}
 	glVertex3dv((pointSet.back().pos + w).v());
 	glVertex3dv((pointSet.back().pos - w).v());
@@ -344,7 +344,7 @@ void CTrack::Draw(bool doingShadows) {
 	glLineWidth(4);
 
 	for (const auto& path : paths) {
-		for (const auto& pointSet : path.points) {
+		for (const auto& pointSet : path.second.points) {
 			if (!doingShadows) {
 				glColor3d(0.22, 0.18, 0.04);
 			}
@@ -361,4 +361,9 @@ void CTrack::Draw(bool doingShadows) {
 	}
 
 	glLineWidth(1);
+}
+
+void CTrack::SetCurve(CurveType type) {
+	curve = type;
+	BuildTrack();
 }

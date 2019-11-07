@@ -53,6 +53,7 @@ enum TrackType {
 };
 
 class Path;
+struct MapComp;
 
 class CTrack {
 public:		
@@ -65,6 +66,7 @@ public:
 		// than 4 points)
 		void resetPoints();
 
+		void SetCurve(CurveType);
 
 		// read and write to files
 		void readPoints(const char* filename);
@@ -78,7 +80,7 @@ public:
 		// objects that we know that all implementations are going to need and that
 		// we're going to have to handle specially
 		vector<ControlPoint> points;
-		vector<Path> paths;
+		map<pair<int, int>, Path, MapComp> paths;
 
 		//###################################################################
 		// TODO: you might want to do this differently
@@ -101,6 +103,6 @@ struct MapComp {
 
 class Path {
 public:
-	ControlPoint p0, p1;
+	int p0, p1;
 	map<pair<int, int>, vector<ControlPoint>, MapComp> points;
 };
