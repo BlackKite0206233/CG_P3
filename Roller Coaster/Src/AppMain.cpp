@@ -15,12 +15,13 @@ AppMain::AppMain(QWidget *parent)
 	setGeometry(100,25,1000,768);   
 	ui.mainLayout->layout()->addWidget(trainview);
 	trainview->installEventFilter(this);
+	this->currentMode = None;
 	this->canpan = false;
 	this->isHover = false;
 	this->trainview->camera = 0;
 	this->trainview->m_pTrack->track = 0;
 	this->trainview->m_pTrack->curve = 0;
-	this->trainview->isrun = false;
+	CTrain::isMove = false;
 
 	setWindowTitle( "Roller Coaster" );
 
@@ -59,36 +60,51 @@ AppMain::~AppMain()
 
 }
 
+void changeMode(int& currentMode, Mode newMode) {
+	currentMode = (currentMode == newMode) ? None : newMode;
+}
+
 bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 	if (e->type() == QEvent::MouseButtonPress) {
 		QMouseEvent *event = static_cast<QMouseEvent*> (e);
 		// Get the mouse position
 		float x, y;
-		trainview->arcball.getMouseNDC((float)event->localPos().x(), (float)event->localPos().y(), x,y);
+		trainview->arcball->getMouseNDC((float)event->localPos().x(), (float)event->localPos().y(), x,y);
 
 		// Compute the mouse position
-		trainview->arcball.down(x, y);
+		trainview->arcball->down(x, y);
 		if(event->button()==Qt::LeftButton){
-			trainview->doPick(event->localPos().x(), event->localPos().y());
 			this->isHover = true;
+			switch (currentMode) {
+			case None:
+				trainview->doPick(event->localPos().x(), event->localPos().y());
+				break;
+			case InsertPoint:
+				break;
+			case InsertTrain:
+				break;
+			case InsertCar:
+				break;
+			}
+
 			if(this->canpan)
-				trainview->arcball.mode = trainview->arcball.Pan;
+				trainview->arcball->mode = trainview->arcball->Pan;
 		}
 		if(event->button()==Qt::RightButton){
-			trainview->arcball.mode = trainview->arcball.Rotate;
+			trainview->arcball->mode = trainview->arcball->Rotate;
 		}
 	}
 
 	if (e->type() == QEvent::MouseButtonRelease) {
 		// this->canpan = false;
 		this->isHover = false;
-		trainview->arcball.mode = trainview->arcball.None;
+		trainview->arcball->mode = trainview->arcball->None;
 	}
 
 	if (e->type() == QEvent::Wheel) {
 		QWheelEvent *event = static_cast<QWheelEvent*> (e);
 		float zamt = (event->delta() < 0) ? 1.1f : 1/1.1f;
-		trainview->arcball.eyeZ *= zamt;
+		trainview->arcball->eyeZ *= zamt;
 	}
 
 	if (e->type() == QEvent::MouseMove) {
@@ -111,24 +127,29 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			int i1 = gluUnProject((double) x, (double) y, .25, mat1, mat2, viewport, &r1x, &r1y, &r1z);
 			int i2 = gluUnProject((double) x, (double) y, .75, mat1, mat2, viewport, &r2x, &r2y, &r2z);
 
-			double rx, ry, rz;
-			mousePoleGo(r1x, r1y, r1z, r2x, r2y, r2z, 
-				static_cast<double>(cp->pos.x), 
-				static_cast<double>(cp->pos.y),
-				static_cast<double>(cp->pos.z),
-				rx, ry, rz,
-				false);
+			if (currentMode == None) {
+				double rx, ry, rz;
+				mousePoleGo(r1x, r1y, r1z, r2x, r2y, r2z, 
+					static_cast<double>(cp->pos.x), 
+					static_cast<double>(cp->pos.y),
+					static_cast<double>(cp->pos.z),
+					rx, ry, rz,
+					false);
 
-			cp->pos.x = (float) rx;
-			cp->pos.y = (float) ry;
-			cp->pos.z = (float) rz;
+				cp->pos.x = (float) rx;
+				cp->pos.y = (float) ry;
+				cp->pos.z = (float) rz;
+			}
+			else if (currentMode == RotatePoint) {
+
+			}
 
 			trainview->m_pTrack->BuildTrack();
 		}
-		if(trainview->arcball.mode != trainview->arcball.None) { // we're taking the drags
+		if(trainview->arcball->mode != trainview->arcball->None) { // we're taking the drags
 			float x,y;
-			trainview->arcball.getMouseNDC((float)event->localPos().x(), (float)event->localPos().y(),x,y);
-			trainview->arcball.computeNow(x,y);
+			trainview->arcball->getMouseNDC((float)event->localPos().x(), (float)event->localPos().y(),x,y);
+			trainview->arcball->computeNow(x,y);
 		};
 	}
 
@@ -143,8 +164,53 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 	if (e->type() == QEvent::KeyRelease) {
 		QKeyEvent* event = static_cast<QKeyEvent*> (e);
 		// Set up the mode
-		if (event->key() == Qt::Key_Alt) {
+		switch (event->key()) {
+		case Qt::Key_Alt:
 			this->canpan = false;
+			break;
+
+		case Qt::Key_P:
+			changeMode(currentMode, InsertPoint);
+			break;
+		case Qt::Key_T:
+			changeMode(currentMode, InsertTrain);
+			break;
+		case Qt::Key_C:
+			changeMode(currentMode, InsertCar);
+			break;
+		case Qt::Key_R:
+			changeMode(currentMode, RotatePoint);
+			break;
+
+		case Qt::Key_1:
+			trainview->SetCamera(World);
+			break;
+		case Qt::Key_2:
+			trainview->SetCamera(Top);
+			break;
+		case Qt::Key_3:
+			trainview->SetCamera(Train);
+			break;
+
+		case Qt::Key_4:
+			trainview->m_pTrack->SetCurve(Linear);
+			break;
+		case Qt::Key_5:
+			trainview->m_pTrack->SetCurve(Cardinal);
+			break;
+		case Qt::Key_6:
+			trainview->m_pTrack->SetCurve(Cubic);
+			break;
+
+		case Qt::Key_7:
+			trainview->m_pTrack->track = Line;
+			break;
+		case Qt::Key_8:
+			trainview->m_pTrack->track = Track;
+			break;
+		case Qt::Key_9:
+			trainview->m_pTrack->track = Road;
+			break;
 		}
 	}
 
@@ -238,69 +304,47 @@ void AppMain::TogglePanel()
 void AppMain::ChangeCameraType( QString type )
 {
 	if( type == "World" )
-	{
-		this->trainview->camera = World;
-		update();
-	}
+		this->trainview->SetCamera(World);
 	else if( type == "Top" )
-	{
-		this->trainview->camera = Top;
-		update();
-	}
+		this->trainview->SetCamera(Top);
 	else if( type == "Train" )
-	{
-		this->trainview->camera = Train;
-		update();
-	}
+		this->trainview->SetCamera(Train);
+	update();
 }
 
 void AppMain::ChangeCurveType( QString type )
 {
 	if( type == "Linear" )
-	{
-		this->trainview->m_pTrack->curve = Linear;
-	}
+		trainview->m_pTrack->SetCurve(Linear);
 	else if( type == "Cardinal" )
-	{
-		this->trainview->m_pTrack->curve = Cardinal;
-	}
+		trainview->m_pTrack->SetCurve(Cardinal);
 	else if( type == "Cubic" )
-	{
-		this->trainview->m_pTrack->curve = Cubic;
-	}
-	trainview->m_pTrack->BuildTrack();
+		trainview->m_pTrack->SetCurve(Cubic);
 }
 
 void AppMain::ChangeTrackType( QString type )
 {
 	if( type == "Line" )
-	{
 		this->trainview->m_pTrack->track = Line;
-	}
 	else if( type == "Track" )
-	{
 		this->trainview->m_pTrack->track = Track;
-	}
 	else if( type == "Road" )
-	{
 		this->trainview->m_pTrack->track = Road;
-	}
 }
 
 static unsigned long lastRedraw = 0;
 void AppMain::SwitchPlayAndPause()
 {
-	if( !this->trainview->isrun )
+	CTrain::isMove = !CTrain::isMove;
+	if( !CTrain::isMove )
 	{
 		ui.bPlay->setIcon(QIcon(":/AppMain/Resources/Icons/play.ico"));
-		this->trainview->isrun = !this->trainview->isrun;
 	}
 	else
 	{
 		ui.bPlay->setIcon(QIcon(":/AppMain/Resources/Icons/pause.ico"));
-		this->trainview->isrun = !this->trainview->isrun;
 	}
-	if(this->trainview->isrun){
+	if(CTrain::isMove){
 		if (clock() - lastRedraw > CLOCKS_PER_SEC/30) {
 			lastRedraw = clock();
 			this->advanceTrain();
@@ -403,35 +447,32 @@ void AppMain::RotateControlPointSubZ()
 
 void AppMain::ChangeCamToWorld()
 {
-	this->trainview->camera = World;
+	this->trainview->SetCamera(World);
 }
 
 void AppMain::ChangeCamToTop()
 {
-	this->trainview->camera = Top;
+	this->trainview->SetCamera(Top);
 }
 
 void AppMain::ChangeCamToTrain()
 {
-	this->trainview->camera = Train;
+	this->trainview->SetCamera(Train);
 }
 
 void AppMain::ChangeCurveToLinear()
 {
-	this->trainview->m_pTrack->curve = Linear;
-	trainview->m_pTrack->BuildTrack();
+	this->trainview->m_pTrack->SetCurve(Linear);
 }
 
 void AppMain::ChangeCurveToCardinal()
 {
-	this->trainview->m_pTrack->curve = Cardinal;
-	trainview->m_pTrack->BuildTrack();
+	this->trainview->m_pTrack->SetCurve(Cardinal);
 }
 
 void AppMain::ChangeCurveToCubic()
 {
-	this->trainview->m_pTrack->curve = Cubic;
-	trainview->m_pTrack->BuildTrack();
+	this->trainview->m_pTrack->SetCurve(Cubic);
 }
 
 void AppMain::ChangeTrackToLine()
@@ -492,6 +533,9 @@ void AppMain::
 advanceTrain(float dir)
 //========================================================================
 {
+	for (auto& train : trainview->trains) {
+		train.Move();
+	}
 	//#####################################################################
 	// TODO: make this work for your train
 	//#####################################################################

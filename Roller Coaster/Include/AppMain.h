@@ -11,6 +11,14 @@
 
 class CTrack;
 
+enum Mode {
+	None,
+	InsertPoint,
+	InsertTrain,
+	InsertCar,
+	RotatePoint,
+};
+
 class AppMain : public QMainWindow
 {
 	Q_OBJECT
@@ -89,6 +97,8 @@ private:
 
 protected:
 	bool eventFilter(QObject *watched, QEvent *e); 
+
+	int currentMode;
 };
 
 #endif // APPMAIN_H
