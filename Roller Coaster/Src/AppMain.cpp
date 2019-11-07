@@ -82,6 +82,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			case InsertPoint:
 				break;
 			case InsertTrain:
+				trainview->AddTrain();
 				break;
 			case InsertCar:
 				break;

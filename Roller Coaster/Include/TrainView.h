@@ -53,6 +53,8 @@ public:
 	// cleared for you
 	void setProjection();
 
+	void SetCamera(CameraType);
+
 	// Reset the Arc ball control
 	void resetArcball();
 
@@ -62,22 +64,22 @@ public:
 	void initializeGL();
 	void initializeTexture();
 
-	void DrawTrain();
-
+	void AddTrain();
 
 public:
-	ArcBallCam		arcball;			// keep an ArcBall for the UI
+	ArcBallCam*		arcball;			// keep an ArcBall for the UI
+	vector<ArcBallCam> cameras;
 	int				selectedCube;  // simple - just remember which cube is selected
 
 	CTrack*			m_pTrack;		// The track of the entire scene
 
 	int camera;
-	bool isrun;
 	Triangle* triangle;
 	Square* square;
 	GLfloat ProjectionMatrex[16];
 	GLfloat ModelViewMatrex[16];
 	QVector<QOpenGLTexture*> Textures;
 	vector<CTrain> trains;
+	int currentTrain;
 };  
 #endif // TRAINVIEW_H  

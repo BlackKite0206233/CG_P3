@@ -4,8 +4,9 @@ TrainView::TrainView(QWidget *parent) :
 QGLWidget(parent)  
 {  
 	QWidget::setFocusPolicy(Qt::StrongFocus);
+	cameras = vector<ArcBallCam>(3);
+	SetCamera(World);
 	resetArcball();
-	
 }  
 TrainView::~TrainView()  
 {}  
@@ -36,7 +37,8 @@ void TrainView:: resetArcball()
 	// Set up the camera to look at the world
 	// these parameters might seem magical, and they kindof are
 	// a little trial and error goes a long way
-	arcball.setup(this, 40, 250, .2f, .4f, 0);
+	cameras[0].setup(this, 40, 250, .2f, .4f, 0);
+	cameras[1].setup(this, 40, 250, 0.5, 0, 0);
 }
 
 void TrainView::paintGL()
@@ -173,10 +175,12 @@ setProjection()
 
 	// Check whether we use the world camp
 	if (this->camera == World){
-		arcball.setProjection(false);
+		arcball->setProjection(false);
 		update();
 	// Or we use the top cam
 	}else if (this->camera == Top) {
+		arcball->setProjection(false);
+		/*
 		float wi, he;
 		if (aspect >= 1) {
 			wi = 110;
@@ -195,6 +199,7 @@ setProjection()
 		glLoadIdentity();
 		glRotatef(-90,1,0,0);
 		update();
+		*/
 	} 
 	// Or do the train view or other view here
 	//####################################################################
@@ -202,6 +207,7 @@ setProjection()
 	// put code for train view projection here!	
 	//####################################################################
 	else {
+		arcball->setProjection(false);
 #ifdef EXAMPLE_SOLUTION
 		trainCamView(this,aspect);
 #endif
@@ -278,8 +284,7 @@ void TrainView::
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity ();
 
-	gluPickMatrix((double)mx, (double)(viewport[3]-my), 
-		5, 5, viewport);
+	gluPickMatrix((double)mx, (double)(viewport[3]-my), 5, 5, viewport);
 
 	// now set up the projection
 	setProjection();
@@ -308,4 +313,18 @@ void TrainView::
 		selectedCube = buf[3]-1;
 	} else // nothing hit, nothing selected
 		selectedCube = -1;
+}
+
+void TrainView::SetCamera(CameraType type) {
+	camera = type;
+	arcball = &cameras[camera];
+}
+
+void TrainView::AddTrain() {
+	ControlPoint p1 = m_pTrack->points[m_pTrack->paths.begin()->first.first];
+	ControlPoint p2 = m_pTrack->points[m_pTrack->paths.begin()->first.second];
+	Pnt3f v = p2.pos - p1.pos;
+	v.normalize();
+	CTrain train(p1.pos, p1.orient, v);
+	trains.push_back(train);
 }

@@ -7,17 +7,19 @@ using namespace std;
 class CTrain
 {
 public:
-	CTrain();
+	CTrain(Pnt3f pos, Pnt3f orient, Pnt3f v);
 
 public:
 	void Move();
 	void Draw(bool doingShadows);
 
 public:
-	double speed;
-	bool isMove;
+	static bool isMove;
+	static double speed;
+
 	Pnt3f pos;  
 	Pnt3f orient;
+	Pnt3f v, w;
 	vector<CTrain> car;
 };
 

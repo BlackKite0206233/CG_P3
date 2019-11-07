@@ -268,7 +268,7 @@ void ArcBallCam::
 computeNow(const float nowX, const float nowY)
 //==========================================================================
 {
-	if (mode==Rotate) {
+	if (mode == Rotate) {
 		float dx,dy,dz;
 		float mx,my,mz;
 		onUnitSphere(downX, downY, dx, dy, dz);
@@ -282,7 +282,7 @@ computeNow(const float nowX, const float nowY)
 
 		now.renorm();		// just in case...
 	}
-	else if (mode==Pan) {
+	else if (mode == Pan) {
 		float dx = (nowX-downX) * eyeZ;
 		float dy = (nowY-downY) * eyeZ;
 
