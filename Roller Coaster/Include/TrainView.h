@@ -65,7 +65,7 @@ public:
 	void initializeTexture();
 
 	void AddTrain();
-	void RemoveTrain();
+	void RemoveTrain(int index);
 	void MoveTrain();
 
 	PathData getNewPath(PathData curr);
@@ -73,7 +73,9 @@ public:
 public:
 	ArcBallCam*		arcball;			// keep an ArcBall for the UI
 	vector<ArcBallCam> cameras;
-	int				selectedCube;  // simple - just remember which cube is selected
+	int				selectedPoint;  // simple - just remember which cube is selected
+	int selectedPath;
+	int selectedTrain;
 
 	CTrack*			m_pTrack;		// The track of the entire scene
 

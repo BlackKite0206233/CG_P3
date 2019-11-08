@@ -206,7 +206,7 @@ void TrainView::drawStuff(bool doingShadows)
 	if (this->camera != Train) {
 		for(size_t i = 0; i < this->m_pTrack->points.size(); ++i) {
 			if (!doingShadows) {
-				if ( ((int) i) != selectedCube)
+				if ( ((int) i) != selectedPoint)
 					glColor3ub(240, 60, 60);
 				else
 					glColor3ub(240, 240, 30);
@@ -224,7 +224,7 @@ void TrainView::drawStuff(bool doingShadows)
 #ifdef EXAMPLE_SOLUTION
 	drawTrack(this, doingShadows);
 #endif
-	this->m_pTrack->Draw(doingShadows);
+	this->m_pTrack->Draw(doingShadows, selectedPath);
 
 	if (CTrain::isMove) {
 		if (clock() - lastRedraw > CLOCKS_PER_SEC / 30) {
@@ -233,8 +233,8 @@ void TrainView::drawStuff(bool doingShadows)
 		}
 	}
 
-	for (auto& train : trains) {
-		train.Draw(doingShadows);
+	for (int i = 0; i < trains.size(); i++) {
+		trains[i].Draw(doingShadows, i == selectedTrain);
 	}
 	// draw the train
 	//####################################################################
@@ -282,16 +282,40 @@ void TrainView::
 		m_pTrack->points[i].draw();
 	}
 
+	auto it = m_pTrack->paths.begin();
+	for (int i = 0; it != m_pTrack->paths.end(); i++, it++) {
+		glLoadName((GLuint)(i + 1 + m_pTrack->points.size()));
+		for (auto& pathData : it->second) {
+			pathData.second.Draw(false, false);
+		}
+	}
+
+	for (int i = 0; i < trains.size(); i++) {
+		glLoadName((GLuint)(i + 1 + m_pTrack->points.size() + m_pTrack->paths.size()));
+		trains[i].Draw(false, false);
+	}
+
 	// go back to drawing mode, and see how picking did
 	int hits = glRenderMode(GL_RENDER);
+	
+	selectedPoint = selectedPath = selectedTrain = -1;
 	if (hits) {
 		// warning; this just grabs the first object hit - if there
 		// are multiple objects, you really want to pick the closest
 		// one - see the OpenGL manual 
 		// remember: we load names that are one more than the index
-		selectedCube = buf[3]-1;
-	} else // nothing hit, nothing selected
-		selectedCube = -1;
+		int tmp = buf[3] - 1;
+		selectedPoint = selectedPath = selectedTrain = -1;
+		if (tmp < m_pTrack->points.size()) {
+			selectedPoint = tmp;
+		}
+		else if (tmp < m_pTrack->points.size() + m_pTrack->paths.size()) {
+			selectedPath = tmp - m_pTrack->points.size();
+		}
+		else {
+			selectedTrain = tmp - m_pTrack->points.size() - m_pTrack->paths.size();
+		}
+	}
 }
 
 void TrainView::SetCamera(CameraType type) {
@@ -323,4 +347,8 @@ void TrainView::MoveTrain() {
 		}
 		train.Move();
 	}
+}
+
+void TrainView::RemoveTrain(int index) {
+	trains.erase(trains.begin() + index);
 }

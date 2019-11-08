@@ -19,8 +19,8 @@ AppMain::AppMain(QWidget *parent)
 	this->canpan = false;
 	this->isHover = false;
 	this->trainview->camera = World;
-	this->trainview->m_pTrack->track = Line;
-	PathData::type = Linear;
+	PathData::curve = Linear;
+	PathData::track = Line;
 	CTrain::isMove = false;
 
 	setWindowTitle( "Roller Coaster" );
@@ -75,9 +75,9 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 		trainview->arcball->down(x, y);
 		if(event->button()==Qt::LeftButton){
 			this->isHover = true;
+			trainview->doPick(event->localPos().x(), event->localPos().y());
 			switch (currentMode) {
 			case None:
-				trainview->doPick(event->localPos().x(), event->localPos().y());
 				break;
 			case InsertPoint:
 				{
@@ -92,6 +92,20 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			case InsertCar:
 				break;
 			case DeleteMode: 
+				if (trainview->selectedPoint >= 0) {
+					trainview->m_pTrack->RemovePoint(trainview->selectedPoint);
+					trainview->selectedPoint = -1;
+				}
+				else if (trainview->selectedPath >= 0) {
+					auto it = trainview->m_pTrack->paths.begin();
+					advance(it, trainview->selectedPath);
+					trainview->m_pTrack->RemovePath(it->first.first, it->first.second);
+					trainview->selectedPath = -1;
+				}
+				else if (trainview->selectedTrain >= 0) {
+					trainview->RemoveTrain(trainview->selectedTrain);
+					trainview->selectedTrain = -1;
+				}
 				break;
 			}
 
@@ -120,8 +134,8 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 
 	if (e->type() == QEvent::MouseMove) {
 		QMouseEvent *event = static_cast<QMouseEvent*> (e);
-		if(isHover && trainview->selectedCube >= 0){
-			ControlPoint* cp = &trainview->m_pTrack->points[trainview->selectedCube];
+		if(isHover && trainview->selectedPoint >= 0){
+			ControlPoint* cp = &trainview->m_pTrack->points[trainview->selectedPoint];
 
 			double r1x, r1y, r1z, r2x, r2y, r2z;
 			int x = event->localPos().x();
@@ -235,13 +249,13 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			break;
 
 		case Qt::Key_7:
-			trainview->m_pTrack->track = Line;
+			PathData::track = Line;
 			break;
 		case Qt::Key_8:
-			trainview->m_pTrack->track = Track;
+			PathData::track = Track;
 			break;
 		case Qt::Key_9:
-			trainview->m_pTrack->track = Road;
+			PathData::track = Road;
 			break;
 
 		case Qt::Key_Space:
@@ -361,11 +375,11 @@ void AppMain::ChangeCurveType( QString type )
 void AppMain::ChangeTrackType( QString type )
 {
 	if( type == "Line" )
-		this->trainview->m_pTrack->track = Line;
+		PathData::track = Line;
 	else if( type == "Track" )
-		this->trainview->m_pTrack->track = Track;
+		PathData::track = Track;
 	else if( type == "Road" )
-		this->trainview->m_pTrack->track = Road;
+		PathData::track = Road;
 }
 
 
@@ -399,7 +413,7 @@ void AppMain::AddControlPoint()
 	// get the number of points
 	size_t npts = this->m_Track.points.size();
 	// the number for the new point
-	size_t newidx = (this->trainview->selectedCube>=0) ? this->trainview->selectedCube : 0;
+	size_t newidx = (this->trainview->selectedPoint>=0) ? this->trainview->selectedPoint : 0;
 
 	// pick a reasonable location
 	size_t previdx = (newidx + npts -1) % npts;
@@ -409,18 +423,18 @@ void AppMain::AddControlPoint()
 
 	// make it so that the train doesn't move - unless its affected by this control point
 	// it should stay between the same points
-	if (ceil(this->m_Track.trainU) > ((float)newidx)) {
+	/*if (ceil(this->m_Track.trainU) > ((float)newidx)) {
 		this->m_Track.trainU += 1;
 		if (this->m_Track.trainU >= npts) this->m_Track.trainU -= npts;
-	}
+	}*/
 	this->damageMe();
 }
 
 void AppMain::DeleteControlPoint()
 {
 	if (this->m_Track.points.size() > 4) {
-		if (this->trainview->selectedCube >= 0) {
-			this->m_Track.points.erase(this->m_Track.points.begin() + this->trainview->selectedCube);
+		if (this->trainview->selectedPoint >= 0) {
+			this->m_Track.points.erase(this->m_Track.points.begin() + this->trainview->selectedPoint);
 		} else
 			this->m_Track.points.pop_back();
 	}
@@ -434,7 +448,7 @@ void AppMain::DeleteControlPoint()
 //===========================================================================
 void AppMain::rollx(float dir)
 {
-	int s = this->trainview->selectedCube;
+	int s = this->trainview->selectedPoint;
 	if (s >= 0) {
 		Pnt3f old = this->m_Track.points[s].orient;
 		float si = sin(((float)M_PI_4) * dir);
@@ -457,7 +471,7 @@ void AppMain::RotateControlPointSubX()
 
 void AppMain::rollz(float dir)
 {
-	int s = this->trainview->selectedCube;
+	int s = this->trainview->selectedPoint;
 	if (s >= 0) {
 
 		Pnt3f old = this->m_Track.points[s].orient;
@@ -513,17 +527,17 @@ void AppMain::ChangeCurveToCubic()
 
 void AppMain::ChangeTrackToLine()
 {
-	this->trainview->m_pTrack->track = Line;
+	PathData::track = Line;
 }
 
 void AppMain::ChangeTrackToTrack()
 {
-	this->trainview->m_pTrack->track = Track;
+	PathData::track = Track;
 }
 
 void AppMain::ChangeTrackToRoad()
 {
-	this->trainview->m_pTrack->track = Road;
+	PathData::track = Road;
 }
 
 void AppMain::UpdateCameraState( int index )
@@ -555,8 +569,8 @@ void AppMain::
 damageMe()
 //========================================================================
 {
-	if (trainview->selectedCube >= ((int)m_Track.points.size()))
-		trainview->selectedCube = 0;
+	if (trainview->selectedPoint >= ((int)m_Track.points.size()))
+		trainview->selectedPoint = 0;
 	//trainview->damage(1);
 }
 

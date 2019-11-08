@@ -35,7 +35,7 @@ using namespace std;
 // * Constructor
 //============================================================================
 CTrack::
-CTrack() : trainU(0)
+CTrack()
 //============================================================================
 {
 	resetPoints();
@@ -57,7 +57,6 @@ resetPoints()
 	points.push_back(ControlPoint(Pnt3f(0,5,-50)));
 
 	// we had better put the train back at the start of the track...
-	trainU = 0.0;
 }
 
 //****************************************************************************
@@ -133,7 +132,7 @@ writePoints(const char* filename)
 }
 
 void calParam(const ControlPoint& p0, const ControlPoint& p1, const ControlPoint& p2, const ControlPoint& p3, PathData& pd) {
-	if (PathData::type == Cardinal) {
+	if (PathData::curve == Cardinal) {
 		pd.a.pos = -0.5 * p0.pos + 1.5 * p1.pos - 1.5 * p2.pos + 0.5 * p3.pos;
 		pd.b.pos =        p0.pos - 2.5 * p1.pos + 2   * p2.pos - 0.5 * p3.pos;
 		pd.c.pos = -0.5 * p0.pos                + 0.5 * p2.pos;
@@ -200,10 +199,10 @@ void CTrack::BuildTrack() {
 				
 				Path path;
 				bool isFirst = true;
-				for (const auto& p0Id : p1.parents) {
+				for (const auto& p0Id : p0Set) {
 					p0 = points[p0Id];
-					for (const auto& p3Id : p2.children) {
-						if (PathData::type == Linear && !isFirst) {
+					for (const auto& p3Id : p3Set) {
+						if (PathData::curve == Linear && !isFirst) {
 							path[pair<int, int>(p0Id, p3Id)] = path.begin()->second;
 							continue;
 						}
@@ -215,7 +214,7 @@ void CTrack::BuildTrack() {
 						pd.p3 = p3Id;
 
 						p3 = points[p3Id];
-						if (PathData::type != Linear) {
+						if (PathData::curve != Linear) {
 							calParam(p0, p1, p2, p3, pd);
 						}
 						else {
@@ -242,78 +241,22 @@ void CTrack::BuildTrack() {
 	}
 }
 
-void drawLine(const vector<ControlPoint>& pointSet, int side) {
-	Pnt3f w;
-	glBegin(GL_LINE_STRIP);
-	for (int i = 0; i < pointSet.size() - 1; i++) {
-		w = Pnt3f::CrossProduct(pointSet[i + 1].pos - pointSet[i].pos, pointSet[i].orient);
-		w.normalize();
-		w = w * 2.5;
-		glVertex3dv((pointSet[i].pos + side * w).v());
-	}
-	glVertex3dv((pointSet.back().pos + side * w).v());
-	glEnd();
-}
-
-void drawTrack(const vector<ControlPoint>& pointSet) {
-	Pnt3f w, v;
-	Pnt3f p;
-	glBegin(GL_QUADS);
-	for (int i = 0; i < pointSet.size() - 1; i += 5) {
-		v = pointSet[i + 1].pos - pointSet[i].pos;
-		v.normalize();
-		w = Pnt3f::CrossProduct(v, pointSet[i].orient);
-		w.normalize();
-		w = w * 5;
-		p = pointSet[i].pos - pointSet[i].orient;
-		glVertex3dv((p + w + v).v());
-		glVertex3dv((p + w - v).v());
-		glVertex3dv((p - w - v).v());
-		glVertex3dv((p - w + v).v());
-	}
-	glEnd();
-}
-
-void drawRoad(const vector<ControlPoint>& pointSet) {
-	Pnt3f w;
-	glBegin(GL_TRIANGLE_STRIP);
-	for (int i = 0; i < pointSet.size() - 1; i++) {
-		w = Pnt3f::CrossProduct(pointSet[i + 1].pos - pointSet[i].pos, pointSet[i].orient);
-		w.normalize();
-		w = w * 2.4;
-		glVertex3dv((pointSet[i].pos + w).v());
-		glVertex3dv((pointSet[i].pos - w).v());
-	}
-	glVertex3dv((pointSet.back().pos + w).v());
-	glVertex3dv((pointSet.back().pos - w).v());
-	glEnd();
-}
-
-void CTrack::Draw(bool doingShadows) {
+void CTrack::Draw(bool doingShadows, int selectedPath) {
 	glLineWidth(4);
 
-	for (const auto& path : paths) {
-		for (const auto& pathData : path.second) {
-			if (!doingShadows) {
-				glColor3d(0.22, 0.18, 0.04);
-			}
-			drawLine(pathData.second.pointSet, 1);
-			drawLine(pathData.second.pointSet, -1);
-			if (!doingShadows) {
-				glColor3d(0.49, 0.38, 0.11);
-			}
-			if (track == Track)
-				drawTrack(pathData.second.pointSet);
-			else if (track == Road)
-				drawRoad(pathData.second.pointSet);
+	int i = 0;
+	for (auto& path : paths) {
+		for (auto& pathData : path.second) {
+			pathData.second.Draw(doingShadows, i == selectedPath);
 		}
+		i++;
 	}
 
 	glLineWidth(1);
 }
 
 void CTrack::SetCurve(CurveType type) {
-	PathData::type = type;
+	PathData::curve = type;
 	BuildTrack();
 }
 
@@ -341,6 +284,27 @@ void CTrack::RemovePoint(int index) {
 			points[lastChild].parents.insert(*parent);
 		}
 	}
+
+	points.erase(points.begin() + index);
+	for (auto& p : points) {
+		set<int> t;
+		for (auto& child : p.children) {
+			if (child > index)
+				t.insert(child - 1);
+			else
+				t.insert(child);
+		}
+		p.children = t;
+		t.clear();
+		for (auto& parent : p.parents) {
+			if (parent > index)
+				t.insert(parent - 1);
+			else
+				t.insert(parent);
+		}
+		p.parents = t;
+	}
+
 	BuildTrack();
 }
 
@@ -366,10 +330,16 @@ PathData CTrack::GetRandomPath() {
 }
 
 PathData CTrack::GetNextPath(const PathData& curr) {
-	set<int> children = points[curr.p3].children;
 	Path nextPath = paths[pair<int, int>(curr.p2, curr.p3)];
-	set<int>::iterator it = children.begin();
-	advance(it, rand() % children.size());
-	int p3 = *it;
+	set<int> children = points[curr.p3].children;
+	int p3;
+	if (children.size()) {
+		set<int>::iterator it = children.begin();
+		advance(it, rand() % children.size());
+		p3 = *it;
+	}
+	else {
+		p3 = nextPath.begin()->second.p3;
+	}
 	return nextPath[pair<int, int>(curr.p1, p3)];
 }

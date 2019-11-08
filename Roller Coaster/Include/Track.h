@@ -39,14 +39,6 @@ using std::map;
 
 // make use of other data structures from this project
 
-enum TrackType {
-	Line,
-	Track,
-	Road,
-};
-
-
-
 class CTrack {
 public:		
 		// Constructor
@@ -69,7 +61,7 @@ public:
 		void AddPath(int p1, int p2);
 		void RemovePath(int p1, int p2);
 
-		void Draw(bool doingShadows);
+		void Draw(bool doingShadows, int selectedPath);
 
 		void BuildTrack();
 
@@ -87,6 +79,4 @@ public:
 		//###################################################################
 		// the state of the train - basically, all I need to remember is where
 		// it is in parameter space
-		float trainU;
-		TrackType track;
 };

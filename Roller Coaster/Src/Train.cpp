@@ -38,9 +38,12 @@ void CTrain::SetNewPos() {
 	w.normalize();
 }
 
-void CTrain::Draw(bool doingShadows) {
+void CTrain::Draw(bool doingShadows, bool isSelected) {
 	if (!doingShadows) {
-		glColor3d(1, 1, 1);
+		if (isSelected)
+			glColor3d(1, 1, 0);
+		else
+			glColor3d(1, 1, 1);
 	}
 	glBegin(GL_QUADS);
 	glTexCoord2f(0, 0);

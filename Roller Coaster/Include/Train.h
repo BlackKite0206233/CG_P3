@@ -13,7 +13,7 @@ public:
 
 public:
 	void Move();
-	void Draw(bool doingShadows);
+	void Draw(bool doingShadows, bool isSelected);
 	void AddCar();
 	void RemoveCar();
 	void SetNewPos();
