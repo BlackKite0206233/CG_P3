@@ -2,16 +2,33 @@
 #include <windows.h>
 #include <GL/gl.h>
 
+#define DIVIDE_LINE 100
+
 bool CTrain::isMove;
 double CTrain::speed;
 
 CTrain::CTrain(Pnt3f pos, Pnt3f orient, Pnt3f v): pos(pos), orient(orient), v(v) {
 	w = Pnt3f::CrossProduct(v, orient);
 	w.normalize();
+	t = 0;
 }
 
-void CTrain::Move() {
+void CTrain::Move(Pnt3f pos, Pnt3f orient, Pnt3f v) {
+	for (int i = car.size() - 1; i >= 1; i--) {
+		car[i].SetNewPos(car[i + 1].pos, car[i + 1].orient, car[i + 1].v);
+	}
+	if (car.size()) {
+		car[0].SetNewPos(this->pos, this->orient, this->v);
+	}
+	SetNewPos(pos, orient, v);
+}
 
+void CTrain::SetNewPos(Pnt3f pos, Pnt3f orient, Pnt3f v) {
+	this->pos = pos;
+	this->orient = orient;
+	this->v = v;
+	w = Pnt3f::CrossProduct(v, orient);
+	w.normalize();
 }
 
 void CTrain::Draw(bool doingShadows) {

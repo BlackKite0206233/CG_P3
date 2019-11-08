@@ -1,4 +1,6 @@
 #include "TrainView.h"  
+#include <ctime>
+#include <cstdlib>
 
 TrainView::TrainView(QWidget *parent) :  
 QGLWidget(parent)  
@@ -13,6 +15,9 @@ QGLWidget(parent)
 	cameras[2].type = ArcBallCam::Perspective;
 	SetCamera(World);
 	resetArcball();
+
+	srand(time(NULL));
+	CTrain::speed = 10;
 }  
 TrainView::~TrainView()  
 {}  
@@ -221,6 +226,7 @@ setProjection()
 	}
 }
 
+static unsigned long lastRedraw = 0;
 //************************************************************************
 //
 // * this draws all of the stuff in the world
@@ -260,6 +266,14 @@ void TrainView::drawStuff(bool doingShadows)
 	drawTrack(this, doingShadows);
 #endif
 	this->m_pTrack->Draw(doingShadows);
+
+	if (CTrain::isMove) {
+		if (clock() - lastRedraw > CLOCKS_PER_SEC / 30) {
+			lastRedraw = clock();
+			MoveTrain();
+		}
+	}
+
 	for (auto& train : trains) {
 		train.Draw(doingShadows);
 	}
@@ -327,10 +341,73 @@ void TrainView::SetCamera(CameraType type) {
 }
 
 void TrainView::AddTrain() {
-	ControlPoint p1 = m_pTrack->points[m_pTrack->paths.begin()->first.first];
-	ControlPoint p2 = m_pTrack->points[m_pTrack->paths.begin()->first.second];
-	Pnt3f v = p2.pos - p1.pos;
+	auto it1 = m_pTrack->paths.begin();
+	advance(it1, rand() % m_pTrack->paths.size());
+	Path p = it1->second;
+	auto it2 = p.begin();
+	advance(it2, rand() % p.size());
+	PathData pd = it2->second;
+
+	Pnt3f v = pd.pointSet[0].pos - pd.pointSet[1].pos;
 	v.normalize();
-	CTrain train(p1.pos, p1.orient, v);
+	CTrain train(pd.pointSet[0].pos, pd.pointSet[0].orient, v);
+	train.currentPath = pd;
 	trains.push_back(train);
+}
+
+PathData TrainView::getNewPath(PathData curr) {
+	set<int> children;
+	children = m_pTrack->points[curr.p2].children;
+	Path nextPath;
+	if (children.size()) {
+		children = m_pTrack->points[curr.p3].children;
+		nextPath = m_pTrack->paths[pair<int, int>(curr.p2, curr.p3)];
+		set<int>::iterator it = children.begin();
+		advance(it, rand() % children.size());
+		int p3 = *it;
+		return nextPath[pair<int, int>(curr.p1, p3)];
+	}
+	else {
+		auto it1 = m_pTrack->paths.begin();
+		advance(it1, rand() % m_pTrack->paths.size());
+		nextPath = it1->second;
+		auto it2 = nextPath.begin();
+		advance(it2, rand() % nextPath.size());
+		return it2->second;
+	}
+}
+
+void TrainView::MoveTrain() {
+	for (auto& train : trains) {
+		train.t += 1.0 / train.currentPath.length * CTrain::speed;
+		if (train.t >= 1) {
+			train.t = 0;
+			train.currentPath = getNewPath(train.currentPath);
+			Pnt3f v = train.currentPath.pointSet[1].pos - train.currentPath.pointSet[0].pos;
+			v.normalize();
+			train.Move(train.currentPath.pointSet[0].pos, train.currentPath.pointSet[0].orient, v);
+		}
+		else {
+			double t = train.t;
+			PathData curr = train.currentPath;
+			ControlPoint qt, qt_1;
+			if (m_pTrack->curve == Linear) {
+				qt.pos    = (1 - t) * curr.a.pos    + t * curr.b.pos;
+				qt.orient = (1 - t) * curr.a.orient + t * curr.b.orient;
+
+				t += 1.0 / train.currentPath.length * CTrain::speed;
+				qt_1.pos = (1 - t) * curr.a.pos + t * curr.b.pos;
+			}
+			else {
+				qt.pos    = pow(t, 3) * curr.a.pos    + pow(t, 2) * curr.b.pos    + t * curr.c.pos    + curr.d.pos;
+				qt.orient = pow(t, 3) * curr.a.orient + pow(t, 2) * curr.b.orient + t * curr.c.orient + curr.d.orient;
+
+				t += 1.0 / train.currentPath.length * CTrain::speed;
+				qt_1.pos = pow(t, 3) * curr.a.pos + pow(t, 2) * curr.b.pos + t * curr.c.pos + curr.d.pos;
+			}
+			Pnt3f v = qt_1.pos - qt.pos;
+			v.normalize();
+			train.Move(qt.pos, qt.orient, v);
+		}
+	}
 }

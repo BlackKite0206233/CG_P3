@@ -255,9 +255,6 @@ void CTrack::BuildTrack() {
 					p3Set.insert(start);
 				
 				Path path;
-				path.p0 = idx;
-				path.p1 = child;
-
 				bool isFirst = true;
 				for (const auto& p0Id : p1.parents) {
 					p0 = points[p0Id];
@@ -272,19 +269,34 @@ void CTrack::BuildTrack() {
 						}
 
 						t = 0;
-						vector<ControlPoint> pointSet;
+						PathData pd;
 						if (curve == Linear && !isFirst) {
-							pointSet = path.points.begin()->second;
-							path.points[pair<int, int>(p0Id, p3Id)] = pointSet;
+							pd = path.begin()->second;
+							path[pair<int, int>(p0Id, p3Id)] = pd;
 							continue;
 						}
 
+						double lenth;
 						for (int j = 0; j < DIVIDE_LINE; j++, t += percent) {
-							pushInterpolation(pointSet, t, curve, a, b, c, d);
+							pushInterpolation(pd.pointSet, t, curve, a, b, c, d);
+							if (j > 0) {
+								lenth += (pd.pointSet[j].pos - pd.pointSet[j - 1].pos).Lenth();
+							}
 						}
-						pushInterpolation(pointSet, t, curve, a, b, c, d);
+						pushInterpolation(pd.pointSet, t, curve, a, b, c, d);
+						lenth += (pd.pointSet[pd.pointSet.size() - 2].pos - pd.pointSet[pd.pointSet.size() - 1].pos).Lenth();
 
-						path.points[pair<int, int>(p0Id, p3Id)] = pointSet;
+						pd.length = lenth;
+						pd.a      = a;
+						pd.b      = b;
+						pd.c      = c;
+						pd.d      = d;
+						pd.p0     = p0Id;
+						pd.p1     = idx;
+						pd.p2     = child;
+						pd.p3     = p3Id;
+
+						path[pair<int, int>(p0Id, p3Id)] = pd;
 						paths[pair<int, int>(idx, child)] = path;
 					}
 				}
@@ -310,7 +322,7 @@ void drawTrack(const vector<ControlPoint>& pointSet) {
 	Pnt3f w, v;
 	Pnt3f p;
 	glBegin(GL_QUADS);
-	for (int i = 0; i < pointSet.size(); i += 5) {
+	for (int i = 0; i < pointSet.size() - 1; i += 5) {
 		v = pointSet[i + 1].pos - pointSet[i].pos;
 		v.normalize();
 		w = Pnt3f::CrossProduct(v, pointSet[i].orient);
@@ -344,19 +356,19 @@ void CTrack::Draw(bool doingShadows) {
 	glLineWidth(4);
 
 	for (const auto& path : paths) {
-		for (const auto& pointSet : path.second.points) {
+		for (const auto& pathData : path.second) {
 			if (!doingShadows) {
 				glColor3d(0.22, 0.18, 0.04);
 			}
-			drawLine(pointSet.second, 1);
-			drawLine(pointSet.second, -1);
+			drawLine(pathData.second.pointSet, 1);
+			drawLine(pathData.second.pointSet, -1);
 			if (!doingShadows) {
 				glColor3d(0.49, 0.38, 0.11);
 			}
 			if (track == Track)
-				drawTrack(pointSet.second);
+				drawTrack(pathData.second.pointSet);
 			else if (track == Road)
-				drawRoad(pointSet.second);
+				drawRoad(pathData.second.pointSet);
 		}
 	}
 

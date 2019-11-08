@@ -31,6 +31,7 @@
 *************************************************************************/
 #pragma once
 
+#include <cmath>
 
 class Pnt3f {
 public: 
@@ -63,6 +64,7 @@ public:
 
 		// make sure that we're unit length - vertical in the error case (0 length)
 		void normalize();
+		double Lenth();
 
 		// note - the operators above are for Pnt3f*scalar, here we have scalar*Pnt3f
 		friend Pnt3f operator * (const float s, const Pnt3f& p );
@@ -144,3 +146,7 @@ operator*(const Pnt3f& p) const
 	q.z = p.y * x - p.x * y;
 	return q;
 };
+
+inline double Pnt3f::Lenth() {
+	return sqrt(x * x + y * y + z * z);
+}

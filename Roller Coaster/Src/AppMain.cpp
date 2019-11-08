@@ -337,7 +337,7 @@ void AppMain::ChangeTrackType( QString type )
 		this->trainview->m_pTrack->track = Road;
 }
 
-static unsigned long lastRedraw = 0;
+
 void AppMain::SwitchPlayAndPause()
 {
 	CTrain::isMove = !CTrain::isMove;
@@ -349,13 +349,13 @@ void AppMain::SwitchPlayAndPause()
 	{
 		ui.bPlay->setIcon(QIcon(":/AppMain/Resources/Icons/pause.ico"));
 	}
-	if(CTrain::isMove){
-		if (clock() - lastRedraw > CLOCKS_PER_SEC/30) {
+	/*if(CTrain::isMove) {
+		if (clock() - lastRedraw > CLOCKS_PER_SEC / 30) {
 			lastRedraw = clock();
 			this->advanceTrain();
 			this->damageMe();
 		}
-	}
+	}*/
 }
 
 void AppMain::ChangeSpeedOfTrain( int val )
@@ -538,9 +538,6 @@ void AppMain::
 advanceTrain(float dir)
 //========================================================================
 {
-	for (auto& train : trainview->trains) {
-		train.Move();
-	}
 	//#####################################################################
 	// TODO: make this work for your train
 	//#####################################################################

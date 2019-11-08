@@ -65,6 +65,10 @@ public:
 	void initializeTexture();
 
 	void AddTrain();
+	void RemoveTrain();
+	void MoveTrain();
+
+	PathData getNewPath(PathData curr);
 
 public:
 	ArcBallCam*		arcball;			// keep an ArcBall for the UI

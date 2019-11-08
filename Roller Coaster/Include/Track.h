@@ -27,10 +27,9 @@
 
 #include <fstream>
 #include <iostream>
-#include <utility>
 #include <vector>
-#include <map>
 #include "ControlPoint.h"
+#include "Path.h"
 
 #define DIVIDE_LINE 100
 
@@ -52,15 +51,7 @@ enum TrackType {
 	Road,
 };
 
-struct MapComp {
-	bool operator() (const pair<int, int>& a, const pair<int, int>& b) const {
-		if (a.first < b.first) return true;
-		if (a.first > b.first) return false;
-		return a.second < b.second;
-	}
-};
 
-class Path;
 
 class CTrack {
 public:		
@@ -98,10 +89,4 @@ public:
 		int curve;
 		int track;
 		int pathN;
-};
-
-class Path {
-public:
-	int p0, p1;
-	map<pair<int, int>, vector<ControlPoint>, MapComp> points;
 };
