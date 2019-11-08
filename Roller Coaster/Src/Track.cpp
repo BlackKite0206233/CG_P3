@@ -337,7 +337,7 @@ void CTrack::RemovePoint(int index) {
 			points[lastParent].children.insert(*child);
 		}
 	} else {
-		for (; parent !- p.parents.end(); ++parent) {
+		for (; parent != p.parents.end(); ++parent) {
 			points[lastChild].parents.insert(*parent);
 		}
 	}
@@ -359,7 +359,7 @@ void CTrack::RemovePath(int p1, int p2) {
 PathData CTrack::GetRandomPath() {
 	auto it1 = paths.begin();
 	advance(it1, rand() % paths.size());
-	nextPath = it1->second;
+	Path nextPath = it1->second;
 	auto it2 = nextPath.begin();
 	advance(it2, rand() % nextPath.size());
 	return it2->second;
@@ -367,7 +367,7 @@ PathData CTrack::GetRandomPath() {
 
 PathData CTrack::GetNextPath(const PathData& curr) {
 	set<int> children = points[curr.p3].children;
-	nextPath = paths[pair<int, int>(curr.p2, curr.p3)];
+	Path nextPath = paths[pair<int, int>(curr.p2, curr.p3)];
 	set<int>::iterator it = children.begin();
 	advance(it, rand() % children.size());
 	int p3 = *it;

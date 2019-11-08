@@ -17,7 +17,7 @@ QGLWidget(parent)
 	resetArcball();
 
 	srand(time(NULL));
-	CTrain::speed = 10;
+	CTrain::speed = 3;
 }  
 TrainView::~TrainView()  
 {}  
@@ -318,11 +318,9 @@ PathData TrainView::getNewPath(PathData curr) {
 void TrainView::MoveTrain() {
 	for (auto& train : trains) {
 		if (train.t >= 1) {
-			train.t = 0;
+			train.t -= 1;
 			train.currentPath = getNewPath(train.currentPath);
-			teain.SetNewPos();
-		} else {
-			train.Move();
 		}
+		train.Move();
 	}
 }

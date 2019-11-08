@@ -184,6 +184,7 @@
     <ClCompile Include="Src\ControlPoint.cpp" />
     <ClCompile Include="Src\main.cpp" />
     <ClCompile Include="Src\Model.cpp" />
+    <ClCompile Include="Src\Path.cpp" />
     <ClCompile Include="Src\Square.cpp" />
     <ClCompile Include="Src\Track.cpp" />
     <ClCompile Include="Src\Train.cpp" />

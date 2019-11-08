@@ -18,9 +18,9 @@ AppMain::AppMain(QWidget *parent)
 	this->currentMode = None;
 	this->canpan = false;
 	this->isHover = false;
-	this->trainview->camera = 0;
-	this->trainview->m_pTrack->track = 0;
-	this->trainview->m_pTrack->curve = 0;
+	this->trainview->camera = World;
+	this->trainview->m_pTrack->track = Line;
+	PathData::type = Linear;
 	CTrain::isMove = false;
 
 	setWindowTitle( "Roller Coaster" );
@@ -80,9 +80,11 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 				trainview->doPick(event->localPos().x(), event->localPos().y());
 				break;
 			case InsertPoint:
-				ControlPoint p;
-				// TODO: calculate the coordinates of p
-				trainview->m_pTrack->AddPoint(p);
+				{
+					ControlPoint p;
+					// TODO: calculate the coordinates of p
+					trainview->m_pTrack->AddPoint(p);
+				}
 				break;
 			case InsertTrain:
 				trainview->AddTrain();
@@ -165,8 +167,22 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 	if(e->type() == QEvent::KeyPress){
 		QKeyEvent *event = static_cast< QKeyEvent*> (e);
 		// Set up the mode
-		if (event->key() == Qt::Key_Alt) {
+		switch (event->key())
+		{
+		case Qt::Key_Alt:
 			this->canpan = true;
+			break;
+
+		case Qt::Key_Plus:
+			CTrain::speed += 0.5;
+			if (CTrain::speed > 20)
+				CTrain::speed = 20;
+			break;
+		case Qt::Key_Minus:
+			CTrain::speed -= 0.5;
+			if (CTrain::speed < 0.5) 
+				CTrain::speed = 0.5;
+			break;
 		}
 	}
 
@@ -226,6 +242,10 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			break;
 		case Qt::Key_9:
 			trainview->m_pTrack->track = Road;
+			break;
+
+		case Qt::Key_Space:
+			SwitchPlayAndPause();
 			break;
 		}
 	}
