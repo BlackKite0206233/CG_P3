@@ -77,13 +77,13 @@ public:
 
 	CTrack*			m_pTrack;		// The track of the entire scene
 
-	int camera;
+	CameraType camera;
 	Triangle* triangle;
 	Square* square;
 	GLfloat ProjectionMatrex[16];
 	GLfloat ModelViewMatrex[16];
 	QVector<QOpenGLTexture*> Textures;
 	vector<CTrain> trains;
-	int currentTrain;
+	int currentTrain = 0;
 };  
 #endif // TRAINVIEW_H  

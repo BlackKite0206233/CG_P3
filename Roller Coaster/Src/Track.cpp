@@ -62,46 +62,6 @@ resetPoints()
 
 //****************************************************************************
 //
-// * Handy utility to break a string into a list of words
-//============================================================================
-void breakString(char* str, std::vector<const char*>& words) 
-//============================================================================
-{
-	// start with no words
-	words.clear();
-
-	// scan through the string, starting at the beginning
-	char* p = str;
-
-	// stop when we hit the end of the string
-	while(*p) {
-		// skip over leading whitespace - stop at the first character or end of string
-		while (*p && *p<=' ') p++;
-
-		// now we're pointing at the first thing after the spaces
-		// make sure its not a comment, and that we're not at the end of the string
-		// (that's actually the same thing)
-		if (! (*p) || *p == '#')
-		break;
-
-		// so we're pointing at a word! add it to the word list
-		words.push_back(p);
-
-		// now find the end of the word
-		while(*p > ' ') p++;	// stop at space or end of string
-
-		// if its ethe end of the string, we're done
-		if (! *p) break;
-
-		// otherwise, turn this space into and end of string (to end the word)
-		// and keep going
-		*p = 0;
-		p++;
-	}
-}
-
-//****************************************************************************
-//
 // * The file format is simple
 //   first line: an integer with the number of control points
 //	  other lines: one line per control point
@@ -132,12 +92,12 @@ readPoints(const char* filename)
 				points.push_back(p);
 			}
 		}
-		fs >> pathN;
-		if (pathN < 4) {
+		fs >> n;
+		if (n < 4) {
 			cout << "error" << endl;
 		}
 		else {
-			for (int i = 0; i < pathN; i++) {
+			for (int i = 0; i < n; i++) {
 				int parent, child;
 				fs >> parent >> child;
 				points[parent].children.insert(child);
@@ -146,7 +106,6 @@ readPoints(const char* filename)
 		}
 		fs.close();
 	}
-	trainU = 0;
 	BuildTrack();
 }
 
@@ -165,7 +124,7 @@ writePoints(const char* filename)
 		fs << points.size() << endl;
 		for (const auto& p : points)
 			fs << p.pos.x << " " << p.pos.y << " " << p.pos.z << " " << p.orient.x << " " << p.orient.y << " " << p.orient.z << endl;
-		fs << pathN;
+		fs << paths.size() << endl;
 		for (int i = 0; i < points.size(); i++)
 			for (const auto& c : points[i].children)
 				fs << i << " " << c << endl;
@@ -173,43 +132,28 @@ writePoints(const char* filename)
 	}
 }
 
-void calParam(const ControlPoint& p0, const ControlPoint& p1, const ControlPoint& p2, const ControlPoint& p3, 
-							int curve, ControlPoint& a, ControlPoint& b, ControlPoint& c, ControlPoint& d) {
-	if (curve == Cardinal) {
-		a.pos = -0.5 * p0.pos + 1.5 * p1.pos - 1.5 * p2.pos + 0.5 * p3.pos;
-		b.pos =        p0.pos - 2.5 * p1.pos + 2   * p2.pos - 0.5 * p3.pos;
-		c.pos = -0.5 * p0.pos                + 0.5 * p2.pos;
-		d.pos =                       p1.pos;
+void calParam(const ControlPoint& p0, const ControlPoint& p1, const ControlPoint& p2, const ControlPoint& p3, PathData& pd) {
+	if (PathData::type == Cardinal) {
+		pd.a.pos = -0.5 * p0.pos + 1.5 * p1.pos - 1.5 * p2.pos + 0.5 * p3.pos;
+		pd.b.pos =        p0.pos - 2.5 * p1.pos + 2   * p2.pos - 0.5 * p3.pos;
+		pd.c.pos = -0.5 * p0.pos                + 0.5 * p2.pos;
+		pd.d.pos =                       p1.pos;
 
-		a.orient = -0.5 * p0.orient + 1.5 * p1.orient - 1.5 * p2.orient + 0.5 * p3.orient;
-		b.orient =        p0.orient - 2.5 * p1.orient + 2   * p2.orient - 0.5 * p3.orient;
-		c.orient = -0.5 * p0.orient                   + 0.5 * p2.orient;
-		d.orient =                          p1.orient;
+		pd.a.orient = -0.5 * p0.orient + 1.5 * p1.orient - 1.5 * p2.orient + 0.5 * p3.orient;
+		pd.b.orient =        p0.orient - 2.5 * p1.orient + 2   * p2.orient - 0.5 * p3.orient;
+		pd.c.orient = -0.5 * p0.orient                   + 0.5 * p2.orient;
+		pd.d.orient =                          p1.orient;
 	} else {
-		a.pos = -1 / 6.0 * p0.pos + 0.5     * p1.pos - 0.5     * p2.pos + 1 / 6.0 * p3.pos;
-		b.pos =  0.5     * p0.pos -           p1.pos + 0.5     * p2.pos;
-		c.pos = -0.5     * p0.pos +                  + 0.5     * p2.pos;
-		d.pos =  1 / 6.0 * p0.pos + 2 / 3.0 * p1.pos + 1 / 6.0 * p2.pos;
+		pd.a.pos = -1 / 6.0 * p0.pos + 0.5     * p1.pos - 0.5     * p2.pos + 1 / 6.0 * p3.pos;
+		pd.b.pos =  0.5     * p0.pos -           p1.pos + 0.5     * p2.pos;
+		pd.c.pos = -0.5     * p0.pos +                  + 0.5     * p2.pos;
+		pd.d.pos =  1 / 6.0 * p0.pos + 2 / 3.0 * p1.pos + 1 / 6.0 * p2.pos;
 
-		a.orient = -1 / 6.0 * p0.orient + 0.5     * p1.orient - 0.5     * p2.orient + 1 / 6.0 * p3.orient;
-		b.orient =  0.5     * p0.orient -           p1.orient + 0.5     * p2.orient;
-		c.orient = -0.5     * p0.orient +                     + 0.5     * p2.orient;
-		d.orient =  1 / 6.0 * p0.orient + 2 / 3.0 * p1.orient + 1 / 6.0 * p2.orient;
+		pd.a.orient = -1 / 6.0 * p0.orient + 0.5     * p1.orient - 0.5     * p2.orient + 1 / 6.0 * p3.orient;
+		pd.b.orient =  0.5     * p0.orient -           p1.orient + 0.5     * p2.orient;
+		pd.c.orient = -0.5     * p0.orient +                     + 0.5     * p2.orient;
+		pd.d.orient =  1 / 6.0 * p0.orient + 2 / 3.0 * p1.orient + 1 / 6.0 * p2.orient;
 	}
-}
-
-void pushInterpolation(vector<ControlPoint>& pointSet, double t, int curve, 
-											 const ControlPoint& a, const ControlPoint& b, const ControlPoint& c, const ControlPoint& d) {
-	ControlPoint qt;
-	if (curve == Linear) {
-		qt.pos    = (1 - t) * a.pos    + t * b.pos;
-		qt.orient = (1 - t) * a.orient + t * b.orient;
-	}
-	else {
-		qt.pos    = pow(t, 3) * a.pos    + pow(t, 2) * b.pos    + t * c.pos    + d.pos;
-		qt.orient = pow(t, 3) * a.orient + pow(t, 2) * b.orient + t * c.orient + d.orient;
-	}
-	pointSet.push_back(qt);
 }
 
 void CTrack::BuildTrack() {
@@ -239,7 +183,7 @@ void CTrack::BuildTrack() {
 				if (!points[child].visited)
 					q.push(child);
 
-				ControlPoint p0, p1, p2, p3, a, b, c, d, qt;
+				ControlPoint p0, p1, p2, p3;
 				p1 = points[idx];
 				p2 = points[child];
 
@@ -259,44 +203,37 @@ void CTrack::BuildTrack() {
 				for (const auto& p0Id : p1.parents) {
 					p0 = points[p0Id];
 					for (const auto& p3Id : p2.children) {
-						p3 = points[p3Id];
-						if (curve != Linear) {
-							calParam(p0, p1, p2, p3, curve, a, b, c, d);
-						}
-						else {
-							a = p1;
-							b = p2;
-						}
-
-						t = 0;
-						PathData pd;
-						if (curve == Linear && !isFirst) {
-							pd = path.begin()->second;
-							path[pair<int, int>(p0Id, p3Id)] = pd;
+						if (PathData::type == Linear && !isFirst) {
+							path[pair<int, int>(p0Id, p3Id)] = path.begin()->second;
 							continue;
 						}
 
-						double lenth;
-						for (int j = 0; j < DIVIDE_LINE; j++, t += percent) {
-							pushInterpolation(pd.pointSet, t, curve, a, b, c, d);
+						PathData pd;
+						pd.p0 = p0Id;
+						pd.p1 = idx;
+						pd.p2 = child;
+						pd.p3 = p3Id;
+
+						p3 = points[p3Id];
+						if (PathData::type != Linear) {
+							calParam(p0, p1, p2, p3, pd);
+						}
+						else {
+							pd.a = p1;
+							pd.b = p2;
+						}
+
+						t = 0;
+						double lenth = 0;
+						for (int j = 0; j <= DIVIDE_LINE; j++, t += percent) {
+							pd.pointSet.push_back(pd.CalInterpolation(t));
 							if (j > 0) {
 								lenth += (pd.pointSet[j].pos - pd.pointSet[j - 1].pos).Lenth();
 							}
 						}
-						pushInterpolation(pd.pointSet, t, curve, a, b, c, d);
-						lenth += (pd.pointSet[pd.pointSet.size() - 2].pos - pd.pointSet[pd.pointSet.size() - 1].pos).Lenth();
-
 						pd.length = lenth;
-						pd.a      = a;
-						pd.b      = b;
-						pd.c      = c;
-						pd.d      = d;
-						pd.p0     = p0Id;
-						pd.p1     = idx;
-						pd.p2     = child;
-						pd.p3     = p3Id;
 
-						path[pair<int, int>(p0Id, p3Id)] = pd;
+						path[pair<int, int>(p0Id, p3Id)]  = pd;
 						paths[pair<int, int>(idx, child)] = path;
 					}
 				}
@@ -344,8 +281,8 @@ void drawRoad(const vector<ControlPoint>& pointSet) {
 		w = Pnt3f::CrossProduct(pointSet[i + 1].pos - pointSet[i].pos, pointSet[i].orient);
 		w.normalize();
 		w = w * 2.4;
-		glVertex3dv((pointSet[i ].pos + w).v());
-		glVertex3dv((pointSet[i ].pos - w).v());
+		glVertex3dv((pointSet[i].pos + w).v());
+		glVertex3dv((pointSet[i].pos - w).v());
 	}
 	glVertex3dv((pointSet.back().pos + w).v());
 	glVertex3dv((pointSet.back().pos - w).v());
@@ -376,6 +313,63 @@ void CTrack::Draw(bool doingShadows) {
 }
 
 void CTrack::SetCurve(CurveType type) {
-	curve = type;
+	PathData::type = type;
 	BuildTrack();
+}
+
+void CTrack::AddPoint(const ControlPoint& p) {
+	points.push_back(p);
+}
+
+void CTrack::RemovePoint(int index) {
+	ControlPoint p = points[index];
+	set<int>::iterator child  = p.children.begin();
+	set<int>::iterator parent = p.parents.begin();
+	int lastChild, lastParent;
+	for (; child != p.children.end() && parent != p.parents.end(); ++child, ++parent) {
+		points[*child].parents.insert(*parent);
+		points[*parent].children.insert(*child);
+		lastChild  = *child;
+		lastParent = *parent;
+	}
+	if (child != p.children.end()) {
+		for (; child != p.children.end(); ++child) {
+			points[lastParent].children.insert(*child);
+		}
+	} else {
+		for (; parent !- p.parents.end(); ++parent) {
+			points[lastChild].parents.insert(*parent);
+		}
+	}
+	BuildTrack();
+}
+
+void CTrack::AddPath(int p1, int p2) {
+	points[p1].children.insert(p2);
+	points[p2].parents.insert(p1);
+	BuildTrack();
+}
+
+void CTrack::RemovePath(int p1, int p2) {
+	points[p1].children.erase(p2);
+	points[p2].parents.erase(p1);
+	BuildTrack();
+}
+
+PathData CTrack::GetRandomPath() {
+	auto it1 = paths.begin();
+	advance(it1, rand() % paths.size());
+	nextPath = it1->second;
+	auto it2 = nextPath.begin();
+	advance(it2, rand() % nextPath.size());
+	return it2->second;
+}
+
+PathData CTrack::GetNextPath(const PathData& curr) {
+	set<int> children = points[curr.p3].children;
+	nextPath = paths[pair<int, int>(curr.p2, curr.p3)];
+	set<int>::iterator it = children.begin();
+	advance(it, rand() % children.size());
+	int p3 = *it;
+	return nextPath[pair<int, int>(curr.p1, p3)];
 }

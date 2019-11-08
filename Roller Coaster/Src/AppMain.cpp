@@ -80,11 +80,16 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 				trainview->doPick(event->localPos().x(), event->localPos().y());
 				break;
 			case InsertPoint:
+				ControlPoint p;
+				// TODO: calculate the coordinates of p
+				trainview->m_pTrack->AddPoint(p);
 				break;
 			case InsertTrain:
 				trainview->AddTrain();
 				break;
 			case InsertCar:
+				break;
+			case DeleteMode: 
 				break;
 			}
 
@@ -174,6 +179,10 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			trainview->arcball->mode = trainview->arcball->None;
 			break;
 
+		case Qt::Key_N:
+			trainview->currentTrain = (trainview->currentTrain + 1) % trainview->trains.size();
+			break;
+
 		case Qt::Key_P:
 			changeMode(currentMode, InsertPoint);
 			break;
@@ -186,6 +195,8 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 		case Qt::Key_R:
 			changeMode(currentMode, RotatePoint);
 			break;
+		case Qt::Key_D:
+			changeMode(currentMode, DeleteMode);
 
 		case Qt::Key_1:
 			trainview->SetCamera(World);

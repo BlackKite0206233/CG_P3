@@ -181,49 +181,8 @@ void TrainView::
 setProjection()
 //========================================================================
 {
-	// Compute the aspect ratio (we'll need it)
-	float aspect = static_cast<float>(width()) / static_cast<float>(height());
-
-	// Check whether we use the world camp
-	if (this->camera == World){
-		arcball->setProjection(false);
-		update();
-	// Or we use the top cam
-	}else if (this->camera == Top) {
-		arcball->setProjection(false);
-		/*
-		float wi, he;
-		if (aspect >= 1) {
-			wi = 110;
-			he = wi / aspect;
-		} 
-		else {
-			he = 110;
-			wi = he * aspect;
-		}
-
-		// Set up the top camera drop mode to be orthogonal and set
-		// up proper projection matrix
-		glMatrixMode(GL_PROJECTION);
-		glOrtho(-wi, wi, -he, he, 200, -200);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glRotatef(-90,1,0,0);
-		*/
-		update();
-	} 
-	// Or do the train view or other view here
-	//####################################################################
-	// TODO: 
-	// put code for train view projection here!	
-	//####################################################################
-	else {
-		arcball->setProjection(false);
-#ifdef EXAMPLE_SOLUTION
-		trainCamView(this,aspect);
-#endif
-		update();
-	}
+	arcball->setProjection(false);
+	update();
 }
 
 static unsigned long lastRedraw = 0;
@@ -302,7 +261,7 @@ void TrainView::
 	glGetIntegerv(GL_VIEWPORT, viewport);
 
 	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity ();
+	glLoadIdentity();
 
 	gluPickMatrix((double)mx, (double)(viewport[3]-my), 5, 5, viewport);
 
@@ -347,67 +306,23 @@ void TrainView::AddTrain() {
 	auto it2 = p.begin();
 	advance(it2, rand() % p.size());
 	PathData pd = it2->second;
-
-	Pnt3f v = pd.pointSet[0].pos - pd.pointSet[1].pos;
-	v.normalize();
-	CTrain train(pd.pointSet[0].pos, pd.pointSet[0].orient, v);
-	train.currentPath = pd;
+	
+	CTrain train(pd);
 	trains.push_back(train);
 }
 
 PathData TrainView::getNewPath(PathData curr) {
-	set<int> children;
-	children = m_pTrack->points[curr.p2].children;
-	Path nextPath;
-	if (children.size()) {
-		children = m_pTrack->points[curr.p3].children;
-		nextPath = m_pTrack->paths[pair<int, int>(curr.p2, curr.p3)];
-		set<int>::iterator it = children.begin();
-		advance(it, rand() % children.size());
-		int p3 = *it;
-		return nextPath[pair<int, int>(curr.p1, p3)];
-	}
-	else {
-		auto it1 = m_pTrack->paths.begin();
-		advance(it1, rand() % m_pTrack->paths.size());
-		nextPath = it1->second;
-		auto it2 = nextPath.begin();
-		advance(it2, rand() % nextPath.size());
-		return it2->second;
-	}
+	return m_pTrack->points[curr.p2].children.size() ? m_pTrack->GetNextPath(curr) : m_pTrack->GetRandomPath();
 }
 
 void TrainView::MoveTrain() {
 	for (auto& train : trains) {
-		train.t += 1.0 / train.currentPath.length * CTrain::speed;
 		if (train.t >= 1) {
 			train.t = 0;
 			train.currentPath = getNewPath(train.currentPath);
-			Pnt3f v = train.currentPath.pointSet[1].pos - train.currentPath.pointSet[0].pos;
-			v.normalize();
-			train.Move(train.currentPath.pointSet[0].pos, train.currentPath.pointSet[0].orient, v);
-		}
-		else {
-			double t = train.t;
-			PathData curr = train.currentPath;
-			ControlPoint qt, qt_1;
-			if (m_pTrack->curve == Linear) {
-				qt.pos    = (1 - t) * curr.a.pos    + t * curr.b.pos;
-				qt.orient = (1 - t) * curr.a.orient + t * curr.b.orient;
-
-				t += 1.0 / train.currentPath.length * CTrain::speed;
-				qt_1.pos = (1 - t) * curr.a.pos + t * curr.b.pos;
-			}
-			else {
-				qt.pos    = pow(t, 3) * curr.a.pos    + pow(t, 2) * curr.b.pos    + t * curr.c.pos    + curr.d.pos;
-				qt.orient = pow(t, 3) * curr.a.orient + pow(t, 2) * curr.b.orient + t * curr.c.orient + curr.d.orient;
-
-				t += 1.0 / train.currentPath.length * CTrain::speed;
-				qt_1.pos = pow(t, 3) * curr.a.pos + pow(t, 2) * curr.b.pos + t * curr.c.pos + curr.d.pos;
-			}
-			Pnt3f v = qt_1.pos - qt.pos;
-			v.normalize();
-			train.Move(qt.pos, qt.orient, v);
+			teain.SetNewPos();
+		} else {
+			train.Move();
 		}
 	}
 }

@@ -17,6 +17,7 @@ enum Mode {
 	InsertTrain,
 	InsertCar,
 	RotatePoint,
+	DeleteMode,
 };
 
 class AppMain : public QMainWindow

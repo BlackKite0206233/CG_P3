@@ -7,6 +7,12 @@
 
 using namespace std;
 
+enum CurveType {
+	Linear,
+	Cardinal,
+	Cubic
+};
+
 struct MapComp {
 	bool operator() (const pair<int, int>& a, const pair<int, int>& b) const {
 		if (a.first < b.first) return true;
@@ -15,11 +21,14 @@ struct MapComp {
 	}
 };
 
-struct PathData {
+class PathData {
+public:
+	static CurveType type;
 	vector<ControlPoint> pointSet;
 	ControlPoint a, b, c, d;
 	int p0, p1, p2, p3;
 	double length;
+	ControlPoint CalInterpolation(double t);
 };
 
 typedef map<pair<int, int>, PathData, MapComp> Path;

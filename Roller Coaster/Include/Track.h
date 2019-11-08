@@ -39,12 +39,6 @@ using std::map;
 
 // make use of other data structures from this project
 
-enum CurveType {
-	Linear,
-	Cardinal,
-	Cubic
-};
-
 enum TrackType {
 	Line,
 	Track,
@@ -70,9 +64,17 @@ public:
 		void readPoints(const char* filename);
 		void writePoints(const char* filename);
 
+		void AddPoint(const ControlPoint& p);
+		void RemovePoint(int index);
+		void AddPath(int p1, int p2);
+		void RemovePath(int p1, int p2);
+
 		void Draw(bool doingShadows);
 
 		void BuildTrack();
+
+		PathData GetRandomPath();
+		PathData GetNextPath(const PathData& curr);
 public:
 		// rather than have generic objects, we make a special case for these few
 		// objects that we know that all implementations are going to need and that
@@ -86,7 +88,5 @@ public:
 		// the state of the train - basically, all I need to remember is where
 		// it is in parameter space
 		float trainU;
-		int curve;
-		int track;
-		int pathN;
+		TrackType track;
 };

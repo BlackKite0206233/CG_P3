@@ -9,14 +9,14 @@ using namespace std;
 class CTrain
 {
 public:
-	CTrain(Pnt3f pos, Pnt3f orient, Pnt3f v);
+	CTrain(const PathData& pd);
 
 public:
-	void Move(Pnt3f pos, Pnt3f orient, Pnt3f v);
+	void Move();
 	void Draw(bool doingShadows);
 	void AddCar();
 	void RemoveCar();
-	void SetNewPos(Pnt3f pos, Pnt3f orient, Pnt3f v);
+	void SetNewPos();
 
 public:
 	static bool isMove;
