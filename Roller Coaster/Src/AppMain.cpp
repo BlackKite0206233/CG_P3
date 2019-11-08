@@ -79,6 +79,12 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			switch (currentMode) {
 			case None:
 				break;
+			case InsertPath:
+				if (trainview->selectedPoint >= 0 && trainview->lastSelectedPoint >= 0) {
+					trainview->m_pTrack->AddPath(trainview->lastSelectedPoint, trainview->selectedPoint);
+				}
+				trainview->lastSelectedPoint = trainview->selectedPoint;
+				break;
 			case InsertPoint:
 				{
 					ControlPoint p;
@@ -215,6 +221,8 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 
 		case Qt::Key_P:
 			changeMode(currentMode, InsertPoint);
+		case Qt::Key_A:
+			changeMode(currentMode, InsertPath);
 			break;
 		case Qt::Key_T:
 			changeMode(currentMode, InsertTrain);

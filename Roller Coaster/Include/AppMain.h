@@ -13,6 +13,7 @@ class CTrack;
 
 enum Mode {
 	None,
+	InsertPath,
 	InsertPoint,
 	InsertTrain,
 	InsertCar,

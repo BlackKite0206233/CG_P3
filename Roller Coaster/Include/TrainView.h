@@ -74,6 +74,7 @@ public:
 	ArcBallCam*		arcball;			// keep an ArcBall for the UI
 	vector<ArcBallCam> cameras;
 	int				selectedPoint;  // simple - just remember which cube is selected
+	int lastSelectedPoint;
 	int selectedPath;
 	int selectedTrain;
 

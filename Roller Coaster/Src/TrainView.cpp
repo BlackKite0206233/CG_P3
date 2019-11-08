@@ -311,10 +311,15 @@ void TrainView::
 		}
 		else if (tmp < m_pTrack->points.size() + m_pTrack->paths.size()) {
 			selectedPath = tmp - m_pTrack->points.size();
+			lastSelectedPoint = -1;
 		}
 		else {
 			selectedTrain = tmp - m_pTrack->points.size() - m_pTrack->paths.size();
+			lastSelectedPoint = -1;
 		}
+	}
+	else {
+		lastSelectedPoint = -1;
 	}
 }
 
