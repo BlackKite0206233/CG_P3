@@ -1,7 +1,7 @@
 #pragma once
 #include "ControlPoint.h"
 #include "Model.h"
-#include "Path.h"
+#include "Track.h"
 #include <vector>
 
 using namespace std;
@@ -21,6 +21,7 @@ public:
 public:
 	static bool isMove;
 	static double speed;
+	static CTrack track;
 
 	double t;
 	Pnt3f pos;  
