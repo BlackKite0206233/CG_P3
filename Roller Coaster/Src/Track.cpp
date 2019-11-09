@@ -330,7 +330,12 @@ PathData CTrack::GetRandomPath() {
 }
 
 PathData CTrack::GetNextPath(const PathData& curr) {
-	Path nextPath = paths[pair<int, int>(curr.p2, curr.p3)];
+	pair<int, int> key(curr.p2, curr.p3);
+
+	if (paths.find(key) == paths.end())
+		return GetRandomPath();
+
+	Path nextPath = paths[key];
 	set<int> children = points[curr.p3].children;
 	int p3;
 	if (children.size()) {
@@ -341,5 +346,9 @@ PathData CTrack::GetNextPath(const PathData& curr) {
 	else {
 		p3 = nextPath.begin()->second.p3;
 	}
-	return nextPath[pair<int, int>(curr.p1, p3)];
+	key = pair<int, int>(curr.p1, p3);
+	
+	if (nextPath.find(key) == nextPath.end())
+		return GetRandomPath();
+	return nextPath[key];
 }

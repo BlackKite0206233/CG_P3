@@ -68,7 +68,7 @@ public:
 	void RemoveTrain(int index);
 	void MoveTrain();
 
-	PathData getNewPath(PathData curr);
+	PathData getNewPath(const PathData& curr);
 
 public:
 	ArcBallCam*		arcball;			// keep an ArcBall for the UI

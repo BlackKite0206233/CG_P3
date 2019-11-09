@@ -22,8 +22,8 @@ QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_AppMain_t {
-    QByteArrayData data[27];
-    char stringdata0[433];
+    QByteArrayData data[11];
+    char stringdata0[105];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -37,42 +37,17 @@ QT_MOC_LITERAL(1, 8, 13), // "LoadTrackPath"
 QT_MOC_LITERAL(2, 22, 0), // ""
 QT_MOC_LITERAL(3, 23, 13), // "SaveTrackPath"
 QT_MOC_LITERAL(4, 37, 7), // "ExitApp"
-QT_MOC_LITERAL(5, 45, 16), // "ChangeCameraType"
-QT_MOC_LITERAL(6, 62, 4), // "type"
-QT_MOC_LITERAL(7, 67, 16), // "ChangeCamToWorld"
-QT_MOC_LITERAL(8, 84, 14), // "ChangeCamToTop"
-QT_MOC_LITERAL(9, 99, 16), // "ChangeCamToTrain"
-QT_MOC_LITERAL(10, 116, 15), // "ChangeCurveType"
-QT_MOC_LITERAL(11, 132, 19), // "ChangeCurveToLinear"
-QT_MOC_LITERAL(12, 152, 21), // "ChangeCurveToCardinal"
-QT_MOC_LITERAL(13, 174, 18), // "ChangeCurveToCubic"
-QT_MOC_LITERAL(14, 193, 15), // "ChangeTrackType"
-QT_MOC_LITERAL(15, 209, 17), // "ChangeTrackToLine"
-QT_MOC_LITERAL(16, 227, 18), // "ChangeTrackToTrack"
-QT_MOC_LITERAL(17, 246, 17), // "ChangeTrackToRoad"
-QT_MOC_LITERAL(18, 264, 18), // "SwitchPlayAndPause"
-QT_MOC_LITERAL(19, 283, 18), // "ChangeSpeedOfTrain"
-QT_MOC_LITERAL(20, 302, 3), // "val"
-QT_MOC_LITERAL(21, 306, 15), // "AddControlPoint"
-QT_MOC_LITERAL(22, 322, 18), // "DeleteControlPoint"
-QT_MOC_LITERAL(23, 341, 22), // "RotateControlPointAddX"
-QT_MOC_LITERAL(24, 364, 22), // "RotateControlPointSubX"
-QT_MOC_LITERAL(25, 387, 22), // "RotateControlPointAddZ"
-QT_MOC_LITERAL(26, 410, 22) // "RotateControlPointSubZ"
+QT_MOC_LITERAL(5, 45, 18), // "SwitchPlayAndPause"
+QT_MOC_LITERAL(6, 64, 10), // "changeMode"
+QT_MOC_LITERAL(7, 75, 4), // "int&"
+QT_MOC_LITERAL(8, 80, 11), // "currentMode"
+QT_MOC_LITERAL(9, 92, 4), // "Mode"
+QT_MOC_LITERAL(10, 97, 7) // "newMode"
 
     },
     "AppMain\0LoadTrackPath\0\0SaveTrackPath\0"
-    "ExitApp\0ChangeCameraType\0type\0"
-    "ChangeCamToWorld\0ChangeCamToTop\0"
-    "ChangeCamToTrain\0ChangeCurveType\0"
-    "ChangeCurveToLinear\0ChangeCurveToCardinal\0"
-    "ChangeCurveToCubic\0ChangeTrackType\0"
-    "ChangeTrackToLine\0ChangeTrackToTrack\0"
-    "ChangeTrackToRoad\0SwitchPlayAndPause\0"
-    "ChangeSpeedOfTrain\0val\0AddControlPoint\0"
-    "DeleteControlPoint\0RotateControlPointAddX\0"
-    "RotateControlPointSubX\0RotateControlPointAddZ\0"
-    "RotateControlPointSubZ"
+    "ExitApp\0SwitchPlayAndPause\0changeMode\0"
+    "int&\0currentMode\0Mode\0newMode"
 };
 #undef QT_MOC_LITERAL
 
@@ -82,7 +57,7 @@ static const uint qt_meta_data_AppMain[] = {
        8,       // revision
        0,       // classname
        0,    0, // classinfo
-      23,   14, // methods
+       5,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -90,54 +65,18 @@ static const uint qt_meta_data_AppMain[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    0,  129,    2, 0x08 /* Private */,
-       3,    0,  130,    2, 0x08 /* Private */,
-       4,    0,  131,    2, 0x08 /* Private */,
-       5,    1,  132,    2, 0x08 /* Private */,
-       7,    0,  135,    2, 0x08 /* Private */,
-       8,    0,  136,    2, 0x08 /* Private */,
-       9,    0,  137,    2, 0x08 /* Private */,
-      10,    1,  138,    2, 0x08 /* Private */,
-      11,    0,  141,    2, 0x08 /* Private */,
-      12,    0,  142,    2, 0x08 /* Private */,
-      13,    0,  143,    2, 0x08 /* Private */,
-      14,    1,  144,    2, 0x08 /* Private */,
-      15,    0,  147,    2, 0x08 /* Private */,
-      16,    0,  148,    2, 0x08 /* Private */,
-      17,    0,  149,    2, 0x08 /* Private */,
-      18,    0,  150,    2, 0x08 /* Private */,
-      19,    1,  151,    2, 0x08 /* Private */,
-      21,    0,  154,    2, 0x08 /* Private */,
-      22,    0,  155,    2, 0x08 /* Private */,
-      23,    0,  156,    2, 0x08 /* Private */,
-      24,    0,  157,    2, 0x08 /* Private */,
-      25,    0,  158,    2, 0x08 /* Private */,
-      26,    0,  159,    2, 0x08 /* Private */,
+       1,    0,   39,    2, 0x08 /* Private */,
+       3,    0,   40,    2, 0x08 /* Private */,
+       4,    0,   41,    2, 0x08 /* Private */,
+       5,    0,   42,    2, 0x08 /* Private */,
+       6,    2,   43,    2, 0x08 /* Private */,
 
  // slots: parameters
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
-    QMetaType::Void, QMetaType::QString,    6,
     QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void, QMetaType::QString,    6,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void, QMetaType::QString,    6,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void, QMetaType::Int,   20,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
+    QMetaType::Void, 0x80000000 | 7, 0x80000000 | 9,    8,   10,
 
        0        // eod
 };
@@ -151,26 +90,8 @@ void AppMain::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, voi
         case 0: _t->LoadTrackPath(); break;
         case 1: _t->SaveTrackPath(); break;
         case 2: _t->ExitApp(); break;
-        case 3: _t->ChangeCameraType((*reinterpret_cast< QString(*)>(_a[1]))); break;
-        case 4: _t->ChangeCamToWorld(); break;
-        case 5: _t->ChangeCamToTop(); break;
-        case 6: _t->ChangeCamToTrain(); break;
-        case 7: _t->ChangeCurveType((*reinterpret_cast< QString(*)>(_a[1]))); break;
-        case 8: _t->ChangeCurveToLinear(); break;
-        case 9: _t->ChangeCurveToCardinal(); break;
-        case 10: _t->ChangeCurveToCubic(); break;
-        case 11: _t->ChangeTrackType((*reinterpret_cast< QString(*)>(_a[1]))); break;
-        case 12: _t->ChangeTrackToLine(); break;
-        case 13: _t->ChangeTrackToTrack(); break;
-        case 14: _t->ChangeTrackToRoad(); break;
-        case 15: _t->SwitchPlayAndPause(); break;
-        case 16: _t->ChangeSpeedOfTrain((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 17: _t->AddControlPoint(); break;
-        case 18: _t->DeleteControlPoint(); break;
-        case 19: _t->RotateControlPointAddX(); break;
-        case 20: _t->RotateControlPointSubX(); break;
-        case 21: _t->RotateControlPointAddZ(); break;
-        case 22: _t->RotateControlPointSubZ(); break;
+        case 3: _t->SwitchPlayAndPause(); break;
+        case 4: _t->changeMode((*reinterpret_cast< int(*)>(_a[1])),(*reinterpret_cast< Mode(*)>(_a[2]))); break;
         default: ;
         }
     }
@@ -205,13 +126,13 @@ int AppMain::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 23)
+        if (_id < 5)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 23;
+        _id -= 5;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 23)
+        if (_id < 5)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 23;
+        _id -= 5;
     }
     return _id;
 }

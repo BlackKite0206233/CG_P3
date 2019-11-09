@@ -29,30 +29,7 @@ AppMain::AppMain(QWidget *parent)
 	connect( ui.aSavePath	,SIGNAL(triggered()),this,SLOT(SaveTrackPath())	);
 	connect( ui.aExit		,SIGNAL(triggered()),this,SLOT(ExitApp())		);
 
-	connect( ui.comboCamera	,SIGNAL(currentIndexChanged(QString)),this,SLOT(ChangeCameraType(QString)));
-	connect( ui.aWorld		,SIGNAL(triggered()),this,SLOT(ChangeCamToWorld())	);
-	connect( ui.aTop		,SIGNAL(triggered()),this,SLOT(ChangeCamToTop())	);
-	connect( ui.aTrain		,SIGNAL(triggered()),this,SLOT(ChangeCamToTrain())	);
-
-	connect( ui.comboCurve	,SIGNAL(currentIndexChanged(QString)),this,SLOT(ChangeCurveType(QString)));
-	connect( ui.aLinear		,SIGNAL(triggered()),this,SLOT(ChangeCurveToLinear())	);
-	connect( ui.aCardinal	,SIGNAL(triggered()),this,SLOT(ChangeCurveToCardinal())	);
-	connect( ui.aCubic		,SIGNAL(triggered()),this,SLOT(ChangeCurveToCubic())	);
-
-	connect( ui.comboTrack	,SIGNAL(currentIndexChanged(QString)),this,SLOT(ChangeTrackType(QString)));
-	connect( ui.aLine		,SIGNAL(triggered()),this,SLOT(ChangeTrackToLine())		);
-	connect( ui.aTrack		,SIGNAL(triggered()),this,SLOT(ChangeTrackToTrack())	);
-	connect( ui.aRoad		,SIGNAL(triggered()),this,SLOT(ChangeTrackToRoad())		);
-
-	connect( ui.bPlay		,SIGNAL(clicked()),this,SLOT(SwitchPlayAndPause())				);
-	connect( ui.sSpeed		,SIGNAL(valueChanged(int)),this,SLOT(ChangeSpeedOfTrain(int))	);
-	connect( ui.bAdd		,SIGNAL(clicked()),this,SLOT(AddControlPoint())					);
-	connect( ui.bDelete		,SIGNAL(clicked()),this,SLOT(DeleteControlPoint())				);
-
-	connect( ui.rcpxadd		,SIGNAL(clicked()),this,SLOT(RotateControlPointAddX())					);
-	connect( ui.rcpxsub		,SIGNAL(clicked()),this,SLOT(RotateControlPointSubX())				);
-	connect( ui.rcpzadd		,SIGNAL(clicked()),this,SLOT(RotateControlPointAddZ())					);
-	connect( ui.rcpzsub		,SIGNAL(clicked()),this,SLOT(RotateControlPointSubZ())				);
+	ui.label->setText("Mode: Normal");
 }
 
 AppMain::~AppMain()
@@ -60,8 +37,34 @@ AppMain::~AppMain()
 
 }
 
-void changeMode(int& currentMode, Mode newMode) {
+void AppMain::changeMode(int& currentMode, Mode newMode) {
 	currentMode = (currentMode == newMode) ? None : newMode;
+	QString s;
+	switch (currentMode)
+	{
+	case None:
+		s = "Normal";
+		break;
+	case InsertPoint:
+		s = "InsertPoint";
+		break;
+	case InsertPath:
+		s = "InsertPath";
+		break;
+	case InsertTrain:
+		s = "InsertTrain";
+		break;
+	case InsertCar:
+		s = "InsertCar";
+		break;
+	case DeleteMode:
+		s = "DeleteItem";
+		break;
+	case RotatePoint:
+		s = "RotatePoint";
+		break;
+	}
+	ui.label->setText("Mode: " + s);
 }
 
 bool AppMain::eventFilter(QObject *watched, QEvent *e) {
@@ -219,8 +222,12 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			trainview->currentTrain = (trainview->currentTrain + 1) % trainview->trains.size();
 			break;
 
+		case Qt::Key_Escape:
+			changeMode(currentMode, None);
+			break;
 		case Qt::Key_P:
 			changeMode(currentMode, InsertPoint);
+			break;
 		case Qt::Key_A:
 			changeMode(currentMode, InsertPath);
 			break;
@@ -339,235 +346,12 @@ void AppMain::SaveTrackPath()
 	}
 }
 
-void AppMain::TogglePanel()
-{
-	if( !ui.groupCamera->isHidden() )
-	{
-		ui.groupCamera->hide();
-		ui.groupCurve->hide();
-		ui.groupTrack->hide();
-		ui.groupPlay->hide();
-		ui.groupCP->hide();
-	}
-	else
-	{
-		ui.groupCamera->show();
-		ui.groupCurve->show();
-		ui.groupTrack->show();
-		ui.groupPlay->show();
-		ui.groupCP->show();
-	}
-}
-
-void AppMain::ChangeCameraType( QString type )
-{
-	if( type == "World" )
-		this->trainview->SetCamera(World);
-	else if( type == "Top" )
-		this->trainview->SetCamera(Top);
-	else if( type == "Train" )
-		this->trainview->SetCamera(Train);
-	update();
-}
-
-void AppMain::ChangeCurveType( QString type )
-{
-	if( type == "Linear" )
-		trainview->m_pTrack->SetCurve(Linear);
-	else if( type == "Cardinal" )
-		trainview->m_pTrack->SetCurve(Cardinal);
-	else if( type == "Cubic" )
-		trainview->m_pTrack->SetCurve(Cubic);
-}
-
-void AppMain::ChangeTrackType( QString type )
-{
-	if( type == "Line" )
-		PathData::track = Line;
-	else if( type == "Track" )
-		PathData::track = Track;
-	else if( type == "Road" )
-		PathData::track = Road;
-}
-
 
 void AppMain::SwitchPlayAndPause()
 {
 	CTrain::isMove = !CTrain::isMove;
-	if( !CTrain::isMove )
-	{
-		ui.bPlay->setIcon(QIcon(":/AppMain/Resources/Icons/play.ico"));
-	}
-	else
-	{
-		ui.bPlay->setIcon(QIcon(":/AppMain/Resources/Icons/pause.ico"));
-	}
-	/*if(CTrain::isMove) {
-		if (clock() - lastRedraw > CLOCKS_PER_SEC / 30) {
-			lastRedraw = clock();
-			this->advanceTrain();
-			this->damageMe();
-		}
-	}*/
 }
 
-void AppMain::ChangeSpeedOfTrain( int val )
-{
-	//m_rollerCoaster->trainSpeed = m_rollerCoaster->MAX_TRAIN_SPEED * float(val) / 100.0f;
-}
-
-void AppMain::AddControlPoint()
-{
-	// get the number of points
-	size_t npts = this->m_Track.points.size();
-	// the number for the new point
-	size_t newidx = (this->trainview->selectedPoint>=0) ? this->trainview->selectedPoint : 0;
-
-	// pick a reasonable location
-	size_t previdx = (newidx + npts -1) % npts;
-	Pnt3f npos = (this->m_Track.points[previdx].pos + this->m_Track.points[newidx].pos) * .5f;
-
-	this->m_Track.points.insert(this->m_Track.points.begin() + newidx,npos);
-
-	// make it so that the train doesn't move - unless its affected by this control point
-	// it should stay between the same points
-	/*if (ceil(this->m_Track.trainU) > ((float)newidx)) {
-		this->m_Track.trainU += 1;
-		if (this->m_Track.trainU >= npts) this->m_Track.trainU -= npts;
-	}*/
-	this->damageMe();
-}
-
-void AppMain::DeleteControlPoint()
-{
-	if (this->m_Track.points.size() > 4) {
-		if (this->trainview->selectedPoint >= 0) {
-			this->m_Track.points.erase(this->m_Track.points.begin() + this->trainview->selectedPoint);
-		} else
-			this->m_Track.points.pop_back();
-	}
-	this->damageMe();
-}
-
-
-//***************************************************************************
-//
-// * Rotate the selected control point about x axis
-//===========================================================================
-void AppMain::rollx(float dir)
-{
-	int s = this->trainview->selectedPoint;
-	if (s >= 0) {
-		Pnt3f old = this->m_Track.points[s].orient;
-		float si = sin(((float)M_PI_4) * dir);
-		float co = cos(((float)M_PI_4) * dir);
-		this->m_Track.points[s].orient.y = co * old.y - si * old.z;
-		this->m_Track.points[s].orient.z = si * old.y + co * old.z;
-	}
-	this->damageMe();
-} 
-
-void AppMain::RotateControlPointAddX()
-{
-	rollx(1);
-}
-
-void AppMain::RotateControlPointSubX()
-{
-	rollx(-1);
-}
-
-void AppMain::rollz(float dir)
-{
-	int s = this->trainview->selectedPoint;
-	if (s >= 0) {
-
-		Pnt3f old = this->m_Track.points[s].orient;
-
-		float si = sin(((float)M_PI_4) * dir);
-		float co = cos(((float)M_PI_4) * dir);
-
-		this->m_Track.points[s].orient.y = co * old.y - si * old.x;
-		this->m_Track.points[s].orient.x = si * old.y + co * old.x;
-	}
-	this->damageMe();
-} 
-
-void AppMain::RotateControlPointAddZ()
-{
-	rollz(1);
-}
-
-void AppMain::RotateControlPointSubZ()
-{
-	rollz(-1);
-}
-
-void AppMain::ChangeCamToWorld()
-{
-	this->trainview->SetCamera(World);
-}
-
-void AppMain::ChangeCamToTop()
-{
-	this->trainview->SetCamera(Top);
-}
-
-void AppMain::ChangeCamToTrain()
-{
-	this->trainview->SetCamera(Train);
-}
-
-void AppMain::ChangeCurveToLinear()
-{
-	this->trainview->m_pTrack->SetCurve(Linear);
-}
-
-void AppMain::ChangeCurveToCardinal()
-{
-	this->trainview->m_pTrack->SetCurve(Cardinal);
-}
-
-void AppMain::ChangeCurveToCubic()
-{
-	this->trainview->m_pTrack->SetCurve(Cubic);
-}
-
-void AppMain::ChangeTrackToLine()
-{
-	PathData::track = Line;
-}
-
-void AppMain::ChangeTrackToTrack()
-{
-	PathData::track = Track;
-}
-
-void AppMain::ChangeTrackToRoad()
-{
-	PathData::track = Road;
-}
-
-void AppMain::UpdateCameraState( int index )
-{
-	ui.aWorld->setChecked( (index==0)?true:false );
-	ui.aTop	 ->setChecked( (index==1)?true:false );
-	ui.aTrain->setChecked( (index==2)?true:false );
-}
-
-void AppMain::UpdateCurveState( int index )
-{
-	ui.aLinear	->setChecked( (index==0)?true:false );
-	ui.aCardinal->setChecked( (index==1)?true:false );
-	ui.aCubic	->setChecked( (index==2)?true:false );
-}
-
-void AppMain::UpdateTrackState( int index )
-{
-	ui.aLine ->setChecked( (index==0)?true:false );
-	ui.aTrack->setChecked( (index==1)?true:false );
-	ui.aRoad ->setChecked( (index==2)?true:false );
-}
 
 //************************************************************************
 //
@@ -580,18 +364,4 @@ damageMe()
 	if (trainview->selectedPoint >= ((int)m_Track.points.size()))
 		trainview->selectedPoint = 0;
 	//trainview->damage(1);
-}
-
-//************************************************************************
-//
-// * This will get called (approximately) 30 times per second
-//   if the run button is pressed
-//========================================================================
-void AppMain::
-advanceTrain(float dir)
-//========================================================================
-{
-	//#####################################################################
-	// TODO: make this work for your train
-	//#####################################################################
 }
