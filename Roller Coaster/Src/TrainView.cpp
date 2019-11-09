@@ -332,7 +332,32 @@ void TrainView::AddTrain() {
 	if (!m_pTrack->paths.size())
 		return;
 	
-	CTrain train(m_pTrack->GetRandomPath());
+	PathData pd;
+	if (selectedPoint >= 0) {
+		auto children = m_pTrack->points[selectedPoint].children;
+		if (children.size()) {
+			auto it1 = children.begin();
+			advance(it1, rand() % children.size());
+			Path p = m_pTrack->paths[pair<int, int>(selectedPoint, *it1)];
+			auto it2 = p.begin();
+			advance(it2, rand() % p.size());
+			pd = it2->second;
+		}
+		else {
+			pd = m_pTrack->GetRandomPath();
+		}
+	}
+	else if (selectedPath >= 0) {
+		auto it1 = m_pTrack->paths.begin();
+		advance(it1, selectedPath);
+		auto it2 = it1->second.begin();
+		advance(it2, rand() % it1->second.size());
+		pd = it2->second;
+	}
+	else {
+		pd = m_pTrack->GetRandomPath();
+	}
+	CTrain train(pd);
 	trains.push_back(train);
 }
 

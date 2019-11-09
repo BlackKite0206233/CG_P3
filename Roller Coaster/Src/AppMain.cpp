@@ -91,6 +91,8 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			case InsertPoint:
 				{
 					ControlPoint p;
+					p.pos = Pnt3f(rand() % 10, rand() % 10, 0);
+					p.orient = Pnt3f(0, 1, 0);
 					// TODO: calculate the coordinates of p
 					trainview->m_pTrack->AddPoint(p);
 				}
