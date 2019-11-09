@@ -188,14 +188,14 @@ void CTrack::BuildTrack() {
 
 				set<int> p0Set;
 				set<int> p3Set;
-				if (p1.parents.size())
-					p0Set = p1.parents;
-				else
+				if (p1.parents.empty())
 					p0Set.insert(start);
-				if (p2.children.size())
-					p3Set = p2.children;
 				else
+					p0Set = p1.parents;
+				if (p2.children.empty())
 					p3Set.insert(start);
+				else
+					p3Set = p2.children;
 				
 				Path path;
 				bool isFirst = true;
@@ -266,8 +266,8 @@ void CTrack::AddPoint(const ControlPoint& p) {
 
 void CTrack::RemovePoint(int index) {
 	ControlPoint p = points[index];
-	set<int>::iterator child  = p.children.begin();
-	set<int>::iterator parent = p.parents.begin();
+	auto child  = p.children.begin();
+	auto parent = p.parents.begin();
 	int lastChild, lastParent;
 	for (; child != p.children.end() && parent != p.parents.end(); ++child, ++parent) {
 		points[*child].parents.insert(*parent);
@@ -338,7 +338,7 @@ PathData CTrack::GetNextPath(const PathData& curr) {
 	Path nextPath = paths[key];
 	set<int> children = points[curr.p3].children;
 	int p3;
-	if (children.size()) {
+	if (!children.empty()) {
 		set<int>::iterator it = children.begin();
 		advance(it, rand() % children.size());
 		p3 = *it;
@@ -351,4 +351,28 @@ PathData CTrack::GetNextPath(const PathData& curr) {
 	if (nextPath.find(key) == nextPath.end())
 		return GetRandomPath();
 	return nextPath[key];
+}
+
+PathData CTrack::GetPrevPath(const PathData& curr) {
+	pair<int, int> key(curr.p0, curr.p1);
+
+	if (paths.find(key) == paths.end())
+		return GetRandomPath();
+
+	Path prevPath = paths[key];
+	set<int> parent = points[curr.p0].parents;
+	int p0;
+	if (!parent.empty()) {
+		set<int>::iterator it = parent.begin();
+		advance(it, rand() % parent.size());
+		p0 = *it;
+	}
+	else {
+		p0 = parent.begin()->second.p0;
+	}
+	key = pair<int, int>(p0, curr.p2);
+	
+	if (prevPath.find(key) == prevPath.end())
+		return GetRandomPath();
+	return prevPath[key];
 }

@@ -329,7 +329,7 @@ void TrainView::SetCamera(CameraType type) {
 }
 
 void TrainView::AddTrain() {
-	if (!m_pTrack->paths.size())
+	if (m_pTrack->paths.empty())
 		return;
 	
 	PathData pd;
@@ -361,16 +361,8 @@ void TrainView::AddTrain() {
 	trains.push_back(train);
 }
 
-PathData TrainView::getNewPath(const PathData& curr) {
-	return m_pTrack->points[curr.p2].children.size() ? m_pTrack->GetNextPath(curr) : m_pTrack->GetRandomPath();
-}
-
 void TrainView::MoveTrain() {
 	for (auto& train : trains) {
-		if (train.t >= 1) {
-			train.t -= 1;
-			train.currentPath = getNewPath(train.currentPath);
-		}
 		train.Move();
 	}
 }

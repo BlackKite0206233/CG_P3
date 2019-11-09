@@ -68,8 +68,6 @@ public:
 	void RemoveTrain(int index);
 	void MoveTrain();
 
-	PathData getNewPath(const PathData& curr);
-
 public:
 	ArcBallCam*		arcball;			// keep an ArcBall for the UI
 	vector<ArcBallCam> cameras;

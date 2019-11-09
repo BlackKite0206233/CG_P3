@@ -54,12 +54,6 @@ void AppMain::changeMode(int& currentMode, Mode newMode) {
 	case InsertTrain:
 		s = "InsertTrain";
 		break;
-	case InsertCar:
-		s = "InsertCar";
-		break;
-	case DeleteMode:
-		s = "DeleteItem";
-		break;
 	case RotatePoint:
 		s = "RotatePoint";
 		break;
@@ -99,24 +93,6 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 				break;
 			case InsertTrain:
 				trainview->AddTrain();
-				break;
-			case InsertCar:
-				break;
-			case DeleteMode: 
-				if (trainview->selectedPoint >= 0) {
-					trainview->m_pTrack->RemovePoint(trainview->selectedPoint);
-					trainview->selectedPoint = -1;
-				}
-				else if (trainview->selectedPath >= 0) {
-					auto it = trainview->m_pTrack->paths.begin();
-					advance(it, trainview->selectedPath);
-					trainview->m_pTrack->RemovePath(it->first.first, it->first.second);
-					trainview->selectedPath = -1;
-				}
-				else if (trainview->selectedTrain >= 0) {
-					trainview->RemoveTrain(trainview->selectedTrain);
-					trainview->selectedTrain = -1;
-				}
 				break;
 			}
 
@@ -221,29 +197,51 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			break;
 
 		case Qt::Key_N:
-			trainview->currentTrain = (trainview->currentTrain + 1) % trainview->trains.size();
+			if (trainview->trains.size())
+				trainview->currentTrain = (trainview->currentTrain + 1) % trainview->trains.size();
 			break;
 
 		case Qt::Key_Escape:
 			changeMode(currentMode, None);
 			break;
-		case Qt::Key_P:
+		case Qt::Key_C:
 			changeMode(currentMode, InsertPoint);
 			break;
-		case Qt::Key_A:
+		case Qt::Key_P:
 			changeMode(currentMode, InsertPath);
 			break;
 		case Qt::Key_T:
 			changeMode(currentMode, InsertTrain);
 			break;
-		case Qt::Key_C:
-			changeMode(currentMode, InsertCar);
-			break;
 		case Qt::Key_R:
 			changeMode(currentMode, RotatePoint);
 			break;
+
 		case Qt::Key_D:
-			changeMode(currentMode, DeleteMode);
+			if (trainview->selectedPoint >= 0) {
+				trainview->m_pTrack->RemovePoint(trainview->selectedPoint);
+				trainview->selectedPoint = -1;
+			}
+			else if (trainview->selectedPath >= 0) {
+				auto it = trainview->m_pTrack->paths.begin();
+				advance(it, trainview->selectedPath);
+				trainview->m_pTrack->RemovePath(it->first.first, it->first.second);
+				trainview->selectedPath = -1;
+			}
+			else if (trainview->selectedTrain >= 0) {
+				trainview->RemoveTrain(trainview->selectedTrain);
+				trainview->selectedTrain = -1;
+			}
+			break;
+
+		case Qt::Key_Q:
+			if (trainview->selectedTrain >= 0) 
+				trainview[trainview->selectedTrain].AddCar();
+			break;
+		case Qt::Key_W:
+			if (trainview->selectedTrain >= 0)
+				trainview[trainview->selectedTrain].RemoveCar();
+			break;
 
 		case Qt::Key_1:
 			trainview->SetCamera(World);
