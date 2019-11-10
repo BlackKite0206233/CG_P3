@@ -233,14 +233,13 @@ void CTrack::BuildTrack() {
 						}
 
 						t = 0;
-						double lenth = 0;
+						pd.length = 0;
 						for (int j = 0; j <= DIVIDE_LINE; j++, t += percent) {
 							pd.pointSet.push_back(pd.CalInterpolation(t));
-							if (j > 0) {
-								lenth += (pd.pointSet[j].pos - pd.pointSet[j - 1].pos).Lenth();
+							if (j) {
+								pd.length += (pd.pointSet[j].pos - pd.pointSet[j - 1].pos).Lenth();
 							}
 						}
-						pd.length = lenth;
 
 						path[key]  = pd;
 					}

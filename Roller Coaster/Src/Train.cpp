@@ -3,7 +3,7 @@
 #include <GL/gl.h>
 
 #define DIVIDE_LINE 100
-#define OFFSET 15
+#define OFFSET 12
 
 bool CTrain::isMove;
 double CTrain::speed;
@@ -22,27 +22,16 @@ void CTrain::Move() {
 	if (type == Head) {
 		t += speed / pd.length;
 		if (t >= 1) {
-			t -= 1;
+			double t_tmp = t - 1;
+			double l_tmp = pd.length;
+
 			pd = track->GetNextPath(pd);
 			p0 = pd.p0;
 			p1 = pd.p1;
 			p2 = pd.p2;
 			p3 = pd.p3;
+			t  = t_tmp * l_tmp / pd.length;
 		}
-	}
-
-	SetNewPos(pd);
-	for (int i = 0; i < car.size(); i++) {
-		pd = track->GetPath(car[i].p0, car[i].p1, car[i].p2, car[i].p3);
-		car[i].t += speed / pd.length;
-		if (car[i].t >= 1) {
-			car[i].t -= 1;
-			car[i].p0 = i ? car[i - 1].p0 : p0;
-			car[i].p1 = i ? car[i - 1].p1 : p1;
-			car[i].p2 = i ? car[i - 1].p2 : p2;
-			car[i].p3 = i ? car[i - 1].p3 : p3;
-		}
-		car[i].Move();
 	}
 }
 
@@ -60,6 +49,9 @@ void CTrain::SetNewPos(PathData& pd) {
 }
 
 void CTrain::Draw(bool doingShadows, bool isSelected) {
+	PathData pd = track->GetPath(p0, p1, p2, p3);
+	SetNewPos(pd);
+
 	if (!doingShadows) {
 		if (isSelected)
 			glColor3d(1, 1, 0);
@@ -68,6 +60,7 @@ void CTrain::Draw(bool doingShadows, bool isSelected) {
 		else
 			glColor3d(0, 0, 1);
 	}
+
 	glBegin(GL_QUADS);
 	glTexCoord2f(0, 0);
 	glVertex3dv((pos - w * 5 - v * 5 + orient).v());
@@ -78,8 +71,22 @@ void CTrain::Draw(bool doingShadows, bool isSelected) {
 	glTexCoord2f(0, 1);
 	glVertex3dv((pos - w * 5 + v * 5 + orient).v());
 	glEnd();
-	for (auto& c : car) {
-		c.Draw(doingShadows, isSelected);
+
+	for (int i = 0; i < car.size(); i++) {
+		CTrain prev = i ? car[i - 1] : *this;
+		PathData prevPd = track->GetPath(prev.p0, prev.p1, prev.p2, prev.p3);
+		car[i].t = prev.t - OFFSET / prevPd.length;
+		if (car[i].t < 0) {
+			pd = track->GetPath(car[i].p0, car[i].p1, car[i].p2, car[i].p3);
+			car[i].t = 1 + car[i].t * prevPd.length / pd.length;
+		}
+		else {
+			car[i].p0 = prevPd.p0;
+			car[i].p1 = prevPd.p1;
+			car[i].p2 = prevPd.p2;
+			car[i].p3 = prevPd.p3;
+		}
+		car[i].Draw(doingShadows, isSelected);
 	}
 }
 
@@ -90,14 +97,12 @@ void CTrain::AddCar() {
 	CTrain c(Car);
 	c.t = train.t - OFFSET / pd.length;
 	if (c.t < 0) {
-		pd = CTrain::track->GetPrevPath(pd);
-		c.t += 1;
+		pd  = CTrain::track->GetPrevPath(pd);
 	}
 	c.p0 = pd.p0;
 	c.p1 = pd.p1;
 	c.p2 = pd.p2;
 	c.p3 = pd.p3;
-	c.SetNewPos(pd);
 	car.push_back(c);
 }
 
