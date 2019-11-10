@@ -50,5 +50,4 @@ public:
 		set<int> children;
 		set<int> parents;
 		bool visited = false;
-		set<int>::iterator visIter;
 };

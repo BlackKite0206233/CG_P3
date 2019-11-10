@@ -36,7 +36,6 @@ public:
 
 public:
 	// call this method when things change
-	void damageMe();
 
 public:
 	// keep track of the stuff in the world

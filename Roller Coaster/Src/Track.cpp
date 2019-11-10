@@ -51,10 +51,10 @@ resetPoints()
 {
 
 	points.clear();
-	points.push_back(ControlPoint(Pnt3f(50,5,0)));
-	points.push_back(ControlPoint(Pnt3f(0,5,50)));
-	points.push_back(ControlPoint(Pnt3f(-50,5,0)));
-	points.push_back(ControlPoint(Pnt3f(0,5,-50)));
+	points[pointCount++] = ControlPoint(Pnt3f(50,5,0));
+	points[pointCount++] = ControlPoint(Pnt3f(0,5,50));
+	points[pointCount++] = ControlPoint(Pnt3f(-50,5,0));
+	points[pointCount++] = ControlPoint(Pnt3f(0,5,-50));
 
 	// we had better put the train back at the start of the track...
 }
@@ -88,7 +88,7 @@ readPoints(const char* filename)
 				double x, y, z, ox, oy, oz;
 				fs >> p.pos.x >> p.pos.y >> p.pos.z >> p.orient.x >> p.orient.y >> p.orient.z;
 				p.orient.normalize();
-				points.push_back(p);
+				points[pointCount++] = p;
 			}
 		}
 		fs >> n;
@@ -99,8 +99,12 @@ readPoints(const char* filename)
 			for (int i = 0; i < n; i++) {
 				int parent, child;
 				fs >> parent >> child;
-				points[parent].children.insert(child);
-				points[child].parents.insert(parent);
+				auto it1 = points.begin();
+				advance(it1, parent);
+				auto it2 = points.begin();
+				advance(it2, child);
+				points[it1->first].children.insert(it2->first);
+				points[it2->first].parents.insert(it1->first);
 			}
 		}
 		fs.close();
@@ -121,12 +125,14 @@ writePoints(const char* filename)
 		printf("Can't open file for writing");
 	} else {
 		fs << points.size() << endl;
-		for (const auto& p : points)
+		for (const auto& v : points) {
+			ControlPoint p = v.second;
 			fs << p.pos.x << " " << p.pos.y << " " << p.pos.z << " " << p.orient.x << " " << p.orient.y << " " << p.orient.z << endl;
+		}
 		fs << paths.size() << endl;
-		for (int i = 0; i < points.size(); i++)
-			for (const auto& c : points[i].children)
-				fs << i << " " << c << endl;
+		for (auto p : points)
+			for (const auto& c : p.second.children)
+				fs << p.first << " " << c << endl;
 		fs.close();
 	}
 }
@@ -158,18 +164,18 @@ void calParam(const ControlPoint& p0, const ControlPoint& p1, const ControlPoint
 void CTrack::BuildTrack() {
 	paths.clear();
 	for (auto& p : points) {
-		p.visited = false;
+		p.second.visited = false;
 	}
 
 	double percent = 1.0 / DIVIDE_LINE;
 	double t;
 	int start;
 	queue<int> q;
-	for (int i = 0; i < points.size(); i++) {
-		if (points[i].visited)
+	for (auto it = points.begin(); it != points.end(); it++) {
+		if (points[it->first].visited)
 			continue;
-		q.push(i);
-		start = i;
+		q.push(it->first);
+		start = it->first;
 		while (!q.empty()) {
 			int idx = q.front();
 			q.pop();
@@ -202,10 +208,14 @@ void CTrack::BuildTrack() {
 				for (const auto& p0Id : p0Set) {
 					p0 = points[p0Id];
 					for (const auto& p3Id : p3Set) {
+						pair<int, int> key = pair<int, int>(p0Id, p3Id);
 						if (PathData::curve == Linear && !isFirst) {
-							path[pair<int, int>(p0Id, p3Id)] = path.begin()->second;
+							path[key] = path.begin()->second;
+							path[key].p0 = p0Id;
+							path[key].p3 = p3Id;
 							continue;
 						}
+						isFirst = false;
 
 						PathData pd;
 						pd.p0 = p0Id;
@@ -232,10 +242,10 @@ void CTrack::BuildTrack() {
 						}
 						pd.length = lenth;
 
-						path[pair<int, int>(p0Id, p3Id)]  = pd;
-						paths[pair<int, int>(idx, child)] = path;
+						path[key]  = pd;
 					}
 				}
+				paths[pair<int, int>(idx, child)] = path;
 			}
 		}
 	}
@@ -261,7 +271,7 @@ void CTrack::SetCurve(CurveType type) {
 }
 
 void CTrack::AddPoint(const ControlPoint& p) {
-	points.push_back(p);
+	points[pointCount++] = p;
 }
 
 void CTrack::RemovePoint(int index) {
@@ -285,25 +295,7 @@ void CTrack::RemovePoint(int index) {
 		}
 	}
 
-	points.erase(points.begin() + index);
-	for (auto& p : points) {
-		set<int> t;
-		for (auto& child : p.children) {
-			if (child > index)
-				t.insert(child - 1);
-			else
-				t.insert(child);
-		}
-		p.children = t;
-		t.clear();
-		for (auto& parent : p.parents) {
-			if (parent > index)
-				t.insert(parent - 1);
-			else
-				t.insert(parent);
-		}
-		p.parents = t;
-	}
+	points.erase(index);
 
 	BuildTrack();
 }
@@ -336,18 +328,12 @@ PathData CTrack::GetNextPath(const PathData& curr) {
 		return GetRandomPath();
 
 	Path nextPath = paths[key];
-	set<int> children = points[curr.p3].children;
 	int p3;
-	if (!children.empty()) {
-		set<int>::iterator it = children.begin();
-		advance(it, rand() % children.size());
-		p3 = *it;
-	}
-	else {
-		p3 = nextPath.begin()->second.p3;
-	}
+	auto it = nextPath.begin();
+	advance(it, rand() % nextPath.size());
+	p3 = it->first.second;
+
 	key = pair<int, int>(curr.p1, p3);
-	
 	if (nextPath.find(key) == nextPath.end())
 		return GetRandomPath();
 	return nextPath[key];
@@ -355,24 +341,26 @@ PathData CTrack::GetNextPath(const PathData& curr) {
 
 PathData CTrack::GetPrevPath(const PathData& curr) {
 	pair<int, int> key(curr.p0, curr.p1);
-
-	if (paths.find(key) == paths.end())
+	if (paths.find(key) == paths.end()) {
 		return GetRandomPath();
+	}
 
 	Path prevPath = paths[key];
-	set<int> parent = points[curr.p0].parents;
 	int p0;
-	if (!parent.empty()) {
-		set<int>::iterator it = parent.begin();
-		advance(it, rand() % parent.size());
-		p0 = *it;
-	}
-	else {
-		p0 = parent.begin()->second.p0;
-	}
+	auto it = prevPath.begin();
+	advance(it, rand() % prevPath.size());
+	p0 = it->first.first;
+
 	key = pair<int, int>(p0, curr.p2);
-	
 	if (prevPath.find(key) == prevPath.end())
 		return GetRandomPath();
 	return prevPath[key];
+}
+
+PathData CTrack::GetPath(int p0, int p1, int p2, int p3) {
+	pair<int, int> key(p1, p2);
+	pair<int, int> key2(p0, p3);
+	if (paths.find(key) == paths.end() || paths[key].find(key2) == paths[key].end())
+		return GetRandomPath();
+	return paths[key][key2];
 }

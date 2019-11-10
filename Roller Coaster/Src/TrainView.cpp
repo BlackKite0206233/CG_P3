@@ -19,8 +19,10 @@ QGLWidget(parent)
 	srand(time(NULL));
 	CTrain::speed = 3;
 }  
+
 TrainView::~TrainView()  
 {}  
+
 void TrainView::initializeGL()
 {
 	initializeOpenGLFunctions();
@@ -204,14 +206,16 @@ void TrainView::drawStuff(bool doingShadows)
 	// don't draw the control points if you're driving 
 	// (otherwise you get sea-sick as you drive through them)
 	if (this->camera != Train) {
-		for(size_t i = 0; i < this->m_pTrack->points.size(); ++i) {
+		int i = 0;
+		for(auto& p : this->m_pTrack->points) {
 			if (!doingShadows) {
-				if ( ((int) i) != selectedPoint)
+				if (i != selectedPoint)
 					glColor3ub(240, 60, 60);
 				else
 					glColor3ub(240, 240, 30);
 			}
-			this->m_pTrack->points[i].draw();
+			p.second.draw();
+			i++;
 		}
 		update();
 	}
@@ -305,9 +309,10 @@ void TrainView::
 		// one - see the OpenGL manual 
 		// remember: we load names that are one more than the index
 		int tmp = buf[3] - 1;
-		selectedPoint = selectedPath = selectedTrain = -1;
 		if (tmp < m_pTrack->points.size()) {
-			selectedPoint = tmp;
+			auto it = m_pTrack->points.begin();
+			advance(it, tmp);
+			selectedPoint = it->first;
 		}
 		else if (tmp < m_pTrack->points.size() + m_pTrack->paths.size()) {
 			selectedPath = tmp - m_pTrack->points.size();
@@ -357,7 +362,7 @@ void TrainView::AddTrain() {
 	else {
 		pd = m_pTrack->GetRandomPath();
 	}
-	CTrain train(pd);
+	CTrain train(pd.p0, pd.p1, pd.p2, pd.p3, Head);
 	trains.push_back(train);
 }
 

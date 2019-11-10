@@ -6,22 +6,28 @@
 
 using namespace std;
 
+enum CarType {
+	Head,
+	Car,
+};
+
 class CTrain
 {
 public:
-	CTrain(const PathData& pd);
+	CTrain(CarType type);
+	CTrain(int p0, int p1, int p2, int p3, CarType type);
 
 public:
 	void Move();
 	void Draw(bool doingShadows, bool isSelected);
 	void AddCar();
 	void RemoveCar();
-	void SetNewPos();
+	void SetNewPos(PathData& pd);
 
 public:
 	static bool isMove;
 	static double speed;
-	static CTrack track;
+	static CTrack* track;
 
 	double t;
 	Pnt3f pos;  
@@ -29,6 +35,7 @@ public:
 	Pnt3f v, w;
 	vector<CTrain> car;
 	Model model;
-	PathData currentPath;
+	int p0, p1, p2, p3;
+	CarType type;
 };
 

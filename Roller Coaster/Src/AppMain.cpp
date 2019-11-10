@@ -12,6 +12,7 @@ AppMain::AppMain(QWidget *parent)
 	ui.setupUi(this);
 	trainview = new TrainView();  
 	trainview->m_pTrack =  &m_Track;
+	CTrain::track = &m_Track;
 	setGeometry(100,25,1000,768);   
 	ui.mainLayout->layout()->addWidget(trainview);
 	trainview->installEventFilter(this);
@@ -39,6 +40,7 @@ AppMain::~AppMain()
 
 void AppMain::changeMode(int& currentMode, Mode newMode) {
 	currentMode = (currentMode == newMode) ? None : newMode;
+	trainview->lastSelectedPoint = trainview->selectedPath = trainview->selectedPoint = trainview->selectedTrain = -1;
 	QString s;
 	switch (currentMode)
 	{
@@ -236,11 +238,11 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 
 		case Qt::Key_Q:
 			if (trainview->selectedTrain >= 0) 
-				trainview[trainview->selectedTrain].AddCar();
+				trainview->trains[trainview->selectedTrain].AddCar();
 			break;
 		case Qt::Key_W:
 			if (trainview->selectedTrain >= 0)
-				trainview[trainview->selectedTrain].RemoveCar();
+				trainview->trains[trainview->selectedTrain].RemoveCar();
 			break;
 
 		case Qt::Key_1:
@@ -350,18 +352,4 @@ void AppMain::SaveTrackPath()
 void AppMain::SwitchPlayAndPause()
 {
 	CTrain::isMove = !CTrain::isMove;
-}
-
-
-//************************************************************************
-//
-// *
-//========================================================================
-void AppMain::
-damageMe()
-//========================================================================
-{
-	if (trainview->selectedPoint >= ((int)m_Track.points.size()))
-		trainview->selectedPoint = 0;
-	//trainview->damage(1);
 }
