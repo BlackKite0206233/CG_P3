@@ -6,32 +6,39 @@
 #define OFFSET 12
 
 bool CTrain::isMove;
-double CTrain::speed;
+double CTrain::speed0;
 CTrack* CTrain::track;
 
 CTrain::CTrain(CarType type): t(0), type(type) {
+	speed = CTrain::speed0;
 }
 
 CTrain::CTrain(int p0, int p1, int p2, int p3, CarType type): p0(p0), p1(p1), p2(p2), p3(p3), t(0), type(type) {
+	speed = CTrain::speed0;
 	PathData pd = track->GetPath(p0, p1, p2, p3);
 	SetNewPos(pd);
 }
 
 void CTrain::Move() {
 	PathData pd = track->GetPath(p0, p1, p2, p3);
-	if (type == Head) {
-		t += speed / pd.length;
-		if (t >= 1) {
-			double t_tmp = t - 1;
-			double l_tmp = pd.length;
+	speed += -Pnt3f::DotProduct(v, Pnt3f(0, 1, 0));
+	if (speed < 1) {
+		speed = 1;
+	}
+	else if (speed > 20) {
+		speed = 20;
+	}
+	t += speed / pd.length;
+	if (t >= 1) {
+		double t_tmp = t - 1;
+		double l_tmp = pd.length;
 
-			pd = track->GetNextPath(pd);
-			p0 = pd.p0;
-			p1 = pd.p1;
-			p2 = pd.p2;
-			p3 = pd.p3;
-			t  = t_tmp * l_tmp / pd.length;
-		}
+		pd = track->GetNextPath(pd);
+		p0 = pd.p0;
+		p1 = pd.p1;
+		p2 = pd.p2;
+		p3 = pd.p3;
+		t  = t_tmp * l_tmp / pd.length;
 	}
 }
 

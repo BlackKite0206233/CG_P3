@@ -23,6 +23,7 @@ AppMain::AppMain(QWidget *parent)
 	PathData::curve = Linear;
 	PathData::track = Line;
 	CTrain::isMove = false;
+	CTrain::speed0 = 3;
 
 	setWindowTitle( "Roller Coaster" );
 
@@ -87,7 +88,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			case InsertPoint:
 				{
 					ControlPoint p;
-					p.pos = Pnt3f(rand() % 10, rand() % 10, 0);
+					p.pos = Pnt3f(50 - (rand() % 100), 0, 50 - (rand() % 100));
 					p.orient = Pnt3f(0, 1, 0);
 					// TODO: calculate the coordinates of p
 					trainview->m_pTrack->AddPoint(p);
@@ -95,6 +96,8 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 				break;
 			case InsertTrain:
 				trainview->AddTrain();
+				break;
+			case RotatePoint:
 				break;
 			}
 
@@ -177,14 +180,14 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			break;
 
 		case Qt::Key_Plus:
-			CTrain::speed += 0.5;
-			if (CTrain::speed > 20)
-				CTrain::speed = 20;
+			CTrain::speed0 += 0.5;
+			if (CTrain::speed0 > 20)
+				CTrain::speed0 = 20;
 			break;
 		case Qt::Key_Minus:
-			CTrain::speed -= 0.5;
-			if (CTrain::speed < 0.5) 
-				CTrain::speed = 0.5;
+			CTrain::speed0 -= 0.5;
+			if (CTrain::speed0 < 0.5) 
+				CTrain::speed0 = 0.5;
 			break;
 		}
 	}

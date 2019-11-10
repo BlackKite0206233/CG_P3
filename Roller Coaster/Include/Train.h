@@ -26,9 +26,10 @@ public:
 
 public:
 	static bool isMove;
-	static double speed;
+	static double speed0;
 	static CTrack* track;
 
+	double speed;
 	double t;
 	Pnt3f pos;  
 	Pnt3f orient;

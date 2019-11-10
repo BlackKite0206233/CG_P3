@@ -17,7 +17,6 @@ QGLWidget(parent)
 	resetArcball();
 
 	srand(time(NULL));
-	CTrain::speed = 3;
 }  
 
 TrainView::~TrainView()  
