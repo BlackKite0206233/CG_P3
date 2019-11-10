@@ -9,9 +9,9 @@ QGLWidget(parent)
 	cameras = vector<ArcBallCam>(3);
 	cameras[0].setup(this, 40, 250, .2f, .4f, 0);
 	cameras[0].type = ArcBallCam::Perspective;
-	cameras[1].setup(this, 40, 250, 1, 0, 0);
+	cameras[1].setup(this, 40, 250);
 	cameras[1].type = ArcBallCam::Orthogonal;
-	cameras[2].setup(this, 40, 250, .2f, .4f, 0);
+	cameras[2].setup(this, 120);
 	cameras[2].type = ArcBallCam::Perspective;
 	SetCamera(World);
 	resetArcball();
@@ -182,6 +182,13 @@ void TrainView::
 setProjection()
 //========================================================================
 {
+	CTrain train(Head);
+	if (camera == Train && !trains.empty()) {
+		train = trains[currentTrain];
+		arcball->eyeX = train.pos.x;
+		arcball->eyeY = train.pos.y;
+		arcball->eyeZ = train.pos.z;
+	}
 	arcball->setProjection(false);
 	update();
 }
