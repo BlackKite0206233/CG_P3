@@ -9,26 +9,25 @@ bool CTrain::isMove;
 double CTrain::speed0;
 CTrack* CTrain::track;
 
-CTrain::CTrain(CarType type): t(0), type(type) {
-	speed = CTrain::speed0;
+CTrain::CTrain(CarType type): t(0), type(type), speed(0), carSpeed(0) {
 }
 
-CTrain::CTrain(int p0, int p1, int p2, int p3, CarType type): p0(p0), p1(p1), p2(p2), p3(p3), t(0), type(type) {
-	speed = CTrain::speed0;
+CTrain::CTrain(int p0, int p1, int p2, int p3, CarType type): p0(p0), p1(p1), p2(p2), p3(p3), t(0), type(type), carSpeed(0) {
 	PathData pd = track->GetPath(p0, p1, p2, p3);
+	speed = pd.speed * CTrain::speed0;
 	SetNewPos(pd);
 }
 
 void CTrain::Move() {
 	PathData pd = track->GetPath(p0, p1, p2, p3);
-	speed += -Pnt3f::DotProduct(v, Pnt3f(0, 1, 0));
-	if (speed < 1) {
-		speed = 1;
-	}
-	else if (speed > 30) {
-		speed = 30;
-	}
+	carSpeed -= Pnt3f::DotProduct(v, Pnt3f(0, 1, 0)) * 3;
+	if (carSpeed < 0.3) {
+		carSpeed = 0.3;
+		speed = pd.speed * CTrain::speed0;
+	} else 
+		speed = carSpeed * CTrain::speed0;
 	t += speed / pd.length;
+
 	if (t >= 1) {
 		double t_tmp = t - 1;
 		double l_tmp = pd.length;
@@ -45,7 +44,7 @@ void CTrain::Move() {
 void CTrain::SetNewPos(PathData& pd) {
 	ControlPoint qt, qt_1;
 	qt   = pd.CalInterpolation(t);
-	qt_1 = pd.CalInterpolation(t + speed / pd.length);
+	qt_1 = pd.CalInterpolation(t + 5 / pd.length);
 
 	pos    = qt.pos;
 	orient = qt.orient;
@@ -60,7 +59,7 @@ void CTrain::Draw(bool doingShadows, bool isSelected) {
 	SetNewPos(pd);
 
 	if (!doingShadows) {
-		if (isSelected)
+		if (isSelected && type == Head)
 			glColor3d(1, 1, 0);
 		else if (type == Head)
 			glColor3d(1, 0, 0);

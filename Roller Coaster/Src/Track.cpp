@@ -241,7 +241,12 @@ void CTrack::BuildTrack() {
 							}
 						}
 
-						path[key]  = pd;
+						Pnt3f v = points[child].pos - points[idx].pos;
+						v.normalize();
+						double cos = Pnt3f::DotProduct(v, Pnt3f(0, 1, 0));
+						pd.speed = 0.3;
+
+						path[key] = pd;
 					}
 				}
 				paths[pair<int, int>(idx, child)] = path;

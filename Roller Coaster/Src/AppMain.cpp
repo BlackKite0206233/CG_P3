@@ -23,7 +23,7 @@ AppMain::AppMain(QWidget *parent)
 	PathData::curve = Linear;
 	PathData::track = Line;
 	CTrain::isMove = false;
-	CTrain::speed0 = 10;
+	CTrain::speed0 = 1;
 
 	setWindowTitle( "Roller Coaster" );
 
@@ -76,6 +76,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 		if(event->button()==Qt::LeftButton){
 			this->isHover = true;
 			trainview->doPick(event->localPos().x(), event->localPos().y());
+			ControlPoint p;
 			switch (currentMode) {
 			case None:
 				break;
@@ -86,13 +87,10 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 				trainview->lastSelectedPoint = trainview->selectedPoint;
 				break;
 			case InsertPoint:
-				{
-					ControlPoint p;
-					p.pos = Pnt3f(50 - (rand() % 100), 0, 50 - (rand() % 100));
-					p.orient = Pnt3f(0, 1, 0);
-					// TODO: calculate the coordinates of p
-					trainview->m_pTrack->AddPoint(p);
-				}
+				p.pos = Pnt3f(50 - (rand() % 100), 0, 50 - (rand() % 100));
+				p.orient = Pnt3f(0, 1, 0);
+				// TODO: calculate the coordinates of p
+				trainview->m_pTrack->AddPoint(p);
 				break;
 			case InsertTrain:
 				trainview->AddTrain();
@@ -180,14 +178,14 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			break;
 
 		case Qt::Key_Plus:
-			CTrain::speed0 += 0.5;
-			if (CTrain::speed0 > 15)
-				CTrain::speed0 = 25;
+			CTrain::speed0 += 0.1;
+			if (CTrain::speed0 > 2)
+				CTrain::speed0 = 2;
 			break;
 		case Qt::Key_Minus:
-			CTrain::speed0 -= 0.5;
-			if (CTrain::speed0 < 5) 
-				CTrain::speed0 = 5;
+			CTrain::speed0 -= 0.1;
+			if (CTrain::speed0 < 0.1) 
+				CTrain::speed0 = 0.1;
 			break;
 		}
 	}

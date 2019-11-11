@@ -7,12 +7,9 @@ QGLWidget(parent)
 {  
 	QWidget::setFocusPolicy(Qt::StrongFocus);
 	cameras = vector<ArcBallCam>(3);
-	cameras[0].setup(this, 40, 250, .2f, .4f, 0);
-	cameras[0].type = ArcBallCam::Perspective;
-	cameras[1].setup(this, 40, 250);
-	cameras[1].type = ArcBallCam::Orthogonal;
-	cameras[2].setup(this, 120);
-	cameras[2].type = ArcBallCam::Perspective;
+	cameras[0].type = ArcBallCam::World;
+	cameras[1].type = ArcBallCam::Top;
+	cameras[2].type = ArcBallCam::Train;
 	SetCamera(World);
 	resetArcball();
 
@@ -49,8 +46,8 @@ void TrainView:: resetArcball()
 	// Set up the camera to look at the world
 	// these parameters might seem magical, and they kindof are
 	// a little trial and error goes a long way
-	cameras[0].setup(this, 40, 250, .2f, .4f, 0);
-	cameras[1].setup(this, 40, 250, 0.5, 0, 0);
+	cameras[0].setup(this, 40, 0, 0, 250, M_PI / 4, 0, 0);
+	cameras[1].setup(this, 40, 0, 0, 250);
 }
 
 void TrainView::paintGL()
@@ -182,14 +179,59 @@ void TrainView::
 setProjection()
 //========================================================================
 {
-	CTrain train(Head);
-	if (camera == Train && !trains.empty()) {
+	//CTrain train(Head);
+	/*if (camera == Train && !trains.empty()) {
 		train = trains[currentTrain];
 		arcball->eyeX = train.pos.x;
 		arcball->eyeY = train.pos.y;
 		arcball->eyeZ = train.pos.z;
+		arcball->spin(0, 0, 0);
+	}*/
+	if (camera == Train && !trains.empty()) {
+		CTrain train = trains[currentTrain];
+		/*double s = Pnt3f::DotProduct(Pnt3f(1, 0, 0), train.v);
+		Pnt3f v = Pnt3f::CrossProduct(Pnt3f(1, 0, 0), train.v);
+		Quat q;
+		q.w = s;
+		q.x = v.x;
+		q.y = v.y;
+		q.z = v.z;
+		q.renorm();
+		double z = atan(2 * (q.x * q.y - q.w * q.z) / (q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z));
+		double y = atan(-2 * (q.w * q.y + q.x * q.z));
+		double x = atan(2 * (q.y * q.z - q.w * q.x) / (q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z));
+		arcball->setup(this, 120, train.pos.x, train.pos.y, train.pos.z, x, y, z);*/
+		glMatrixMode(GL_PROJECTION);
+		double aspect = (width() / height());
+		gluPerspective(120, aspect, .1, 1000);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		Pnt3f pos = train.pos + train.orient * 3;
+		gluLookAt(pos.x, pos.y, pos.z,
+			pos.x + train.v.x, pos.y + train.v.y, pos.z + train.v.z,
+			train.orient.x, train.orient.y, train.orient.z);
 	}
-	arcball->setProjection(false);
+	/*if (!trains.empty()) {
+		CTrain train = trains[currentTrain];
+		double s = Pnt3f::DotProduct(Pnt3f(1, 0, 0), train.v);
+		Pnt3f v = Pnt3f::CrossProduct(Pnt3f(1, 0, 0), train.v);
+		Quat q;
+		q.w = s;
+		q.x = v.x;
+		q.y = v.y;
+		q.z = v.z;
+		q.renorm();
+		double z = atan(2 * (q.x * q.y - q.w * q.z) / (q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z));
+		double y = atan(-2 * (q.w * q.y + q.x * q.z));
+		double x = atan(2 * (q.y * q.z - q.w * q.x) / (q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z));
+		arcball->setup(this, 120, train.pos.x + train.orient.x, train.pos.y + train.orient.y, train.pos.z + train.orient.z, x, y, z);
+		arcball->eyeX = train.pos.x;
+		arcball->eyeY = train.pos.y;
+		arcball->eyeZ = train.pos.z;
+	}*/
+	else {
+		arcball->setProjection(false);
+	}
 	update();
 }
 
@@ -273,7 +315,7 @@ void TrainView::
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	gluPickMatrix((double)mx, (double)(viewport[3]-my), 5, 5, viewport);
+	gluPickMatrix((double)mx, (double)(viewport[3] - my), 5, 5, viewport);
 
 	// now set up the projection
 	setProjection();
@@ -287,15 +329,16 @@ void TrainView::
 
 
 	// draw the cubes, loading the names as we go
-	for(size_t i=0; i<m_pTrack->points.size(); ++i) {
-		glLoadName((GLuint) (i+1));
-		m_pTrack->points[i].draw();
+	auto it1 = m_pTrack->points.begin();
+	for(int i = 0; it1 != m_pTrack->points.end(); i++, it1++) {
+		glLoadName((GLuint) (i + 1));
+		it1->second.draw();
 	}
 
-	auto it = m_pTrack->paths.begin();
-	for (int i = 0; it != m_pTrack->paths.end(); i++, it++) {
+	auto it2 = m_pTrack->paths.begin();
+	for (int i = 0; it2 != m_pTrack->paths.end(); i++, it2++) {
 		glLoadName((GLuint)(i + 1 + m_pTrack->points.size()));
-		for (auto& pathData : it->second) {
+		for (auto& pathData : it2->second) {
 			pathData.second.Draw(false, false);
 		}
 	}

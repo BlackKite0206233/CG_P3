@@ -103,7 +103,7 @@ class ArcBallCam {
 		// you must call setup before doing anything!
 		void setup(QWidget* wind,
 					float fieldOfView=40.0,						 // field of view, in degrees
-					float eyeZ = 20.0,							 // how far away camera is from the center of the world
+					double eyeX = 0, double eyeY = 0, double eyeZ = 20.0,							 // how far away camera is from the center of the world
 					float isx=0, float isy=0, float isz = 0 // initial rotation
 					);
 
@@ -145,7 +145,7 @@ class ArcBallCam {
 		// but: basically you give it a vector to rotate the world around
 		// - the length of the vector is how much to rotate around that
 		//   axis
-		void spin(float x, float y, float z);
+		void spin(float x, float y, float z, float w);
 		// Internal routine
 		// this gets the position of the mouse in "normalized device coordinates"
 		// that is X & Y go from -1 to 1 (with zero at the center)
@@ -170,8 +170,9 @@ class ArcBallCam {
 		} mode;	
 
 		enum {
-			Perspective,
-			Orthogonal
+			World,
+			Top,
+			Train
 		} type;
 
 			
@@ -191,6 +192,7 @@ class ArcBallCam {
 		float				isx;		// save a preferred rotation to return to
 		float				isy;
 		float				isz;
+		float				isw;
 
 		QWidget* wind;	// Draw window
 };

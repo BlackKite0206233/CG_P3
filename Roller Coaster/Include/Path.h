@@ -32,12 +32,18 @@ class PathData {
 public:
 	static CurveType curve;
 	static TrackType track;
+
+	ControlPoint CalInterpolation(double t);
+	void Draw(bool doingShadows, bool isSelected);
+	void DrawLine(int side);
+	void DrawTrack();
+	void DrawRoad();
+
 	vector<ControlPoint> pointSet;
 	ControlPoint a, b, c, d;
 	int p0, p1, p2, p3;
 	double length;
-	ControlPoint CalInterpolation(double t);
-	void Draw(bool doingShadows, bool isSelected);
+	double speed;
 };
 
 typedef map<pair<int, int>, PathData, MapComp> Path;

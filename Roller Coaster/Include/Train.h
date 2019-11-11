@@ -30,6 +30,7 @@ public:
 	static CTrack* track;
 
 	double speed;
+	double carSpeed;
 	double t;
 	Pnt3f pos;  
 	Pnt3f orient;

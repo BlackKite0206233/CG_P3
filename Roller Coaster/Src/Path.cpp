@@ -2,6 +2,8 @@
 #include <windows.h>
 #include <GL/gl.h>
 
+#define INTERVAL 5
+
 CurveType PathData::curve;
 TrackType PathData::track;
 
@@ -18,7 +20,7 @@ ControlPoint PathData::CalInterpolation(double t) {
 	return qt;
 }
 
-void drawLine(const vector<ControlPoint>& pointSet, int side) {
+void PathData::DrawLine(int side) {
 	Pnt3f w;
 	glBegin(GL_LINE_STRIP);
 	for (int i = 0; i < pointSet.size() - 1; i++) {
@@ -31,17 +33,20 @@ void drawLine(const vector<ControlPoint>& pointSet, int side) {
 	glEnd();
 }
 
-void drawTrack(const vector<ControlPoint>& pointSet) {
+void PathData::DrawTrack() {
 	Pnt3f w, v;
 	Pnt3f p;
+	ControlPoint p0, p1;
 	glBegin(GL_QUADS);
-	for (int i = 0; i < pointSet.size() - 1; i += 5) {
-		v = pointSet[i + 1].pos - pointSet[i].pos;
+	for (double t = 0; t < 1; t += INTERVAL / length) {
+		p0 = CalInterpolation(t);
+		p1 = CalInterpolation(t + INTERVAL / length);
+		v = p1.pos - p0.pos;
 		v.normalize();
-		w = Pnt3f::CrossProduct(v, pointSet[i].orient);
+		w = Pnt3f::CrossProduct(v, p0.orient);
 		w.normalize();
 		w = w * 5;
-		p = pointSet[i].pos - pointSet[i].orient;
+		p = p0.pos - p0.orient;
 		glVertex3dv((p + w + v).v());
 		glVertex3dv((p + w - v).v());
 		glVertex3dv((p - w - v).v());
@@ -50,7 +55,7 @@ void drawTrack(const vector<ControlPoint>& pointSet) {
 	glEnd();
 }
 
-void drawRoad(const vector<ControlPoint>& pointSet) {
+void PathData::DrawRoad() {
 	Pnt3f w;
 	glBegin(GL_TRIANGLE_STRIP);
 	for (int i = 0; i < pointSet.size() - 1; i++) {
@@ -72,8 +77,8 @@ void PathData::Draw(bool doingShadows, bool isSelected) {
 		else
 			glColor3d(0.22, 0.18, 0.04);
 	}
-	drawLine(pointSet, 1);
-	drawLine(pointSet, -1);
+	DrawLine(1);
+	DrawLine(-1);
 	if (!doingShadows) {
 		if (isSelected)
 			glColor3d(1, 1, 0);
@@ -81,7 +86,7 @@ void PathData::Draw(bool doingShadows, bool isSelected) {
 			glColor3d(0.49, 0.38, 0.11);
 	}
 	if (track == Track)
-		drawTrack(pointSet);
+		DrawTrack();
 	else if (track == Road)
-		drawRoad(pointSet);
+		DrawRoad();
 }

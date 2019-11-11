@@ -85,7 +85,7 @@ ArcBallCam()
 // * really do the setup stuff, once you have the window
 //==========================================================================
 void ArcBallCam::
-setup(QWidget* _wind, float _fieldOfView, float _eyeZ,
+setup(QWidget* _wind, float _fieldOfView, double _eyeX, double _eyeY, double _eyeZ,
 	   float _isx, float _isy, float _isz)
 //==========================================================================
 {
@@ -94,15 +94,15 @@ setup(QWidget* _wind, float _fieldOfView, float _eyeZ,
 	fieldOfView = _fieldOfView;
 	eyeZ			= _eyeZ;
 	initEyeZ		= _eyeZ;
-	eyeX			= 0;
-	eyeY			= 0;
-	isx			= _isx;
-	isy			= _isy;
-	isz			= _isz;
+	eyeY			= _eyeY;
+	isw			= cos(_isz / 2) * cos(_isy / 2) * cos(_isx / 2) - sin(_isz / 2) * sin(_isy / 2) * sin(_isx / 2);
+	isx			= cos(_isz / 2) * cos(_isy / 2) * sin(_isx / 2) + sin(_isz / 2) * sin(_isy / 2) * cos(_isx / 2);
+	isy			= cos(_isz / 2) * sin(_isy / 2) * cos(_isx / 2) - sin(_isz / 2) * cos(_isy / 2) * sin(_isx / 2);
+	isz     = sin(_isz / 2) * cos(_isy / 2) * cos(_isx / 2) + cos(_isz / 2) * sin(_isy / 2) * sin(_isx / 2);
 
 
 	reset();
-	spin(isx,isy,isz);
+	spin(isx,isy,isz, isw);
 }
 
 
@@ -120,10 +120,7 @@ setProjection(bool doClear)
 
   // Compute the aspect ratio so we don't distort things
   double aspect = (wind->width() / wind->height());
-	if (type == Perspective) {
-		gluPerspective(fieldOfView, aspect, .1, 1000);
-	}
-	else {
+	if (type == Top) {
 		float wi, he;
 		if (aspect >= 1) {
 			wi = 110;
@@ -135,18 +132,26 @@ setProjection(bool doClear)
 		}
 		glOrtho(-wi, wi, -he, he, 1000, -1000);
 	}
+	else {
+		gluPerspective(fieldOfView, aspect, .1, 1000);
+	}
 
   // Put the camera where we want it to be
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
   // Use the transformation in the ArcBall
-	glTranslatef(-eyeX, -eyeY, -eyeZ);
-	if (type == Perspective) {
+	if (type == World) {
+		glTranslatef(-eyeX, -eyeY, -eyeZ);
 		multMatrix();
 	}
-	else {
+	else if (type == Top){
+		glTranslatef(-eyeX, -eyeY, -eyeZ);
 		glRotatef(-90, 1, 0, 0);
+	}
+	else {
+		multMatrix();
+		glTranslatef(-eyeX, -eyeY, -eyeZ);
 	}
 }
 
@@ -234,20 +239,20 @@ reset()
 // * 
 //==========================================================================
 void ArcBallCam::
-spin(float x, float y, float z)
+spin(float x, float y, float z, float w)
 //==========================================================================
 {
 	// printf("\nstart was %g %g %g %g\n",start.x,start.y,start.z,start.w);
 	// first, get rid of anything cached
 	start = now * start;
 	now = Quat();
-
-	float iw = x*x + y*y + z*z;
+	/*
+	float iw = x * x + y * y + z * z;
 	if (iw<1)
 		iw = sqrt(1-iw);
 	else
-		iw = 0;
-	Quat newq(x,y,z,iw);
+		iw = 0;*/
+	Quat newq(x,y,z,w);
 
 	newq.renorm();
 	start = newq * start;
@@ -302,8 +307,8 @@ computeNow(const float nowX, const float nowY)
 		now.renorm();		// just in case...
 	}
 	else if (mode == Pan) {
-		float dx = (nowX-downX) * eyeZ;
-		float dy = (nowY-downY) * eyeZ;
+		float dx = (nowX-downX) * 100;
+		float dy = (nowY-downY) * 100;
 
 		eyeX += panX - dx;
 		eyeY += panY - dy;
