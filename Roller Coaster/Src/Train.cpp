@@ -25,8 +25,8 @@ void CTrain::Move() {
 	if (speed < 1) {
 		speed = 1;
 	}
-	else if (speed > 20) {
-		speed = 20;
+	else if (speed > 30) {
+		speed = 30;
 	}
 	t += speed / pd.length;
 	if (t >= 1) {

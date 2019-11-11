@@ -356,10 +356,16 @@ PathData CTrack::GetPrevPath(const PathData& curr) {
 	return prevPath[key];
 }
 
-PathData CTrack::GetPath(int p0, int p1, int p2, int p3) {
+PathData CTrack::GetPath(int& p0, int& p1, int& p2, int& p3) {
 	pair<int, int> key(p1, p2);
 	pair<int, int> key2(p0, p3);
-	if (paths.find(key) == paths.end() || paths[key].find(key2) == paths[key].end())
-		return GetRandomPath();
+	if (paths.find(key) == paths.end() || paths[key].find(key2) == paths[key].end()) {
+		PathData pd = GetRandomPath();
+		p0 = pd.p0;
+		p1 = pd.p1;
+		p2 = pd.p2;
+		p3 = pd.p3;
+		return pd;
+	}
 	return paths[key][key2];
 }

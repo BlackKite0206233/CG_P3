@@ -68,7 +68,7 @@ public:
 		PathData GetRandomPath();
 		PathData GetNextPath(const PathData& curr);
 		PathData GetPrevPath(const PathData& curr);
-		PathData GetPath(int p0, int p1, int p2, int p3);
+		PathData GetPath(int& p0, int& p1, int& p2, int& p3);
 public:
 		// rather than have generic objects, we make a special case for these few
 		// objects that we know that all implementations are going to need and that

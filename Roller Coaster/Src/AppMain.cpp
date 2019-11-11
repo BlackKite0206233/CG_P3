@@ -23,7 +23,7 @@ AppMain::AppMain(QWidget *parent)
 	PathData::curve = Linear;
 	PathData::track = Line;
 	CTrain::isMove = false;
-	CTrain::speed0 = 3;
+	CTrain::speed0 = 10;
 
 	setWindowTitle( "Roller Coaster" );
 
@@ -181,13 +181,13 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 
 		case Qt::Key_Plus:
 			CTrain::speed0 += 0.5;
-			if (CTrain::speed0 > 20)
-				CTrain::speed0 = 20;
+			if (CTrain::speed0 > 15)
+				CTrain::speed0 = 25;
 			break;
 		case Qt::Key_Minus:
 			CTrain::speed0 -= 0.5;
-			if (CTrain::speed0 < 0.5) 
-				CTrain::speed0 = 0.5;
+			if (CTrain::speed0 < 5) 
+				CTrain::speed0 = 5;
 			break;
 		}
 	}
