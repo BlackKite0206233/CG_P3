@@ -19,6 +19,7 @@ AppMain::AppMain(QWidget *parent)
 	this->currentMode = None;
 	this->canpan = false;
 	this->isHover = false;
+	this->rotatePoint = false;
 	this->trainview->camera = World;
 	PathData::curve = Linear;
 	PathData::track = Line;
@@ -57,9 +58,6 @@ void AppMain::changeMode(int& currentMode, Mode newMode) {
 	case InsertTrain:
 		s = "InsertTrain";
 		break;
-	case RotatePoint:
-		s = "RotatePoint";
-		break;
 	}
 	ui.label->setText("Mode: " + s);
 }
@@ -95,8 +93,6 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			case InsertTrain:
 				trainview->AddTrain();
 				break;
-			case RotatePoint:
-				break;
 			}
 
 			if(this->canpan)
@@ -106,7 +102,8 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			}
 		}
 		if(event->button()==Qt::RightButton){
-			trainview->arcball->mode = trainview->arcball->Rotate;
+			if (!(rotatePoint && trainview->selectedPoint >= 0))
+				trainview->arcball->mode = trainview->arcball->Rotate;
 		}
 	}
 
@@ -142,7 +139,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			int i1 = gluUnProject((double) x, (double) y, .25, mat1, mat2, viewport, &r1x, &r1y, &r1z);
 			int i2 = gluUnProject((double) x, (double) y, .75, mat1, mat2, viewport, &r2x, &r2y, &r2z);
 
-			if (currentMode == None) {
+			if (!rotatePoint) {
 				double rx, ry, rz;
 				mousePoleGo(r1x, r1y, r1z, r2x, r2y, r2z, 
 					static_cast<double>(cp->pos.x), 
@@ -155,7 +152,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 				cp->pos.y = (float) ry;
 				cp->pos.z = (float) rz;
 			}
-			else if (currentMode == RotatePoint) {
+			else {
 
 			}
 
@@ -165,7 +162,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			float x,y;
 			trainview->arcball->getMouseNDC((float)event->localPos().x(), (float)event->localPos().y(),x,y);
 			trainview->arcball->computeNow(x,y);
-		};
+		}
 	}
 
 	if(e->type() == QEvent::KeyPress){
@@ -186,6 +183,23 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			CTrain::speed0 -= 0.1;
 			if (CTrain::speed0 < 0.1) 
 				CTrain::speed0 = 0.1;
+			break;
+
+		case Qt::Key_R:
+			rotatePoint = true;
+			break;
+
+		case Qt::Key_Up:
+			if (trainview->selectedPoint >= 0) {
+				ControlPoint* cp = &trainview->m_pTrack->points[trainview->selectedPoint];
+				cp->pos.y += 0.1;
+			}
+			break;
+		case Qt::Key_Down:
+			if (trainview->selectedPoint >= 0) {
+				ControlPoint* cp = &trainview->m_pTrack->points[trainview->selectedPoint];
+				cp->pos.y -= 0.1;
+			}
 			break;
 		}
 	}
@@ -216,9 +230,9 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 		case Qt::Key_T:
 			changeMode(currentMode, InsertTrain);
 			break;
+
 		case Qt::Key_R:
-			changeMode(currentMode, RotatePoint);
-			break;
+			rotatePoint = false;
 
 		case Qt::Key_D:
 			if (trainview->selectedPoint >= 0) {

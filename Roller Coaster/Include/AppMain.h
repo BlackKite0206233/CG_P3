@@ -16,7 +16,6 @@ enum Mode {
 	InsertPath,
 	InsertPoint,
 	InsertTrain,
-	RotatePoint,
 };
 
 class AppMain : public QMainWindow
@@ -46,6 +45,7 @@ public:
 
 	bool canpan;
 	bool isHover;
+	bool rotatePoint;
 
 private:
 	Ui::AppMainClass ui;
