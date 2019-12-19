@@ -22,10 +22,14 @@ void CTrain::Move() {
 	PathData pd = track->GetPath(p0, p1, p2, p3);
 	carSpeed -= Pnt3f::DotProduct(v, Pnt3f(0, 1, 0)) * 3;
 	if (carSpeed < 0.3) {
-		carSpeed = 0.3;
 		speed = pd.speed * CTrain::speed0;
-	} else 
+	}
+	else {
 		speed = carSpeed * CTrain::speed0;
+	}
+	if (carSpeed < 0) {
+		carSpeed = 0;
+	}
 	t += speed / pd.length;
 
 	if (t >= 1) {

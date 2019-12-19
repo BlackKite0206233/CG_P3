@@ -50,4 +50,5 @@ public:
 		set<int> children;
 		set<int> parents;
 		bool visited = false;
+		double inter;
 };

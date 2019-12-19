@@ -46,6 +46,7 @@ public:
 	bool canpan;
 	bool isHover;
 	bool rotatePoint;
+	bool moveUpAndDown;
 
 private:
 	Ui::AppMainClass ui;

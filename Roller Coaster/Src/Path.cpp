@@ -17,6 +17,7 @@ ControlPoint PathData::CalInterpolation(double t) {
 		qt.pos    = pow(t, 3) * a.pos    + pow(t, 2) * b.pos    + t * c.pos    + d.pos;
 		qt.orient = pow(t, 3) * a.orient + pow(t, 2) * b.orient + t * c.orient + d.orient;
 	}
+	qt.inter = t;
 	return qt;
 }
 

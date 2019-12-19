@@ -161,14 +161,25 @@ void calParam(const ControlPoint& p0, const ControlPoint& p1, const ControlPoint
 	}
 }
 
+void subdivision(PathData &pd, ControlPoint p1, ControlPoint p2) {
+	double t = (p1.inter + p2.inter) / 2;
+	ControlPoint mid = pd.CalInterpolation(t);
+	Pnt3f pos = (p1.pos + p2.pos) * 0.5;
+	Pnt3f orient = (p1.orient + p2.orient) * 0.5;
+	if ((pos - mid.pos).Lenth() > 0.05 || (orient - mid.orient).Lenth() > 0.05) {
+		subdivision(pd, p1, mid);
+		pd.pointSet.push_back(mid);
+		subdivision(pd, mid, p2);
+	}
+	// pd.pointSet.push_back(p2);
+}
+
 void CTrack::BuildTrack() {
 	paths.clear();
 	for (auto& p : points) {
 		p.second.visited = false;
 	}
 
-	double percent = 1.0 / DIVIDE_LINE;
-	double t;
 	int start;
 	queue<int> q;
 	for (auto it = points.begin(); it != points.end(); it++) {
@@ -222,6 +233,7 @@ void CTrack::BuildTrack() {
 						pd.p1 = idx;
 						pd.p2 = child;
 						pd.p3 = p3Id;
+						pd.speed = 0.3;
 
 						p3 = points[p3Id];
 						if (PathData::curve != Linear) {
@@ -232,21 +244,19 @@ void CTrack::BuildTrack() {
 							pd.b = p2;
 						}
 
-						t = 0;
+						ControlPoint p1, p2;
+						p1 = pd.CalInterpolation(0);
+						p2 = pd.CalInterpolation(1);
+						pd.pointSet.push_back(p1);
+						subdivision(pd, p1, p2);
+						pd.pointSet.push_back(p2);
+
 						pd.length = 0;
-						for (int j = 0; j <= DIVIDE_LINE; j++, t += percent) {
-							pd.pointSet.push_back(pd.CalInterpolation(t));
-							if (j) {
-								pd.length += (pd.pointSet[j].pos - pd.pointSet[j - 1].pos).Lenth();
-							}
+						for (int i = 1; i < pd.pointSet.size(); i++) {
+							pd.length += (pd.pointSet[i - 1].pos - pd.pointSet[i].pos).Lenth();
 						}
 
-						Pnt3f v = points[child].pos - points[idx].pos;
-						v.normalize();
-						double cos = Pnt3f::DotProduct(v, Pnt3f(0, 1, 0));
-						pd.speed = 0.3;
-
-						path[key] = pd;
+						path[key]  = pd;
 					}
 				}
 				paths[pair<int, int>(idx, child)] = path;

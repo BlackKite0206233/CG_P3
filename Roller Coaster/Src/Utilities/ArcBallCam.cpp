@@ -53,6 +53,7 @@
 
 #include <math.h>
 #include <windows.h>
+#include <iostream>
 
 #pragma warning(push)
 #pragma warning(disable:4311)		// convert void* to long
@@ -119,7 +120,8 @@ setProjection(bool doClear)
 	  glLoadIdentity();
 
   // Compute the aspect ratio so we don't distort things
-  double aspect = (wind->width() / wind->height());
+  double aspect = (double)wind->width() / (double)wind->height();
+
 	if (type == Top) {
 		float wi, he;
 		if (aspect >= 1) {
@@ -130,10 +132,10 @@ setProjection(bool doClear)
 			he = 110;
 			wi = he * aspect;
 		}
-		glOrtho(-wi, wi, -he, he, 1000, -1000);
+		glOrtho(-wi, wi, -he, he, INT16_MAX, INT16_MIN);
 	}
 	else {
-		gluPerspective(fieldOfView, aspect, .1, 1000);
+		gluPerspective(fieldOfView, aspect, .1, INFINITE);
 	}
 
   // Put the camera where we want it to be

@@ -39,5 +39,6 @@ public:
 	Model model;
 	int p0, p1, p2, p3;
 	CarType type;
+
 };
 

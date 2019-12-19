@@ -20,6 +20,7 @@ AppMain::AppMain(QWidget *parent)
 	this->canpan = false;
 	this->isHover = false;
 	this->rotatePoint = false;
+	this->moveUpAndDown = false;
 	this->trainview->camera = World;
 	PathData::curve = Linear;
 	PathData::track = Line;
@@ -148,9 +149,8 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 					rx, ry, rz,
 					false);
 
-				cp->pos.x = (float) rx;
-				cp->pos.y = (float) ry;
-				cp->pos.z = (float) rz;
+				cp->pos.x = (float)rx;
+				cp->pos.z = (float)rz;
 			}
 			else {
 
@@ -188,17 +188,21 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 		case Qt::Key_R:
 			rotatePoint = true;
 			break;
+		case Qt::Key_M:
+			moveUpAndDown = true;
 
 		case Qt::Key_Up:
 			if (trainview->selectedPoint >= 0) {
 				ControlPoint* cp = &trainview->m_pTrack->points[trainview->selectedPoint];
-				cp->pos.y += 0.1;
+				cp->pos.y += 0.5;
+				trainview->m_pTrack->BuildTrack();
 			}
 			break;
 		case Qt::Key_Down:
 			if (trainview->selectedPoint >= 0) {
 				ControlPoint* cp = &trainview->m_pTrack->points[trainview->selectedPoint];
-				cp->pos.y -= 0.1;
+				cp->pos.y -= 0.5;
+				trainview->m_pTrack->BuildTrack();
 			}
 			break;
 		}
@@ -233,6 +237,8 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 
 		case Qt::Key_R:
 			rotatePoint = false;
+		case Qt::Key_M:
+			moveUpAndDown = false;
 
 		case Qt::Key_D:
 			if (trainview->selectedPoint >= 0) {
@@ -294,6 +300,10 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			SwitchPlayAndPause();
 			break;
 		}
+	}
+
+	if (e->type() == QEvent::Resize) {
+		// cout << this->width() << ", " << this->height() << endl;
 	}
 
 	return QWidget::eventFilter(watched, e);

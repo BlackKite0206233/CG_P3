@@ -81,18 +81,23 @@ public:
         verticalLayout->setSpacing(6);
         verticalLayout->setContentsMargins(11, 11, 11, 11);
         verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
+        verticalLayout_2 = new QVBoxLayout();
+        verticalLayout_2->setSpacing(6);
+        verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
         label = new QLabel(centralWidget);
         label->setObjectName(QString::fromUtf8("label"));
 				label->setFixedHeight(10);
-
-				verticalLayout->addWidget(label);
+        verticalLayout_2->addWidget(label);
 
         mainLayout = new QVBoxLayout();
         mainLayout->setSpacing(6);
         mainLayout->setObjectName(QString::fromUtf8("mainLayout"));
         mainLayout->setSizeConstraint(QLayout::SetDefaultConstraint);
 
-				verticalLayout->addLayout(mainLayout);
+        verticalLayout_2->addLayout(mainLayout);
+
+
+        verticalLayout->addLayout(verticalLayout_2);
 
         AppMainClass->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(AppMainClass);
