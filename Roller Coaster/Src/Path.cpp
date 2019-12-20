@@ -34,26 +34,40 @@ void PathData::DrawLine(int side) {
 	glEnd();
 }
 
-void PathData::DrawTrack() {
-	Pnt3f w, v;
-	Pnt3f p;
-	ControlPoint p0, p1;
+void DrawBlock(ControlPoint p0, ControlPoint p1) {
+	Pnt3f w, v, p;
 	glBegin(GL_QUADS);
-	for (double t = 0; t < 1; t += INTERVAL / length) {
-		p0 = CalInterpolation(t);
-		p1 = CalInterpolation(t + INTERVAL / length);
-		v = p1.pos - p0.pos;
-		v.normalize();
-		w = Pnt3f::CrossProduct(v, p0.orient);
-		w.normalize();
-		w = w * 5;
-		p = p0.pos - p0.orient;
-		glVertex3dv((p + w + v).v());
-		glVertex3dv((p + w - v).v());
-		glVertex3dv((p - w - v).v());
-		glVertex3dv((p - w + v).v());
-	}
+	v = p1.pos - p0.pos;
+	v.normalize();
+	w = Pnt3f::CrossProduct(v, p0.orient);
+	w.normalize();
+	w = w * 5;
+	p = p0.pos - p0.orient;
+	glVertex3dv((p + w + v).v());
+	glVertex3dv((p + w - v).v());
+	glVertex3dv((p - w - v).v());
+	glVertex3dv((p - w + v).v());
 	glEnd();
+}
+
+void PathData::DrawTrack() {
+	DrawBlock(pointSet[0], pointSet[1]);
+	ControlPoint pnt = pointSet[0];
+	double len_0, len = 0;
+	for (int i = 1; i < pointSet.size(); i++) {
+		len_0 = len;
+		len += (pointSet[i].pos - pnt.pos).Lenth();
+		if (len >= INTERVAL) {
+			double t = (pnt.inter * (len - INTERVAL) + pointSet[i].inter * (INTERVAL - len_0)) / (len - len_0);
+			pnt = CalInterpolation(t);
+			DrawBlock(pnt, pointSet[i]);
+			len = 0;
+			i--;
+		}
+		else {
+			pnt = pointSet[i];
+		}
+	}
 }
 
 void PathData::DrawRoad() {

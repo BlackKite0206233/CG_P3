@@ -44,7 +44,6 @@ public:
 	int p0, p1, p2, p3;
 	double length;
 	double speed;
-	double* totalLength;
 };
 
 typedef map<pair<int, int>, PathData, MapComp> Path;
