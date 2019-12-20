@@ -30,25 +30,39 @@ void CTrain::Move() {
 	if (carSpeed < 0) {
 		carSpeed = 0;
 	}
-	t += speed / pd.length;
+	t += speed;
 
-	if (t >= 1) {
-		double t_tmp = t - 1;
-		double l_tmp = pd.length;
+	if (t >= pd.length) {
+		t -= pd.length;
 
 		pd = track->GetNextPath(pd);
 		p0 = pd.p0;
 		p1 = pd.p1;
 		p2 = pd.p2;
 		p3 = pd.p3;
-		t  = t_tmp * l_tmp / pd.length;
 	}
 }
 
 void CTrain::SetNewPos(PathData& pd) {
 	ControlPoint qt, qt_1;
-	qt   = pd.CalInterpolation(t);
-	qt_1 = pd.CalInterpolation(t + 5 / pd.length);
+
+	ControlPoint pnt = pd.pointSet[0];
+	double len_0, len = 0;
+	double t_;
+	for (int i = 1; i < pd.pointSet.size(); i++) {
+		len_0 = len;
+		len += (pd.pointSet[i].pos - pnt.pos).Lenth();
+		if (len >= this->t) {
+			t_ = (pnt.inter * (len - this->t) + pd.pointSet[i].inter * (this->t - len_0)) / (len - len_0);
+			break;
+		}
+		else {
+			pnt = pd.pointSet[i];
+		}
+	}
+
+	qt   = pd.CalInterpolation(t_);
+	qt_1 = pd.CalInterpolation(t_ + 5 / pd.length);
 
 	pos    = qt.pos;
 	orient = qt.orient;
@@ -85,10 +99,10 @@ void CTrain::Draw(bool doingShadows, bool isSelected) {
 	for (int i = 0; i < car.size(); i++) {
 		CTrain prev = i ? car[i - 1] : *this;
 		PathData prevPd = track->GetPath(prev.p0, prev.p1, prev.p2, prev.p3);
-		car[i].t = prev.t - OFFSET / prevPd.length;
+		car[i].t = prev.t - OFFSET;
 		if (car[i].t < 0) {
 			pd = track->GetPath(car[i].p0, car[i].p1, car[i].p2, car[i].p3);
-			car[i].t = 1 + car[i].t * prevPd.length / pd.length;
+			car[i].t = pd.length + car[i].t;
 		}
 		else {
 			car[i].p0 = prevPd.p0;
