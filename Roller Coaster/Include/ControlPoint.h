@@ -26,6 +26,7 @@
 #pragma once
 #include <set>
 #include "Utilities/Pnt3f.h"
+#include "Utilities/Quat.h"
 
 using namespace std;
 
@@ -44,6 +45,12 @@ public:
 		// draw the control point - assumes the color is correct
 		void draw();
 
+		void getMouseNDC(float mx, float my, float& x, float& y);
+		void getMatrix(HMatrix) const;
+		void computeNow(const float nowX, const float nowY);
+		void down(const float x, const float y);
+		void setCenter(float x, float y);
+
 public:
 		Pnt3f pos;         // Position of this control point
 		Pnt3f orient;		 // Orientation of this control point
@@ -51,4 +58,13 @@ public:
 		set<int> parents;
 		bool visited = false;
 		double inter;
+
+		Quat start;	
+		Quat now;	
+
+		float downX;
+		float downY;
+
+		float centerX;
+		float centerY;
 };

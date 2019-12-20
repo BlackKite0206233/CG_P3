@@ -13,6 +13,7 @@
 #include "Triangle.h"
 #include "Square.h"
 #include "Train.h"
+#include "Model.h"
 
 using namespace std;
 
@@ -86,5 +87,6 @@ public:
 	QVector<QOpenGLTexture*> Textures;
 	vector<CTrain> trains;
 	int currentTrain = 0;
+	Model* model;
 };  
 #endif // TRAINVIEW_H  

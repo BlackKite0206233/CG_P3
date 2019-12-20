@@ -36,7 +36,7 @@ public:
 	Pnt3f orient;
 	Pnt3f v, w;
 	vector<CTrain> car;
-	Model model;
+	Model *model;
 	int p0, p1, p2, p3;
 	CarType type;
 

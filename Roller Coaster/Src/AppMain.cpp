@@ -20,7 +20,6 @@ AppMain::AppMain(QWidget *parent)
 	this->canpan = false;
 	this->isHover = false;
 	this->rotatePoint = false;
-	this->moveUpAndDown = false;
 	this->trainview->camera = World;
 	PathData::curve = Linear;
 	PathData::track = Line;
@@ -65,6 +64,9 @@ void AppMain::changeMode(int& currentMode, Mode newMode) {
 
 bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 	if (e->type() == QEvent::MouseButtonPress) {
+		if (trainview->camera == Train) {
+			return QWidget::eventFilter(watched, e);;
+		}
 		QMouseEvent *event = static_cast<QMouseEvent*> (e);
 		// Get the mouse position
 		float x, y;
@@ -101,10 +103,18 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			else {
 				trainview->arcball->mode = trainview->arcball->None;
 			}
+
+			if (this->rotatePoint && trainview->selectedPoint >= 0) {
+				trainview->m_pTrack->points[trainview->selectedPoint].setCenter((float)event->localPos().x(), (float)event->localPos().y());
+			}
 		}
 		if(event->button()==Qt::RightButton){
 			if (!(rotatePoint && trainview->selectedPoint >= 0))
 				trainview->arcball->mode = trainview->arcball->Rotate;
+			else {
+				trainview->m_pTrack->points[trainview->selectedPoint].getMouseNDC((float)event->localPos().x(), (float)event->localPos().y(), x, y);
+				trainview->m_pTrack->points[trainview->selectedPoint].down(x, y);
+			}
 		}
 	}
 
@@ -115,32 +125,37 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 	}
 
 	if (e->type() == QEvent::Wheel) {
+		if (trainview->camera == Train) {
+			return QWidget::eventFilter(watched, e);;
+		}
 		QWheelEvent *event = static_cast<QWheelEvent*> (e);
 		float zamt = (event->delta() < 0) ? 1.1f : 1/1.1f;
 		trainview->arcball->eyeZ *= zamt;
 	}
 
 	if (e->type() == QEvent::MouseMove) {
+		if (trainview->camera == Train) {
+			return QWidget::eventFilter(watched, e);;
+		}
 		QMouseEvent *event = static_cast<QMouseEvent*> (e);
-		if(isHover && trainview->selectedPoint >= 0){
+		if((rotatePoint || isHover) && trainview->selectedPoint >= 0){
 			ControlPoint* cp = &trainview->m_pTrack->points[trainview->selectedPoint];
-
-			double r1x, r1y, r1z, r2x, r2y, r2z;
-			int x = event->localPos().x();
-			int iy = event->localPos().y();
-			double mat1[16],mat2[16];		// we have to deal with the projection matrices
-			int viewport[4];
-
-			glGetIntegerv(GL_VIEWPORT, viewport);
-			glGetDoublev(GL_MODELVIEW_MATRIX,mat1);
-			glGetDoublev(GL_PROJECTION_MATRIX,mat2);
-
-			int y = viewport[3] - iy; // originally had an extra -1?
-
-			int i1 = gluUnProject((double) x, (double) y, .25, mat1, mat2, viewport, &r1x, &r1y, &r1z);
-			int i2 = gluUnProject((double) x, (double) y, .75, mat1, mat2, viewport, &r2x, &r2y, &r2z);
-
 			if (!rotatePoint) {
+				double r1x, r1y, r1z, r2x, r2y, r2z;
+				int x = event->localPos().x();
+				int iy = event->localPos().y();
+				double mat1[16], mat2[16];		// we have to deal with the projection matrices
+				int viewport[4];
+
+				glGetIntegerv(GL_VIEWPORT, viewport);
+				glGetDoublev(GL_MODELVIEW_MATRIX, mat1);
+				glGetDoublev(GL_PROJECTION_MATRIX, mat2);
+
+				int y = viewport[3] - iy; // originally had an extra -1?
+
+				int i1 = gluUnProject((double)x, (double)y, .25, mat1, mat2, viewport, &r1x, &r1y, &r1z);
+				int i2 = gluUnProject((double)x, (double)y, .75, mat1, mat2, viewport, &r2x, &r2y, &r2z);
+
 				double rx, ry, rz;
 				mousePoleGo(r1x, r1y, r1z, r2x, r2y, r2z, 
 					static_cast<double>(cp->pos.x), 
@@ -152,8 +167,10 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 				cp->pos.x = (float)rx;
 				cp->pos.z = (float)rz;
 			}
-			else {
-
+			else if (!isHover) {
+				float x, y;
+				trainview->m_pTrack->points[trainview->selectedPoint].getMouseNDC((float)event->localPos().x(), (float)event->localPos().y(), x, y);
+				trainview->m_pTrack->points[trainview->selectedPoint].computeNow(x, y);
 			}
 
 			trainview->m_pTrack->BuildTrack();
@@ -188,8 +205,6 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 		case Qt::Key_R:
 			rotatePoint = true;
 			break;
-		case Qt::Key_M:
-			moveUpAndDown = true;
 
 		case Qt::Key_Up:
 			if (trainview->selectedPoint >= 0) {
@@ -237,8 +252,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 
 		case Qt::Key_R:
 			rotatePoint = false;
-		case Qt::Key_M:
-			moveUpAndDown = false;
+			break;
 
 		case Qt::Key_D:
 			if (trainview->selectedPoint >= 0) {
@@ -300,10 +314,6 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			SwitchPlayAndPause();
 			break;
 		}
-	}
-
-	if (e->type() == QEvent::Resize) {
-		// cout << this->width() << ", " << this->height() << endl;
 	}
 
 	return QWidget::eventFilter(watched, e);

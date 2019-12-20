@@ -80,10 +80,25 @@ Model::Model(const QString &filePath, int s, Point3d p)
 
 	for (int i = 0; i < m_normals.size(); ++i)
 		m_normals[i] = m_normals[i].normalize();
+
+	Init();
 }
 
-void Model::render(bool wireframe, bool normals) const
+void DimensionTransformation(GLfloat source[], GLfloat target[][4])
 {
+	//for uniform value, transfer 1 dimension to 2 dimension
+	int i = 0;
+	for (int j = 0; j < 4; j++)
+		for (int k = 0; k < 4; k++)
+		{
+			target[j][k] = source[i];
+			i++;
+		}
+}
+
+void Model::render(bool doShadow, bool isSelect, QVector3D color, GLfloat* ProjectionMatrix, GLfloat* ModelViewMatrix, bool wireframe, bool normals)
+{
+	
 	glEnable(GL_DEPTH_TEST);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	if (wireframe) {
@@ -115,4 +130,99 @@ void Model::render(bool wireframe, bool normals) const
 	}
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisable(GL_DEPTH_TEST);
+	
+	/*
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glEnable(GL_COLOR_MATERIAL);
+
+	GLfloat P[4][4];
+	GLfloat MV[4][4];
+	DimensionTransformation(ProjectionMatrix, P);
+	DimensionTransformation(ModelViewMatrix, MV);
+
+	//Bind the shader we want to draw with
+	shaderProgram->bind();
+	//Bind the VAO we want to draw
+	vao.bind();
+
+	//pass projection matrix to shader
+	shaderProgram->setUniformValue("ProjectionMatrix", P);
+	//pass modelview matrix to shader
+	shaderProgram->setUniformValue("ModelViewMatrix", MV);
+
+	// Bind the buffer so that it is the current active buffer.
+	vvbo.bind();
+	// Enable Attribute 0
+	shaderProgram->enableAttributeArray(0);
+	// Set Attribute 0 to be position
+	shaderProgram->setAttributeArray(0, GL_FLOAT, 0, 3, NULL);
+	//unbind buffer
+	vvbo.release();
+
+	//Draw a triangle with 3 indices starting from the 0th index
+	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+	//Disable Attribute 0&1
+	shaderProgram->disableAttributeArray(0);
+	shaderProgram->disableAttributeArray(1);
+
+	//unbind vao
+	vao.release();
+	//unbind vao
+	shaderProgram->release();
+
+	glDisable(GL_COLOR_MATERIAL);
+	glDisable(GL_LIGHT0);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+	*/
+}
+
+void Model::Init() {
+	InitShader("./Shader/model.vs", "./Shader/model.fs");
+	InitVAO();
+	InitVBO();
+}
+
+void Model::InitVAO() {
+	vao.create();
+	vao.bind();
+}
+
+void Model::InitVBO() {
+	for (int i = 0; i < m_pointIndices.size(); i++) {
+		Point3d p = m_points.at(m_pointIndices[i]);
+		vertices << QVector3D(p.x, p.y, p.z);
+	}
+	vvbo.create();
+	vvbo.bind();
+	vvbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+	vvbo.allocate(vertices.constData(), vertices.size() * sizeof(QVector3D));
+}
+
+void Model::InitShader(QString vertexShaderPath, QString fragmentShaderPath) {
+	shaderProgram = new QOpenGLShaderProgram();
+	QFileInfo  vertexShaderFile(vertexShaderPath);
+	if (vertexShaderFile.exists()) {
+		vertexShader = new QOpenGLShader(QOpenGLShader::Vertex);
+		if (vertexShader->compileSourceFile(vertexShaderPath))
+			shaderProgram->addShader(vertexShader);
+		else
+			qWarning() << "Vertex Shader Error " << vertexShader->log();
+	}
+	else
+		qDebug() << vertexShaderFile.filePath() << " can't be found";
+
+	QFileInfo  fragmentShaderFile(fragmentShaderPath);
+	if (fragmentShaderFile.exists()) {
+		fragmentShader = new QOpenGLShader(QOpenGLShader::Fragment);
+		if (fragmentShader->compileSourceFile(fragmentShaderPath))
+			shaderProgram->addShader(fragmentShader);
+		else
+			qWarning() << "fragment Shader Error " << fragmentShader->log();
+	}
+	else
+		qDebug() << fragmentShaderFile.filePath() << " can't be found";
+	shaderProgram->link();
 }

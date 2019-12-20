@@ -171,10 +171,10 @@ void subdivision(PathData &pd, ControlPoint p1, ControlPoint p2) {
 		pd.pointSet.push_back(mid);
 		subdivision(pd, mid, p2);
 	}
-	// pd.pointSet.push_back(p2);
 }
 
 void CTrack::BuildTrack() {
+	totalLength = 0;
 	paths.clear();
 	for (auto& p : points) {
 		p.second.visited = false;
@@ -252,11 +252,12 @@ void CTrack::BuildTrack() {
 						pd.pointSet.push_back(p2);
 
 						pd.length = 0;
+						pd.totalLength = &totalLength;
 						for (int i = 1; i < pd.pointSet.size(); i++) {
 							pd.length += (pd.pointSet[i - 1].pos - pd.pointSet[i].pos).Lenth();
 						}
-
-						path[key]  = pd;
+						totalLength += pd.length;
+						path[key] = pd;
 					}
 				}
 				paths[pair<int, int>(idx, child)] = path;

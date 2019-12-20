@@ -70,7 +70,7 @@ void CTrain::Draw(bool doingShadows, bool isSelected) {
 		else
 			glColor3d(0, 0, 1);
 	}
-
+	
 	glBegin(GL_QUADS);
 	glTexCoord2f(0, 0);
 	glVertex3dv((pos - w * 5 - v * 5 + orient).v());

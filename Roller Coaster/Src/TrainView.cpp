@@ -32,7 +32,8 @@ void TrainView::initializeGL()
 	square->Init();
 	//Initialize texture 
 	initializeTexture();
-	
+	model = new Model("./arrow.obj", 10, Point3d(0, 10, 10));
+
 }
 void TrainView::initializeTexture()
 {
@@ -48,6 +49,7 @@ void TrainView:: resetArcball()
 	// a little trial and error goes a long way
 	cameras[0].setup(this, 40, 0, 0, 250, M_PI / 4, 0, 0);
 	cameras[1].setup(this, 40, 0, 0, 250);
+	cameras[2].setup(this, 40, 0, 0, 250);
 }
 
 void TrainView::paintGL()
@@ -137,6 +139,12 @@ void TrainView::paintGL()
 	glEnable(GL_LIGHTING);
 	setupObjects();
 
+	//Get modelview matrix
+ 	glGetFloatv(GL_MODELVIEW_MATRIX,ModelViewMatrex);
+	//Get projection matrix
+ 	glGetFloatv(GL_PROJECTION_MATRIX,ProjectionMatrex);
+
+
 	drawStuff();
 
 	// this time drawing is for shadows (except for top view)
@@ -146,12 +154,7 @@ void TrainView::paintGL()
 		unsetupShadows();
 	}
 
-	//Get modelview matrix
- 	glGetFloatv(GL_MODELVIEW_MATRIX,ModelViewMatrex);
-	//Get projection matrix
- 	glGetFloatv(GL_PROJECTION_MATRIX,ProjectionMatrex);
-
-	/*
+	
 	//Call triangle's render function, pass ModelViewMatrex and ProjectionMatrex
  	triangle->Paint(ProjectionMatrex,ModelViewMatrex);
     
@@ -166,7 +169,7 @@ void TrainView::paintGL()
 		//Call square's render function, pass ModelViewMatrex and ProjectionMatrex
 		square->Paint(ProjectionMatrex,ModelViewMatrex);
 	square->End();
-	*/
+
 }
 
 //************************************************************************
@@ -179,31 +182,11 @@ void TrainView::
 setProjection()
 //========================================================================
 {
-	//CTrain train(Head);
-	/*if (camera == Train && !trains.empty()) {
-		train = trains[currentTrain];
-		arcball->eyeX = train.pos.x;
-		arcball->eyeY = train.pos.y;
-		arcball->eyeZ = train.pos.z;
-		arcball->spin(0, 0, 0);
-	}*/
 	if (camera == Train && !trains.empty()) {
 		CTrain train = trains[currentTrain];
-		/*double s = Pnt3f::DotProduct(Pnt3f(1, 0, 0), train.v);
-		Pnt3f v = Pnt3f::CrossProduct(Pnt3f(1, 0, 0), train.v);
-		Quat q;
-		q.w = s;
-		q.x = v.x;
-		q.y = v.y;
-		q.z = v.z;
-		q.renorm();
-		double z = atan(2 * (q.x * q.y - q.w * q.z) / (q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z));
-		double y = atan(-2 * (q.w * q.y + q.x * q.z));
-		double x = atan(2 * (q.y * q.z - q.w * q.x) / (q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z));
-		arcball->setup(this, 120, train.pos.x, train.pos.y, train.pos.z, x, y, z);*/
 		glMatrixMode(GL_PROJECTION);
-		double aspect = (width() / height());
-		gluPerspective(120, aspect, .1, 1000);
+		double aspect = ((double)width() / (double)height());
+		gluPerspective(120, aspect, .1, INFINITE);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 		Pnt3f pos = train.pos + train.orient * 3;
@@ -211,24 +194,6 @@ setProjection()
 			pos.x + train.v.x, pos.y + train.v.y, pos.z + train.v.z,
 			train.orient.x, train.orient.y, train.orient.z);
 	}
-	/*if (!trains.empty()) {
-		CTrain train = trains[currentTrain];
-		double s = Pnt3f::DotProduct(Pnt3f(1, 0, 0), train.v);
-		Pnt3f v = Pnt3f::CrossProduct(Pnt3f(1, 0, 0), train.v);
-		Quat q;
-		q.w = s;
-		q.x = v.x;
-		q.y = v.y;
-		q.z = v.z;
-		q.renorm();
-		double z = atan(2 * (q.x * q.y - q.w * q.z) / (q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z));
-		double y = atan(-2 * (q.w * q.y + q.x * q.z));
-		double x = atan(2 * (q.y * q.z - q.w * q.x) / (q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z));
-		arcball->setup(this, 120, train.pos.x + train.orient.x, train.pos.y + train.orient.y, train.pos.z + train.orient.z, x, y, z);
-		arcball->eyeX = train.pos.x;
-		arcball->eyeY = train.pos.y;
-		arcball->eyeZ = train.pos.z;
-	}*/
 	else {
 		arcball->setProjection(false);
 	}
@@ -250,6 +215,8 @@ static unsigned long lastRedraw = 0;
 //========================================================================
 void TrainView::drawStuff(bool doingShadows)
 {
+	this->model->render(false, false, QVector3D(0, 1, 0), ProjectionMatrex, ModelViewMatrex);
+
 	// Draw the control points
 	// don't draw the control points if you're driving 
 	// (otherwise you get sea-sick as you drive through them)

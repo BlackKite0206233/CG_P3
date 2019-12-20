@@ -76,6 +76,7 @@ public:
 		map<int, ControlPoint> points;
 		map<pair<int, int>, Path, MapComp> paths;
 		int pointCount = 0;
+		double totalLength;
 
 		//###################################################################
 		// TODO: you might want to do this differently

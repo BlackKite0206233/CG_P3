@@ -95,6 +95,9 @@
     <ClCompile Include="Src\Path.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Utilities\Quat.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="AppMain.ui">
@@ -146,6 +149,9 @@
     </ClInclude>
     <ClInclude Include="Include\Path.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Utilities\Quat.h">
+      <Filter>Header Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
