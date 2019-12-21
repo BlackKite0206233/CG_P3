@@ -6,7 +6,7 @@
 
 #include <QtOpenGL/QtOpenGL>
 
-Model::Model(const QString &filePath, int s, Point3d p)
+Model::Model(const QString &filePath, int s, Point3d pos)
 	: m_fileName(QFileInfo(filePath).fileName())
 {
 	QFile file(filePath);
@@ -64,7 +64,7 @@ Model::Model(const QString &filePath, int s, Point3d p)
 	const Point3d bounds = boundsMax - boundsMin;
 	const qreal scale = s / qMax(bounds.x, qMax(bounds.y, bounds.z));
 	for (int i = 0; i < m_points.size(); ++i)
-		m_points[i] = (m_points[i] + p - (boundsMin + bounds * 0.5)) * scale;
+		m_points[i] = (m_points[i] - (boundsMin + bounds * 0.5)) * scale;
 
 	m_normals.resize(m_points.size());
 	for (int i = 0; i < m_pointIndices.size(); i += 3) {
@@ -98,7 +98,7 @@ void DimensionTransformation(GLfloat source[], GLfloat target[][4])
 
 void Model::render(bool doShadow, bool isSelect, QVector3D color, GLfloat* ProjectionMatrix, GLfloat* ModelViewMatrix, bool wireframe, bool normals)
 {
-	
+	/*
 	glEnable(GL_DEPTH_TEST);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	if (wireframe) {
@@ -130,8 +130,8 @@ void Model::render(bool doShadow, bool isSelect, QVector3D color, GLfloat* Proje
 	}
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisable(GL_DEPTH_TEST);
+	*/
 	
-	/*
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
@@ -176,7 +176,7 @@ void Model::render(bool doShadow, bool isSelect, QVector3D color, GLfloat* Proje
 	glDisable(GL_LIGHT0);
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
-	*/
+	
 }
 
 void Model::Init() {

@@ -32,7 +32,7 @@ void TrainView::initializeGL()
 	square->Init();
 	//Initialize texture 
 	initializeTexture();
-	model = new Model("./arrow.obj", 10, Point3d(0, 10, 10));
+	model = new Model("./toon_train.obj", 50, Point3d(0, 10, 10));
 
 }
 void TrainView::initializeTexture()
@@ -154,7 +154,7 @@ void TrainView::paintGL()
 		unsetupShadows();
 	}
 
-	
+	/*
 	//Call triangle's render function, pass ModelViewMatrex and ProjectionMatrex
  	triangle->Paint(ProjectionMatrex,ModelViewMatrex);
     
@@ -169,6 +169,7 @@ void TrainView::paintGL()
 		//Call square's render function, pass ModelViewMatrex and ProjectionMatrex
 		square->Paint(ProjectionMatrex,ModelViewMatrex);
 	square->End();
+	*/
 
 }
 
