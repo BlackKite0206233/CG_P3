@@ -14,6 +14,7 @@
 #include "Square.h"
 #include "Train.h"
 #include "Model.h"
+#include "SkyBox.h"
 
 using namespace std;
 
@@ -82,6 +83,7 @@ public:
 	CameraType camera;
 	Triangle* triangle;
 	Square* square;
+	SkyBox* skybox;
 	GLfloat ProjectionMatrex[16];
 	GLfloat ModelViewMatrex[16];
 	QVector<QOpenGLTexture*> Textures;
