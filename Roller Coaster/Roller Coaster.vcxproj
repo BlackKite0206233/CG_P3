@@ -185,6 +185,7 @@
     <ClCompile Include="Src\main.cpp" />
     <ClCompile Include="Src\Model.cpp" />
     <ClCompile Include="Src\Path.cpp" />
+    <ClCompile Include="Src\SkyBox.cpp" />
     <ClCompile Include="Src\Square.cpp" />
     <ClCompile Include="Src\Track.cpp" />
     <ClCompile Include="Src\Train.cpp" />
@@ -223,6 +224,7 @@
     <ClInclude Include="Include\Model.h" />
     <ClInclude Include="Include\Path.h" />
     <ClInclude Include="Include\Point3d.h" />
+    <ClInclude Include="Include\SkyBox.h" />
     <ClInclude Include="Include\Square.h" />
     <ClInclude Include="Include\Track.h" />
     <ClInclude Include="Include\Train.h" />

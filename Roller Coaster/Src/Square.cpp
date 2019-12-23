@@ -1,19 +1,10 @@
 #include "Square.h"
+#include "Utilities/3DUtils.h"
 
 Square::Square()
 {
 }
-void Square::DimensionTransformation(GLfloat source[],GLfloat target[][4])
-{
-	//for uniform value, transfer 1 dimension to 2 dimension
-	int i = 0;
-	for(int j=0;j<4;j++)
-		for(int k=0;k<4;k++)
-		{
-			target[j][k] = source[i];
-			i++;
-		}
-}
+
 void Square::Begin()
 {
 	//Bind the shader we want to draw with

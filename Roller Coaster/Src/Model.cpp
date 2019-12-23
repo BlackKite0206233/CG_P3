@@ -5,6 +5,7 @@
 #include <QtCore/QVarLengthArray>
 #include <QColor>
 #include <QtOpenGL/QtOpenGL>
+#include "Utilities/3DUtils.h"
 
 Model::Model(const QString &filePath, int s)
 	: m_fileName(QFileInfo(filePath).fileName())
@@ -82,18 +83,6 @@ Model::Model(const QString &filePath, int s)
 		m_normals[i] = m_normals[i].normalize();
 
 	Init();
-}
-
-void DimensionTransformation(GLfloat source[], GLfloat target[][4])
-{
-	//for uniform value, transfer 1 dimension to 2 dimension
-	int i = 0;
-	for (int j = 0; j < 4; j++)
-		for (int k = 0; k < 4; k++)
-		{
-			target[j][k] = source[i];
-			i++;
-		}
 }
 
 void Model::render(QVector3D color, GLfloat* ProjectionMatrix, GLfloat*ViewMatrix, QMatrix4x4 ModelMatrix, bool wireframe, bool normals)

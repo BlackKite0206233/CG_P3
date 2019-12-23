@@ -29,6 +29,7 @@
 #pragma once
 
 #include <QtWidgets/QMainWindow>
+#include <QtGui/QOpenGLFunctions_4_3_Core>
 
 //************************************************************************
 // this typedef is useful for lots of stuff
@@ -127,3 +128,5 @@ void mousePoleGo( double r1x, double r1y, double r1z,
 // useful math
 //************************************************************************
 float radiansToDegrees(const float);
+
+void DimensionTransformation(GLfloat source[], GLfloat target[][4]);

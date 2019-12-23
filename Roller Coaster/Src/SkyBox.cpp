@@ -1,22 +1,13 @@
 #include "SkyBox.h"
 #include <QImage>
 #include <iostream>
+#include <vector>
+#include "Utilities/3DUtils.h"
 
-void DimensionTransformation(GLfloat source[],GLfloat target[][4])
-{
-	//for uniform value, transfer 1 dimension to 2 dimension
-	int i = 0;
-	for(int j=0;j<4;j++)
-		for(int k=0;k<4;k++)
-		{
-			target[j][k] = source[i];
-			i++;
-		}
-}
+using namespace std;
 
 SkyBox::SkyBox() {
 }
-
 
 void SkyBox::Init() {
     InitVAO();
@@ -26,25 +17,25 @@ void SkyBox::Init() {
 
 void SkyBox::Render(GLfloat* ProjectionMatrix, GLfloat* ModelViewMatrix) {
     GLfloat P[4][4];
-	GLfloat MV[4][4];
-	DimensionTransformation(ProjectionMatrix,P);
-	DimensionTransformation(ModelViewMatrix,MV);
+		GLfloat MV[4][4];
+		DimensionTransformation(ProjectionMatrix,P);
+		DimensionTransformation(ModelViewMatrix,MV);
 
-    glDisable(GL_DEPTH_MASK);
+		glDepthMask(GL_FALSE);
     
     shaderProgram->bind();
     vao.bind();
     
     //pass projection matrix to shader
-	shaderProgram->setUniformValue("ProjectionMatrix",P);
-	//pass modelview matrix to shader
-	shaderProgram->setUniformValue("ModelViewMatrix",MV);
+		shaderProgram->setUniformValue("ProjectionMatrix",P);
+		//pass modelview matrix to shader
+		shaderProgram->setUniformValue("ModelViewMatrix",MV);
 
     glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
-    glEnable(GL_DEPTH_MASK);
+		glDepthMask(GL_TRUE);
 }
 
 void SkyBox::InitVAO() {
@@ -54,24 +45,21 @@ void SkyBox::InitVAO() {
 
 void SkyBox::InitTexture() {
     vector<std::string> faces({
-        "RT.png",
-        "LF.png",
-        "UP.png",
         "DN.png",
-        "FR.png",
-        "BK.png"
+        "DN.png",
+        "DN.png",
+        "DN.png",
+        "DN.png",
+        "DN.png"
     });
 
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
 
-    int width, height, nrChannels;
     for (unsigned int i = 0; i < faces.size(); i++) {
-        unsigned char *data = QImage("./Textures/ct_" + faces[i]).bits();
+        unsigned char *data = QImage(("./Textures/ct_" + faces[i]).c_str()).bits();
         if (data) {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 
-                         0, GL_RGB, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, data
-            );
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         } else {
             std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
         }
@@ -86,28 +74,26 @@ void SkyBox::InitTexture() {
 
 void SkyBox::InitShader(QString vertexShaderPath,QString fragmentShaderPath) {
     shaderProgram = new QOpenGLShaderProgram();
-	QFileInfo  vertexShaderFile(vertexShaderPath);
-	if(vertexShaderFile.exists())
-	{
-		vertexShader = new QOpenGLShader(QOpenGLShader::Vertex);
-		if(vertexShader->compileSourceFile(vertexShaderPath))
-			shaderProgram->addShader(vertexShader);
+		QFileInfo  vertexShaderFile(vertexShaderPath);
+		if(vertexShaderFile.exists()) {
+				vertexShader = new QOpenGLShader(QOpenGLShader::Vertex);
+				if(vertexShader->compileSourceFile(vertexShaderPath))
+						shaderProgram->addShader(vertexShader);
+				else
+						qWarning() << "Vertex Shader Error " << vertexShader->log();
+		}
 		else
-			qWarning() << "Vertex Shader Error " << vertexShader->log();
-	}
-	else
-		qDebug()<<vertexShaderFile.filePath()<<" can't be found";
+				qDebug()<<vertexShaderFile.filePath()<<" can't be found";
 
-	QFileInfo  fragmentShaderFile(fragmentShaderPath);
-	if(fragmentShaderFile.exists())
-	{
-		fragmentShader = new QOpenGLShader(QOpenGLShader::Fragment);
-		if(fragmentShader->compileSourceFile(fragmentShaderPath))
-			shaderProgram->addShader(fragmentShader);
+		QFileInfo  fragmentShaderFile(fragmentShaderPath);
+		if(fragmentShaderFile.exists()) {
+				fragmentShader = new QOpenGLShader(QOpenGLShader::Fragment);
+				if(fragmentShader->compileSourceFile(fragmentShaderPath))
+						shaderProgram->addShader(fragmentShader);
+				else
+						qWarning() << "fragment Shader Error " << fragmentShader->log();
+		}
 		else
-			qWarning() << "fragment Shader Error " << fragmentShader->log();
-	}
-	else
-		qDebug()<<fragmentShaderFile.filePath()<<" can't be found";
-	shaderProgram->link();
+				qDebug()<<fragmentShaderFile.filePath()<<" can't be found";
+		shaderProgram->link();
 }

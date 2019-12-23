@@ -1,19 +1,10 @@
 #include "Triangle.h"
+#include "Utilities/3DUtils.h"
 
 Triangle::Triangle()
 {
 }
-void Triangle::DimensionTransformation(GLfloat source[],GLfloat target[][4])
-{
-	//for uniform value, transfer 1 dimension to 2 dimension
-	int i = 0;
-	for(int j=0;j<4;j++)
-		for(int k=0;k<4;k++)
-		{
-			target[j][k] = source[i];
-			i++;
-		}
-}
+
 void Triangle::Paint(GLfloat* ProjectionMatrix, GLfloat* ModelViewMatrix)
 {
 	GLfloat P[4][4];

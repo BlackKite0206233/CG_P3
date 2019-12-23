@@ -13,19 +13,19 @@
 
 class SkyBox {
 public:
-    SkyBox();
+	SkyBox();
 
-    void Init();
-    void Render(GLfloat* ProjectionMatrix, GLfloat* ModelViewMatrix);
+	void Init();
+	void Render(GLfloat* ProjectionMatrix, GLfloat* ModelViewMatrix);
 
 private:
-    void InitVAO();
-    void InitTexture();
-    void InitShader(QString vertexShaderPath,QString fragmentShaderPath);
+	void InitVAO();
+	void InitTexture();
+	void InitShader(QString vertexShaderPath, QString fragmentShaderPath);
 
-    QOpenGLShaderProgram* shaderProgram;
+	QOpenGLShaderProgram* shaderProgram;
 	QOpenGLShader* vertexShader;
 	QOpenGLShader* fragmentShader;
-    QOpenGLVertexArrayObject vao;
-    unsigned int texture;
-}
+	QOpenGLVertexArrayObject vao;
+	GLuint texture;
+};

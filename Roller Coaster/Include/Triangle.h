@@ -29,5 +29,4 @@ public:
 	void InitVBO();
 	void InitShader(QString vertexShaderPath,QString fragmentShaderPath);
 	void Paint(GLfloat* ProjectionMatrix, GLfloat* ModelViewMatrix);
-	void DimensionTransformation(GLfloat source[],GLfloat target[][4]);
 };

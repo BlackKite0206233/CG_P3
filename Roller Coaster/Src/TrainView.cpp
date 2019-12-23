@@ -31,7 +31,7 @@ void TrainView::initializeGL()
 	//Initialize the square object
 	square->Init();
 
-	skybox = new Skybox();
+	skybox = new SkyBox();
 	skybox->Init();
 	//Initialize texture 
 	initializeTexture();
@@ -146,7 +146,6 @@ void TrainView::paintGL()
  	glGetFloatv(GL_PROJECTION_MATRIX,ProjectionMatrex);
 
 	skybox->Render(ProjectionMatrex, ModelViewMatrex);
-
 
 	drawStuff();
 
