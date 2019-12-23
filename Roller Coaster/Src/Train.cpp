@@ -2,31 +2,45 @@
 #include <windows.h>
 #include <GL/gl.h>
 
-#define DIVIDE_LINE 100
-#define OFFSET 12
+#define OFFSET 23
 
 bool CTrain::isMove;
 double CTrain::speed0;
 CTrack* CTrain::track;
 
 CTrain::CTrain(CarType type): t(0), type(type), speed(0), carSpeed(0) {
+	if (type == CarType::Head) {
+		this->model = new Model("./toon_train.obj", 25);
+	}
+	else {
+		this->model = new Model("./car.obj", 25);
+	}
 }
 
 CTrain::CTrain(int p0, int p1, int p2, int p3, CarType type): p0(p0), p1(p1), p2(p2), p3(p3), t(0), type(type), carSpeed(0) {
 	PathData pd = track->GetPath(p0, p1, p2, p3);
 	speed = pd.speed * CTrain::speed0;
 	SetNewPos(pd);
+	if (type == CarType::Head) {
+		this->model = new Model("./toon_train.obj", 25);
+	}
+	else {
+		this->model = new Model("./car.obj", 25);
+	}
 }
 
 void CTrain::Move() {
 	PathData pd = track->GetPath(p0, p1, p2, p3);
-	carSpeed -= Pnt3f::DotProduct(v, Pnt3f(0, 1, 0)) * 3;
+	Pnt3f n = v - pos;
+	n.normalize();
+	carSpeed -= Pnt3f::DotProduct(n, Pnt3f(0, 1, 0)) * 3;
 	if (carSpeed < 0.3) {
 		speed = pd.speed * CTrain::speed0;
 	}
 	else {
 		speed = carSpeed * CTrain::speed0;
 	}
+
 	if (carSpeed < 0) {
 		carSpeed = 0;
 	}
@@ -43,58 +57,63 @@ void CTrain::Move() {
 	}
 }
 
-void CTrain::SetNewPos(PathData& pd) {
-	ControlPoint qt, qt_1;
-
+double getT(PathData& pd, double l) {
 	ControlPoint pnt = pd.pointSet[0];
 	double len_0, len = 0;
 	double t_;
 	for (int i = 1; i < pd.pointSet.size(); i++) {
 		len_0 = len;
 		len += (pd.pointSet[i].pos - pnt.pos).Lenth();
-		if (len >= this->t) {
-			t_ = (pnt.inter * (len - this->t) + pd.pointSet[i].inter * (this->t - len_0)) / (len - len_0);
-			break;
+		if (len >= l) {
+			return (pnt.inter * (len - l) + pd.pointSet[i].inter * (l - len_0)) / (len - len_0);
 		}
 		else {
 			pnt = pd.pointSet[i];
 		}
 	}
+	return 1;
+}
 
-	qt   = pd.CalInterpolation(t_);
-	qt_1 = pd.CalInterpolation(t_ + 5 / pd.length);
+void CTrain::SetNewPos(PathData& pd) {
+	ControlPoint qt, qt_1;
 
-	pos    = qt.pos;
-	orient = qt.orient;
-	v      = qt_1.pos - qt.pos;
-	v.normalize();
-	w = Pnt3f::CrossProduct(v, orient);
-	w.normalize();
+	qt   = pd.CalInterpolation(getT(pd, this->t));
+	qt_1 = pd.CalInterpolation(getT(pd, this->t + 1));
+
+	pos      = qt.pos + 6 * qt.orient;
+	orient   = qt.orient;
+	v        = qt_1.pos + 6 * qt_1.orient;
+	v_orient = qt_1.orient;
+
+	QVector3D eye(pos.x, pos.y, pos.z);
+	QVector3D center(v.x, v.y, v.z);
+	QVector3D up(orient.x, orient.y, orient.z);
+
+	modelMatrix.setToIdentity();
+	modelMatrix.lookAt(eye, center, up);
+	modelMatrix = modelMatrix.inverted();
 }
 
 void CTrain::Draw(bool doingShadows, bool isSelected) {
 	PathData pd = track->GetPath(p0, p1, p2, p3);
 	SetNewPos(pd);
 
+	QVector3D color;
 	if (!doingShadows) {
 		if (isSelected && type == Head)
-			glColor3d(1, 1, 0);
+			color = QVector3D(1, 1, 0);
 		else if (type == Head)
-			glColor3d(1, 0, 0);
+			color = QVector3D(1, 0, 0);
 		else
-			glColor3d(0, 0, 1);
+			color = QVector3D(0, 0, 1);
 	}
-	
-	glBegin(GL_QUADS);
-	glTexCoord2f(0, 0);
-	glVertex3dv((pos - w * 5 - v * 5 + orient).v());
-	glTexCoord2f(1, 0);
-	glVertex3dv((pos + w * 5 - v * 5 + orient).v());
-	glTexCoord2f(1, 1);
-	glVertex3dv((pos + w * 5 + v * 5 + orient).v());
-	glTexCoord2f(0, 1);
-	glVertex3dv((pos - w * 5 + v * 5 + orient).v());
-	glEnd();
+
+	GLfloat ProjectionMatrex[16];
+	GLfloat ViewMatrex[16];
+	glGetFloatv(GL_MODELVIEW_MATRIX, ViewMatrex);
+	glGetFloatv(GL_PROJECTION_MATRIX, ProjectionMatrex);
+
+	this->model->render(color, ProjectionMatrex, ViewMatrex, modelMatrix);
 
 	for (int i = 0; i < car.size(); i++) {
 		CTrain prev = i ? car[i - 1] : *this;
@@ -119,7 +138,7 @@ void CTrain::AddCar() {
 	PathData pd = CTrain::track->GetPath(train.p0, train.p1, train.p2, train.p3);
 
 	CTrain c(Car);
-	c.t = train.t - OFFSET / pd.length;
+	c.t = train.t - OFFSET;
 	if (c.t < 0) {
 		pd  = CTrain::track->GetPrevPath(pd);
 	}

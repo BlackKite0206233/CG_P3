@@ -6,7 +6,7 @@
 #include <QColor>
 #include <QtOpenGL/QtOpenGL>
 
-Model::Model(const QString &filePath, int s, Point3d pos)
+Model::Model(const QString &filePath, int s)
 	: m_fileName(QFileInfo(filePath).fileName())
 {
 	QFile file(filePath);
@@ -96,42 +96,8 @@ void DimensionTransformation(GLfloat source[], GLfloat target[][4])
 		}
 }
 
-void Model::render(bool doShadow, bool isSelect, QVector3D color, GLfloat* ProjectionMatrix, GLfloat*ViewMatrix, GLfloat* ModelMatrix, bool wireframe, bool normals)
+void Model::render(QVector3D color, GLfloat* ProjectionMatrix, GLfloat*ViewMatrix, QMatrix4x4 ModelMatrix, bool wireframe, bool normals)
 {
-	/*
-	glEnable(GL_DEPTH_TEST);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	if (wireframe) {
-		glVertexPointer(3, GL_FLOAT, 0, (float *)m_points.data());
-		glDrawElements(GL_LINES, m_edgeIndices.size(), GL_UNSIGNED_INT, m_edgeIndices.data());
-	} else {
-		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT0);
-		glEnable(GL_COLOR_MATERIAL);
-		glShadeModel(GL_SMOOTH);
-
-		glEnableClientState(GL_NORMAL_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 0, (float *)m_points.data());
-		glNormalPointer(GL_FLOAT, 0, (float *)m_normals.data());
-		glDrawElements(GL_TRIANGLES, m_pointIndices.size(), GL_UNSIGNED_INT, m_pointIndices.data());
-
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glDisable(GL_COLOR_MATERIAL);
-		glDisable(GL_LIGHT0);
-		glDisable(GL_LIGHTING);
-	}
-
-	if (normals) {
-		QVector<Point3d> normals;
-		for (int i = 0; i < m_normals.size(); ++i)
-			normals << m_points.at(i) << (m_points.at(i) + m_normals.at(i) * 0.02f);
-		glVertexPointer(3, GL_FLOAT, 0, (float *)normals.data());
-		glDrawArrays(GL_LINES, 0, normals.size());
-	}
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisable(GL_DEPTH_TEST);
-	*/
-	
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
@@ -139,10 +105,8 @@ void Model::render(bool doShadow, bool isSelect, QVector3D color, GLfloat* Proje
 
 	GLfloat P[4][4];
 	GLfloat V[4][4];
-	GLfloat M[4][4];
 	DimensionTransformation(ProjectionMatrix, P);
 	DimensionTransformation(ViewMatrix, V);
-	DimensionTransformation(ModelMatrix, M);
 
 	//Bind the shader we want to draw with
 	shaderProgram->bind();
@@ -153,10 +117,9 @@ void Model::render(bool doShadow, bool isSelect, QVector3D color, GLfloat* Proje
 	shaderProgram->setUniformValue("ProjectionMatrix", P);
 	//pass modelview matrix to shader
 	shaderProgram->setUniformValue("ViewMatrix", V);
-	shaderProgram->setUniformValue("ModelMatrix", M);
+	shaderProgram->setUniformValue("ModelMatrix", ModelMatrix);
 
-	QColor C(0, 255, 0);
-	shaderProgram->setUniformValue("Color", C);
+	shaderProgram->setUniformValue("Color", color);
 
 	// Bind the buffer so that it is the current active buffer.
 	vvbo.bind();

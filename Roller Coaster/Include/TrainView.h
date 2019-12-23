@@ -87,6 +87,5 @@ public:
 	QVector<QOpenGLTexture*> Textures;
 	vector<CTrain> trains;
 	int currentTrain = 0;
-	Model* model;
 };  
 #endif // TRAINVIEW_H  

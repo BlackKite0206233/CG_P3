@@ -32,8 +32,6 @@ void TrainView::initializeGL()
 	square->Init();
 	//Initialize texture 
 	initializeTexture();
-	model = new Model("./toon_train.obj", 50, Point3d(0, 10, 10));
-
 }
 void TrainView::initializeTexture()
 {
@@ -187,12 +185,16 @@ setProjection()
 		CTrain train = trains[currentTrain];
 		glMatrixMode(GL_PROJECTION);
 		double aspect = ((double)width() / (double)height());
-		gluPerspective(120, aspect, .1, INFINITE);
+		gluPerspective(40, aspect, .1, INFINITE);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
-		Pnt3f pos = train.pos + train.orient * 3;
+		Pnt3f n = train.v - train.pos;
+		n.normalize();
+		Pnt3f v = train.v + train.v_orient * 20;
+		Pnt3f pos = train.pos + train.orient * 20 - 20 * n;
+		arcball->multMatrix();
 		gluLookAt(pos.x, pos.y, pos.z,
-			pos.x + train.v.x, pos.y + train.v.y, pos.z + train.v.z,
+			v.x, v.y, v.z,
 			train.orient.x, train.orient.y, train.orient.z);
 	}
 	else {
@@ -216,8 +218,6 @@ static unsigned long lastRedraw = 0;
 //========================================================================
 void TrainView::drawStuff(bool doingShadows)
 {
-	this->model->render(false, false, QVector3D(0, 1, 0), ProjectionMatrex, ModelViewMatrex);
-
 	// Draw the control points
 	// don't draw the control points if you're driving 
 	// (otherwise you get sea-sick as you drive through them)
@@ -225,7 +225,7 @@ void TrainView::drawStuff(bool doingShadows)
 		int i = 0;
 		for(auto& p : this->m_pTrack->points) {
 			if (!doingShadows) {
-				if (i != selectedPoint)
+				if (p.first != selectedPoint)
 					glColor3ub(240, 60, 60);
 				else
 					glColor3ub(240, 240, 30);
@@ -247,7 +247,7 @@ void TrainView::drawStuff(bool doingShadows)
 	this->m_pTrack->Draw(doingShadows, selectedPath);
 
 	if (CTrain::isMove) {
-		if (clock() - lastRedraw > CLOCKS_PER_SEC / 30) {
+		if (clock() - lastRedraw > CLOCKS_PER_SEC / 65) {
 			lastRedraw = clock();
 			MoveTrain();
 		}

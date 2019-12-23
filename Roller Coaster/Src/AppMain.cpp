@@ -64,9 +64,6 @@ void AppMain::changeMode(int& currentMode, Mode newMode) {
 
 bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 	if (e->type() == QEvent::MouseButtonPress) {
-		if (trainview->camera == Train) {
-			return QWidget::eventFilter(watched, e);;
-		}
 		QMouseEvent *event = static_cast<QMouseEvent*> (e);
 		// Get the mouse position
 		float x, y;
@@ -75,6 +72,9 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 		// Compute the mouse position
 		trainview->arcball->down(x, y);
 		if(event->button()==Qt::LeftButton){
+			if (trainview->camera == Train) {
+				return QWidget::eventFilter(watched, e);
+			}
 			this->isHover = true;
 			trainview->doPick(event->localPos().x(), event->localPos().y());
 			ControlPoint p;
@@ -134,11 +134,11 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 	}
 
 	if (e->type() == QEvent::MouseMove) {
-		if (trainview->camera == Train) {
-			return QWidget::eventFilter(watched, e);;
-		}
 		QMouseEvent *event = static_cast<QMouseEvent*> (e);
 		if((rotatePoint || isHover) && trainview->selectedPoint >= 0){
+			if (trainview->camera == Train) {
+				return QWidget::eventFilter(watched, e);;
+			}
 			ControlPoint* cp = &trainview->m_pTrack->points[trainview->selectedPoint];
 			if (!rotatePoint) {
 				double r1x, r1y, r1z, r2x, r2y, r2z;
@@ -308,6 +308,10 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			break;
 		case Qt::Key_9:
 			PathData::track = Road;
+			break;
+
+		case Qt::Key_0:
+			trainview->arcball->reset();
 			break;
 
 		case Qt::Key_Space:

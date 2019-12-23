@@ -3,6 +3,7 @@
 #include "Model.h"
 #include "Track.h"
 #include <vector>
+#include <QMatrix4x4>
 
 using namespace std;
 
@@ -34,11 +35,11 @@ public:
 	double t;
 	Pnt3f pos;  
 	Pnt3f orient;
-	Pnt3f v, w;
+	Pnt3f v, v_orient;
 	vector<CTrain> car;
 	Model *model;
 	int p0, p1, p2, p3;
 	CarType type;
-
+	QMatrix4x4 modelMatrix;
 };
 

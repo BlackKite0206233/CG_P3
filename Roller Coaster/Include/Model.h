@@ -8,6 +8,7 @@
 #include <QtCore/QString>
 #include <QtCore/QVector>
 #include <QVector3D>
+#include <QMatrix4x4>
 #include <QString>
 #include <math.h>
 
@@ -18,9 +19,9 @@ class Model
 {
 public:
 	Model() {}
-	Model(const QString &filePath, int s, Point3d p);
+	Model(const QString &filePath, int s);
 
-	void render(bool doShadow, bool isSelect, QVector3D color, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, GLfloat* ModelMatrix, bool wireframe = false, bool normals = false);
+	void render(QVector3D color, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, QMatrix4x4 ModelMatrix, bool wireframe = false, bool normals = false);
 
 	QString fileName() const { return m_fileName; }
 	int faces() const { return m_pointIndices.size() / 3; }
