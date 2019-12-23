@@ -12,6 +12,7 @@
 #include <math.h>
 
 #include "Point3d.h"
+#include "Utilities/Pnt3f.h"
 
 class Model
 {
@@ -19,7 +20,7 @@ public:
 	Model() {}
 	Model(const QString &filePath, int s, Point3d p);
 
-	void render(bool doShadow, bool isSelect, QVector3D color, GLfloat* ProjectionMatrix, GLfloat* ModelViewMatrix, bool wireframe = false, bool normals = false);
+	void render(bool doShadow, bool isSelect, QVector3D color, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, GLfloat* ModelMatrix, bool wireframe = false, bool normals = false);
 
 	QString fileName() const { return m_fileName; }
 	int faces() const { return m_pointIndices.size() / 3; }

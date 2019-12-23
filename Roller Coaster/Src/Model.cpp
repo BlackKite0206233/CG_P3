@@ -3,7 +3,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
 #include <QtCore/QVarLengthArray>
-
+#include <QColor>
 #include <QtOpenGL/QtOpenGL>
 
 Model::Model(const QString &filePath, int s, Point3d pos)
@@ -96,7 +96,7 @@ void DimensionTransformation(GLfloat source[], GLfloat target[][4])
 		}
 }
 
-void Model::render(bool doShadow, bool isSelect, QVector3D color, GLfloat* ProjectionMatrix, GLfloat* ModelViewMatrix, bool wireframe, bool normals)
+void Model::render(bool doShadow, bool isSelect, QVector3D color, GLfloat* ProjectionMatrix, GLfloat*ViewMatrix, GLfloat* ModelMatrix, bool wireframe, bool normals)
 {
 	/*
 	glEnable(GL_DEPTH_TEST);
@@ -138,9 +138,11 @@ void Model::render(bool doShadow, bool isSelect, QVector3D color, GLfloat* Proje
 	glEnable(GL_COLOR_MATERIAL);
 
 	GLfloat P[4][4];
-	GLfloat MV[4][4];
+	GLfloat V[4][4];
+	GLfloat M[4][4];
 	DimensionTransformation(ProjectionMatrix, P);
-	DimensionTransformation(ModelViewMatrix, MV);
+	DimensionTransformation(ViewMatrix, V);
+	DimensionTransformation(ModelMatrix, M);
 
 	//Bind the shader we want to draw with
 	shaderProgram->bind();
@@ -150,7 +152,11 @@ void Model::render(bool doShadow, bool isSelect, QVector3D color, GLfloat* Proje
 	//pass projection matrix to shader
 	shaderProgram->setUniformValue("ProjectionMatrix", P);
 	//pass modelview matrix to shader
-	shaderProgram->setUniformValue("ModelViewMatrix", MV);
+	shaderProgram->setUniformValue("ViewMatrix", V);
+	shaderProgram->setUniformValue("ModelMatrix", M);
+
+	QColor C(0, 255, 0);
+	shaderProgram->setUniformValue("Color", C);
 
 	// Bind the buffer so that it is the current active buffer.
 	vvbo.bind();
