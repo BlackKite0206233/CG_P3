@@ -45,12 +45,12 @@ void SkyBox::InitVAO() {
 
 void SkyBox::InitTexture() {
     vector<std::string> faces({
+        "RT.png",
+        "LF.png",
+        "UP.png",
         "DN.png",
-        "DN.png",
-        "DN.png",
-        "DN.png",
-        "DN.png",
-        "DN.png"
+        "FR.png",
+        "BK.png"
     });
 
     glGenTextures(1, &texture);
