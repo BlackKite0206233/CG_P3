@@ -15,13 +15,12 @@
 #include "Point3d.h"
 #include "Utilities/Pnt3f.h"
 
-class Model
-{
+class Model {
 public:
 	Model() {}
 	Model(const QString &filePath, int s);
 
-	void render(QVector3D color, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, QMatrix4x4 ModelMatrix, bool wireframe = false, bool normals = false);
+	void render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, bool wireframe = false, bool normals = false);
 
 	QString fileName() const { return m_fileName; }
 	int faces() const { return m_pointIndices.size() / 3; }
@@ -40,9 +39,9 @@ private:
 	QVector<int> m_edgeIndices;
 	QVector<int> m_pointIndices;
 
-	QOpenGLShaderProgram* shaderProgram;
-	QOpenGLShader* vertexShader;
-	QOpenGLShader* fragmentShader;
+	QOpenGLShaderProgram *shaderProgram;
+	QOpenGLShader *vertexShader;
+	QOpenGLShader *fragmentShader;
 	QVector<QVector3D> vertices;
 	QVector<QVector3D> normals;
 	QOpenGLVertexArrayObject vao;

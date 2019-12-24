@@ -12,10 +12,8 @@
 //
 // * Set up constructor
 //==========================================================================
-Quat::
-Quat(float ix, float iy, float iz, float iw)
-	: x(ix), y(iy), z(iz), w(iw)
-	//==========================================================================
+Quat::Quat(float ix, float iy, float iz, float iw) : x(ix), y(iy), z(iz), w(iw)
+//==========================================================================
 {
 }
 
@@ -23,10 +21,8 @@ Quat(float ix, float iy, float iz, float iw)
 //
 // * Default constructor
 //==========================================================================
-Quat::
-Quat()
-	: x(0), y(0), z(0), w(1)
-	//==========================================================================
+Quat::Quat() : x(0), y(0), z(0), w(1)
+//==========================================================================
 {
 }
 
@@ -34,10 +30,8 @@ Quat()
 //
 // * Copy constructor
 //==========================================================================
-Quat::
-Quat(const Quat& q)
-	: x(q.x), y(q.y), z(q.z), w(q.w)
-	//==========================================================================
+Quat::Quat(const Quat &q) : x(q.x), y(q.y), z(q.z), w(q.w)
+//==========================================================================
 {
 }
 
@@ -45,8 +39,7 @@ Quat(const Quat& q)
 //
 // * Renormalize, in case things got messed up
 //==========================================================================
-void Quat::
-renorm()
+void Quat::renorm()
 //==========================================================================
 {
 	float Nq = 1.f / (float)sqrt(x * x + y * y + z * z + w * w);
@@ -60,8 +53,7 @@ renorm()
 //
 // * Conversions to a 4x4 matrix
 //==========================================================================
-void Quat::
-toMatrix(HMatrix out) const
+void Quat::toMatrix(HMatrix out) const
 //==========================================================================
 {
 	float Nq = x * x + y * y + z * z + w * w;
@@ -70,9 +62,15 @@ toMatrix(HMatrix out) const
 	float wx = w * xs, wy = w * ys, wz = w * zs;
 	float xx = x * xs, xy = x * ys, xz = x * zs;
 	float yy = y * ys, yz = y * zs, zz = z * zs;
-	out[X][X] = 1.0f - (yy + zz); out[Y][X] = xy + wz;          out[Z][X] = xz - wy;
-	out[X][Y] = xy - wz;          out[Y][Y] = 1.0f - (xx + zz); out[Z][Y] = yz + wx;
-	out[X][Z] = xz + wy;          out[Y][Z] = yz - wx;          out[Z][Z] = 1.0f - (xx + yy);
+	out[X][X] = 1.0f - (yy + zz);
+	out[Y][X] = xy + wz;
+	out[Z][X] = xz - wy;
+	out[X][Y] = xy - wz;
+	out[Y][Y] = 1.0f - (xx + zz);
+	out[Z][Y] = yz + wx;
+	out[X][Z] = xz + wy;
+	out[Y][Z] = yz - wx;
+	out[Z][Z] = 1.0f - (xx + yy);
 	out[X][W] = out[Y][W] = out[Z][W] = out[W][X] = out[W][Y] = out[W][Z] = 0.0f;
 	out[W][W] = 1.0f;
 }
@@ -81,8 +79,7 @@ toMatrix(HMatrix out) const
 //
 // * Find the conjugate of the quaternion
 //==========================================================================
-Quat Quat::
-conjugate() const
+Quat Quat::conjugate() const
 //==========================================================================
 {
 	return Quat(-x, -y, -z, w);
@@ -90,10 +87,9 @@ conjugate() const
 
 //**************************************************************************
 //
-// * 
+// *
 //==========================================================================
-Quat Quat::
-operator* (const Quat& qR) const
+Quat Quat::operator*(const Quat &qR) const
 //==========================================================================
 {
 	Quat qq;

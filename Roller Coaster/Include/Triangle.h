@@ -9,13 +9,11 @@
 #include <QDebug>
 #include <QString>
 
-
-class Triangle 
-{
+class Triangle {
 public:
-	QOpenGLShaderProgram* shaderProgram;
-	QOpenGLShader* vertexShader;
-	QOpenGLShader* fragmentShader;
+	QOpenGLShaderProgram *shaderProgram;
+	QOpenGLShader *vertexShader;
+	QOpenGLShader *fragmentShader;
 	QVector<QVector3D> vertices;
 	QVector<QVector3D> colors;
 	QOpenGLVertexArrayObject vao;
@@ -27,6 +25,6 @@ public:
 	void Init();
 	void InitVAO();
 	void InitVBO();
-	void InitShader(QString vertexShaderPath,QString fragmentShaderPath);
-	void Paint(GLfloat* ProjectionMatrix, GLfloat* ModelViewMatrix);
+	void InitShader(QString vertexShaderPath, QString fragmentShaderPath);
+	void Paint(GLfloat *ProjectionMatrix, GLfloat *ModelViewMatrix);
 };

@@ -19,11 +19,12 @@ enum TrackType {
 	Road,
 };
 
-
 struct MapComp {
-	bool operator() (const pair<int, int>& a, const pair<int, int>& b) const {
-		if (a.first < b.first) return true;
-		if (a.first > b.first) return false;
+	bool operator()(const pair<int, int> &a, const pair<int, int> &b) const {
+		if (a.first < b.first)
+			return true;
+		if (a.first > b.first)
+			return false;
 		return a.second < b.second;
 	}
 };

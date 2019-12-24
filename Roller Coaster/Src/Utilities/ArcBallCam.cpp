@@ -56,8 +56,8 @@
 #include <iostream>
 
 #pragma warning(push)
-#pragma warning(disable:4311)		// convert void* to long
-#pragma warning(disable:4312)		// convert long to void*
+#pragma warning(disable : 4311) // convert void* to long
+#pragma warning(disable : 4312) // convert long to void*
 #include <GL/gl.h>
 #include <GL/glu.h>
 #pragma warning(pop)
@@ -70,15 +70,13 @@ using namespace std;
 //
 // * Constructor
 //==========================================================================
-ArcBallCam::
-ArcBallCam() 
-	:	wind(),
-		fieldOfView(40),
-		eyeX(0), eyeY(0), eyeZ(20),
-		initEyeZ(20), 
-		mode(None), 
-		panX(0), panY(0),
-		isx(0), isy(0), isz(0)
+ArcBallCam::ArcBallCam() : wind(),
+						   fieldOfView(40),
+						   eyeX(0), eyeY(0), eyeZ(20),
+						   initEyeZ(20),
+						   mode(None),
+						   panX(0), panY(0),
+						   isx(0), isy(0), isz(0)
 //==========================================================================
 {
 }
@@ -87,42 +85,38 @@ ArcBallCam()
 //
 // * really do the setup stuff, once you have the window
 //==========================================================================
-void ArcBallCam::
-setup(QWidget* _wind, float _fieldOfView, double _eyeX, double _eyeY, double _eyeZ,
-	   float _isx, float _isy, float _isz)
+void ArcBallCam::setup(QWidget *_wind, float _fieldOfView, double _eyeX, double _eyeY, double _eyeZ,
+					   float _isx, float _isy, float _isz)
 //==========================================================================
 {
 	// set up the basic information
-	wind			= _wind;
+	wind        = _wind;
 	fieldOfView = _fieldOfView;
-	eyeZ			= _eyeZ;
-	initEyeZ		= _eyeZ;
-	eyeY			= _eyeY;
-	isw			= cos(_isz / 2) * cos(_isy / 2) * cos(_isx / 2) - sin(_isz / 2) * sin(_isy / 2) * sin(_isx / 2);
-	isx			= cos(_isz / 2) * cos(_isy / 2) * sin(_isx / 2) + sin(_isz / 2) * sin(_isy / 2) * cos(_isx / 2);
-	isy			= cos(_isz / 2) * sin(_isy / 2) * cos(_isx / 2) - sin(_isz / 2) * cos(_isy / 2) * sin(_isx / 2);
-	isz     = sin(_isz / 2) * cos(_isy / 2) * cos(_isx / 2) + cos(_isz / 2) * sin(_isy / 2) * sin(_isx / 2);
-
+	eyeY        = _eyeY;
+	eyeZ        = _eyeZ;
+	initEyeZ    = _eyeZ;
+	isw = cos(_isz / 2) * cos(_isy / 2) * cos(_isx / 2) - sin(_isz / 2) * sin(_isy / 2) * sin(_isx / 2);
+	isx = cos(_isz / 2) * cos(_isy / 2) * sin(_isx / 2) + sin(_isz / 2) * sin(_isy / 2) * cos(_isx / 2);
+	isy = cos(_isz / 2) * sin(_isy / 2) * cos(_isx / 2) - sin(_isz / 2) * cos(_isy / 2) * sin(_isx / 2);
+	isz = sin(_isz / 2) * cos(_isy / 2) * cos(_isx / 2) + cos(_isz / 2) * sin(_isy / 2) * sin(_isx / 2);
 
 	reset();
-	spin(isx,isy,isz, isw);
+	spin(isx, isy, isz, isw);
 }
-
 
 //**************************************************************************
 //
-// * Set up the camera projection 
+// * Set up the camera projection
 //==========================================================================
-void ArcBallCam::
-setProjection(bool doClear)
+void ArcBallCam::setProjection(bool doClear)
 //==========================================================================
 {
-  glMatrixMode(GL_PROJECTION);
-  if (doClear)
-	  glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	if (doClear)
+		glLoadIdentity();
 
-  // Compute the aspect ratio so we don't distort things
-  double aspect = (double)wind->width() / (double)wind->height();
+	// Compute the aspect ratio so we don't distort things
+	double aspect = (double)wind->width() / (double)wind->height();
 
 	if (type == Top) {
 		float wi, he;
@@ -140,16 +134,16 @@ setProjection(bool doClear)
 		gluPerspective(fieldOfView, aspect, .1, INFINITE);
 	}
 
-  // Put the camera where we want it to be
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+	// Put the camera where we want it to be
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 
-  // Use the transformation in the ArcBall
+	// Use the transformation in the ArcBall
 	if (type == World) {
 		glTranslatef(-eyeX, -eyeY, -eyeZ);
 		multMatrix();
 	}
-	else if (type == Top){
+	else if (type == Top) {
 		glTranslatef(-eyeX, -eyeY, -eyeZ);
 		glRotatef(-90, 1, 0, 0);
 	}
@@ -163,15 +157,14 @@ setProjection(bool doClear)
 //
 // * Get the mouse in NDC
 //==========================================================================
-void ArcBallCam::
-getMouseNDC(float mx, float my, float& x, float& y)
+void ArcBallCam::getMouseNDC(float mx, float my, float &x, float &y)
 //==========================================================================
 {
 	// we will assume that the viewport is the same as the window size
-	float wd = (float) wind->width();
-	float hd = (float) wind->height();
+	float wd = (float)wind->width();
+	float hd = (float)wind->height();
 
-	my = hd-my;
+	my = hd - my;
 
 	x = (mx / wd) * 2.0f - 1.f;
 	y = (my / hd) * 2.0f - 1.f;
@@ -182,12 +175,11 @@ getMouseNDC(float mx, float my, float& x, float& y)
 // * When the mouse goes down, remember where. also, clear out the now
 //   position by putting it into start
 //==========================================================================
-void ArcBallCam::
-down(const float x, const float y)
+void ArcBallCam::down(const float x, const float y)
 //==========================================================================
 {
 	start = now * start;
-	now = Quat();		// identity
+	now = Quat(); // identity
 
 	downX = x;
 	downY = y;
@@ -200,12 +192,11 @@ down(const float x, const float y)
 //
 // * Get the whole matrix!
 //==========================================================================
-void ArcBallCam::
-getMatrix(HMatrix m) const
+void ArcBallCam::getMatrix(HMatrix m) const
 //==========================================================================
 {
 	Quat qAll = now * start;
-	qAll = qAll.conjugate();   // since Ken does everything transposed
+	qAll = qAll.conjugate(); // since Ken does everything transposed
 	qAll.toMatrix(m);
 }
 
@@ -213,21 +204,19 @@ getMatrix(HMatrix m) const
 //
 // * a simplified interface - so you never see the insides of arcball
 //==========================================================================
-void ArcBallCam::
-multMatrix()
+void ArcBallCam::multMatrix()
 //==========================================================================
 {
 	HMatrix m;
 	getMatrix(m);
-	glMultMatrixf((float*) m);
+	glMultMatrixf((float *)m);
 }
 
 //**************************************************************************
 //
 // * Reset the camera's control related parameters
 //==========================================================================
-void ArcBallCam::
-reset()
+void ArcBallCam::reset()
 //==========================================================================
 {
 	start.x = 0;
@@ -235,15 +224,15 @@ reset()
 	start.z = 0;
 	start.w = 1;
 
-	now.x = now.y = now.z = 0; now.w = 1;
+	now.x = now.y = now.z = 0;
+	now.w = 1;
 }
 
 //**************************************************************************
 //
-// * 
+// *
 //==========================================================================
-void ArcBallCam::
-spin(float x, float y, float z, float w)
+void ArcBallCam::spin(float x, float y, float z, float w)
 //==========================================================================
 {
 	// printf("\nstart was %g %g %g %g\n",start.x,start.y,start.z,start.w);
@@ -256,7 +245,7 @@ spin(float x, float y, float z, float w)
 		iw = sqrt(1-iw);
 	else
 		iw = 0;*/
-	Quat newq(x,y,z,w);
+	Quat newq(x, y, z, w);
 
 	newq.renorm();
 	start = newq * start;
@@ -272,47 +261,47 @@ spin(float x, float y, float z, float w)
 // assumes sphere of unit radius
 //==========================================================================
 static void onUnitSphere(const float mx, const float my,
-								float& x, float& y, float& z)
+						 float &x, float &y, float &z)
 //==========================================================================
 {
-	x = mx;		// should divide radius
+	x = mx; // should divide radius
 	y = my;
-	float mag = x*x + y*y;
+	float mag = x * x + y * y;
 	if (mag > 1.0f) {
-		float scale = 1.0f / ((float) sqrt(mag));
+		float scale = 1.0f / ((float)sqrt(mag));
 		x *= scale;
 		y *= scale;
 		z = 0;
-	} else {
-		z = (float) sqrt(1 - mag);
+	}
+	else {
+		z = (float)sqrt(1 - mag);
 	}
 }
 
 //**************************************************************************
 //
-// * 
+// *
 //==========================================================================
-void ArcBallCam::
-computeNow(const float nowX, const float nowY)
+void ArcBallCam::computeNow(const float nowX, const float nowY)
 //==========================================================================
 {
 	if (mode == Rotate) {
-		float dx,dy,dz;
-		float mx,my,mz;
+		float dx, dy, dz;
+		float mx, my, mz;
 		onUnitSphere(downX, downY, dx, dy, dz);
 		onUnitSphere(nowX, nowY, mx, my, mz);
 
 		// here we compute the quaternion between these two points
-		now.x = dy*mz - dz*my;
-		now.y = dz*mx - dx*mz;
-		now.z = dx*my - dy*mx;
-		now.w = dx*mx + dy*my + dz*mz;
+		now.x = dy * mz - dz * my;
+		now.y = dz * mx - dx * mz;
+		now.z = dx * my - dy * mx;
+		now.w = dx * mx + dy * my + dz * mz;
 
-		now.renorm();		// just in case...
+		now.renorm(); // just in case...
 	}
 	else if (mode == Pan) {
-		float dx = (nowX-downX) * 100;
-		float dy = (nowY-downY) * 100;
+		float dx = (nowX - downX) * 100;
+		float dy = (nowY - downY) * 100;
 
 		eyeX += panX - dx;
 		eyeY += panY - dy;

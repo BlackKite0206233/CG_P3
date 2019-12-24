@@ -39,9 +39,7 @@ using namespace std;
 //
 // * Default contructor
 //============================================================================
-ControlPoint::
-ControlPoint() 
-	: pos(0,0,0), orient(0,1,0), children(set<int>()), parents(set<int>())
+ControlPoint::ControlPoint() : pos(0, 0, 0), orient(0, 1, 0), children(set<int>()), parents(set<int>())
 //============================================================================
 {
 }
@@ -50,9 +48,7 @@ ControlPoint()
 //
 // * Set up the position and set orientation to default (0, 1, 0)
 //============================================================================
-ControlPoint::
-ControlPoint(const Pnt3f &_pos) 
-	: pos(_pos), orient(0,1,0), children(set<int>()), parents(set<int>())
+ControlPoint::ControlPoint(const Pnt3f &_pos) : pos(_pos), orient(0, 1, 0), children(set<int>()), parents(set<int>())
 //============================================================================
 {
 }
@@ -61,9 +57,7 @@ ControlPoint(const Pnt3f &_pos)
 //
 // * Set up the position and orientation
 //============================================================================
-ControlPoint::
-ControlPoint(const Pnt3f &_pos, const Pnt3f &_orient) 
-	: pos(_pos), orient(_orient), children(set<int>()), parents(set<int>())
+ControlPoint::ControlPoint(const Pnt3f &_pos, const Pnt3f &_orient) : pos(_pos), orient(_orient), children(set<int>()), parents(set<int>())
 //============================================================================
 {
 	orient.normalize();
@@ -73,66 +67,65 @@ ControlPoint(const Pnt3f &_pos, const Pnt3f &_orient)
 //
 // * Draw the control point
 //============================================================================
-void ControlPoint::
-draw()
+void ControlPoint::draw()
 //============================================================================
 {
-	float size=2.0;
+	float size = 2.0;
 
 	glPushMatrix();
-	glTranslatef(pos.x,pos.y,pos.z);
-	float theta1 = -radiansToDegrees(atan2(orient.z,orient.x));
-	glRotatef(theta1,0,1,0);
+	glTranslatef(pos.x, pos.y, pos.z);
+	float theta1 = -radiansToDegrees(atan2(orient.z, orient.x));
+	glRotatef(theta1, 0, 1, 0);
 	float theta2 = -radiansToDegrees(acos(orient.y));
-	glRotatef(theta2,0,0,1);
+	glRotatef(theta2, 0, 0, 1);
 
-		glBegin(GL_QUADS);
-			glNormal3f( 0,0,1);
-			glVertex3f( size, size, size);
-			glVertex3f(-size, size, size);
-			glVertex3f(-size,-size, size);
-			glVertex3f( size,-size, size);
+	glBegin(GL_QUADS);
+	glNormal3f(0, 0, 1);
+	glVertex3f(size, size, size);
+	glVertex3f(-size, size, size);
+	glVertex3f(-size, -size, size);
+	glVertex3f(size, -size, size);
 
-			glNormal3f( 0, 0, -1);
-			glVertex3f( size, size, -size);
-			glVertex3f( size,-size, -size);
-			glVertex3f(-size,-size, -size);
-			glVertex3f(-size, size, -size);
+	glNormal3f(0, 0, -1);
+	glVertex3f(size, size, -size);
+	glVertex3f(size, -size, -size);
+	glVertex3f(-size, -size, -size);
+	glVertex3f(-size, size, -size);
 
-			// no top - it will be the point
+	// no top - it will be the point
 
-			glNormal3f( 0,-1,0);
-			glVertex3f( size,-size, size);
-			glVertex3f(-size,-size, size);
-			glVertex3f(-size,-size,-size);
-			glVertex3f( size,-size,-size);
+	glNormal3f(0, -1, 0);
+	glVertex3f(size, -size, size);
+	glVertex3f(-size, -size, size);
+	glVertex3f(-size, -size, -size);
+	glVertex3f(size, -size, -size);
 
-			glNormal3f( 1,0,0);
-			glVertex3f( size, size, size);
-			glVertex3f( size,-size, size);
-			glVertex3f( size,-size,-size);
-			glVertex3f( size, size,-size);
+	glNormal3f(1, 0, 0);
+	glVertex3f(size, size, size);
+	glVertex3f(size, -size, size);
+	glVertex3f(size, -size, -size);
+	glVertex3f(size, size, -size);
 
-			glNormal3f(-1,0,0);
-			glVertex3f(-size, size, size);
-			glVertex3f(-size, size,-size);
-			glVertex3f(-size,-size,-size);
-			glVertex3f(-size,-size, size);
-		glEnd();
-		glBegin(GL_TRIANGLE_FAN);
-			glNormal3f(0,1.0f,0);
-			glVertex3f(0,3.0f*size,0);
-			glNormal3f( 1.0f, 0.0f , 1.0f);
-			glVertex3f( size, size , size);
-			glNormal3f(-1.0f, 0.0f , 1.0f);
-			glVertex3f(-size, size , size);
-			glNormal3f(-1.0f, 0.0f ,-1.0f);
-			glVertex3f(-size, size ,-size);
-			glNormal3f( 1.0f, 0.0f ,-1.0f);
-			glVertex3f( size, size ,-size);
-			glNormal3f( 1.0f, 0.0f , 1.0f);
-			glVertex3f( size, size , size);
-		glEnd();
+	glNormal3f(-1, 0, 0);
+	glVertex3f(-size, size, size);
+	glVertex3f(-size, size, -size);
+	glVertex3f(-size, -size, -size);
+	glVertex3f(-size, -size, size);
+	glEnd();
+	glBegin(GL_TRIANGLE_FAN);
+	glNormal3f(0, 1.0f, 0);
+	glVertex3f(0, 3.0f * size, 0);
+	glNormal3f(1.0f, 0.0f, 1.0f);
+	glVertex3f(size, size, size);
+	glNormal3f(-1.0f, 0.0f, 1.0f);
+	glVertex3f(-size, size, size);
+	glNormal3f(-1.0f, 0.0f, -1.0f);
+	glVertex3f(-size, size, -size);
+	glNormal3f(1.0f, 0.0f, -1.0f);
+	glVertex3f(size, size, -size);
+	glNormal3f(1.0f, 0.0f, 1.0f);
+	glVertex3f(size, size, size);
+	glEnd();
 	glPopMatrix();
 }
 
@@ -141,11 +134,10 @@ void ControlPoint::setCenter(float x, float y) {
 	centerY = y;
 }
 
-void ControlPoint::
-getMouseNDC(float mx, float my, float& x, float& y)
+void ControlPoint::getMouseNDC(float mx, float my, float &x, float &y)
 //==========================================================================
 {
-	
+
 	x = (mx - centerX) / 500;
 	if (x < -1) {
 		x = -1;
@@ -162,30 +154,28 @@ getMouseNDC(float mx, float my, float& x, float& y)
 	}
 }
 
-void ControlPoint::
-down(const float x, const float y)
+void ControlPoint::down(const float x, const float y)
 //==========================================================================
 {
 	start = now * start;
-	now = Quat();		// identity
+	now = Quat(); // identity
 
 	downX = x;
 	downY = y;
 }
 
-void ControlPoint::
-getMatrix(HMatrix m) const
+void ControlPoint::getMatrix(HMatrix m) const
 //==========================================================================
 {
 	Quat qAll = now * start;
-	qAll = qAll.conjugate();   // since Ken does everything transposed
+	qAll = qAll.conjugate(); // since Ken does everything transposed
 	qAll.toMatrix(m);
 }
 
-static void onUnitSphere(const float mx, const float my, float& x, float& y, float& z)
-	//==========================================================================
+static void onUnitSphere(const float mx, const float my, float &x, float &y, float &z)
+//==========================================================================
 {
-	x = mx;		// should divide radius
+	x = mx; // should divide radius
 	y = my;
 	float mag = x * x + y * y;
 	if (mag > 1.0f) {
@@ -199,8 +189,7 @@ static void onUnitSphere(const float mx, const float my, float& x, float& y, flo
 	}
 }
 
-void ControlPoint::
-computeNow(const float nowX, const float nowY)
+void ControlPoint::computeNow(const float nowX, const float nowY)
 //==========================================================================
 {
 	float dx, dy, dz;
@@ -214,7 +203,7 @@ computeNow(const float nowX, const float nowY)
 	now.z = dx * my - dy * mx;
 	now.w = dx * mx + dy * my + dz * mz;
 
-	now.renorm();		// just in case...
+	now.renorm(); // just in case...
 
 	HMatrix m;
 	getMatrix(m);

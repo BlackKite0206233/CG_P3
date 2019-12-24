@@ -33,53 +33,54 @@
 
 #define DIVIDE_LINE 100
 
-using std::vector; // avoid having to say std::vector all of the time
-using std::pair;
 using std::map;
+using std::pair;
+using std::vector; // avoid having to say std::vector all of the time
 
 // make use of other data structures from this project
 
 class CTrack {
-public:		
-		// Constructor
-		CTrack();
+public:
+	// Constructor
+	CTrack();
 
 public:
-		// when we want to clear the control points, we really "reset" them 
-		// to have 4 default positions (since we should never have fewer
-		// than 4 points)
-		void resetPoints();
+	// when we want to clear the control points, we really "reset" them
+	// to have 4 default positions (since we should never have fewer
+	// than 4 points)
+	void resetPoints();
 
-		void SetCurve(CurveType);
+	void SetCurve(CurveType);
 
-		// read and write to files
-		void readPoints(const char* filename);
-		void writePoints(const char* filename);
+	// read and write to files
+	void readPoints(const char *filename);
+	void writePoints(const char *filename);
 
-		void AddPoint(const ControlPoint& p);
-		void RemovePoint(int index);
-		void AddPath(int p1, int p2);
-		void RemovePath(int p1, int p2);
+	void AddPoint(const ControlPoint &p);
+	void RemovePoint(int index);
+	void AddPath(int p1, int p2);
+	void RemovePath(int p1, int p2);
 
-		void Draw(bool doingShadows, int selectedPath);
+	void Draw(bool doingShadows, int selectedPath);
 
-		void BuildTrack();
+	void BuildTrack();
 
-		PathData GetRandomPath();
-		PathData GetNextPath(const PathData& curr);
-		PathData GetPrevPath(const PathData& curr);
-		PathData GetPath(int& p0, int& p1, int& p2, int& p3);
+	PathData GetRandomPath();
+	PathData GetNextPath(const PathData &curr);
+	PathData GetPrevPath(const PathData &curr);
+	PathData GetPath(int &p0, int &p1, int &p2, int &p3);
+
 public:
-		// rather than have generic objects, we make a special case for these few
-		// objects that we know that all implementations are going to need and that
-		// we're going to have to handle specially
-		map<int, ControlPoint> points;
-		map<pair<int, int>, Path, MapComp> paths;
-		int pointCount = 0;
+	// rather than have generic objects, we make a special case for these few
+	// objects that we know that all implementations are going to need and that
+	// we're going to have to handle specially
+	map<int, ControlPoint> points;
+	map<pair<int, int>, Path, MapComp> paths;
+	int pointCount = 0;
 
-		//###################################################################
-		// TODO: you might want to do this differently
-		//###################################################################
-		// the state of the train - basically, all I need to remember is where
-		// it is in parameter space
+	//###################################################################
+	// TODO: you might want to do this differently
+	//###################################################################
+	// the state of the train - basically, all I need to remember is where
+	// it is in parameter space
 };

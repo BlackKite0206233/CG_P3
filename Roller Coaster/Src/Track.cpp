@@ -34,8 +34,7 @@ using namespace std;
 //
 // * Constructor
 //============================================================================
-CTrack::
-CTrack()
+CTrack::CTrack()
 //============================================================================
 {
 	resetPoints();
@@ -45,16 +44,15 @@ CTrack()
 //
 // * provide a default set of points
 //============================================================================
-void CTrack::
-resetPoints()
+void CTrack::resetPoints()
 //============================================================================
 {
 
 	points.clear();
-	points[pointCount++] = ControlPoint(Pnt3f(50,5,0));
-	points[pointCount++] = ControlPoint(Pnt3f(0,5,50));
-	points[pointCount++] = ControlPoint(Pnt3f(-50,5,0));
-	points[pointCount++] = ControlPoint(Pnt3f(0,5,-50));
+	points[pointCount++] = ControlPoint(Pnt3f(50, 5, 0));
+	points[pointCount++] = ControlPoint(Pnt3f(0, 5, 50));
+	points[pointCount++] = ControlPoint(Pnt3f(-50, 5, 0));
+	points[pointCount++] = ControlPoint(Pnt3f(0, 5, -50));
 
 	// we had better put the train back at the start of the track...
 }
@@ -66,8 +64,7 @@ resetPoints()
 //	  other lines: one line per control point
 //   either 3 (X,Y,Z) numbers on the line, or 6 numbers (X,Y,Z, orientation)
 //============================================================================
-void CTrack::
-readPoints(const char* filename)
+void CTrack::readPoints(const char* filename)
 //============================================================================
 {
 	ifstream fs = ifstream(filename);
@@ -116,8 +113,7 @@ readPoints(const char* filename)
 //
 // * write the control points to our simple format
 //============================================================================
-void CTrack::
-writePoints(const char* filename)
+void CTrack::writePoints(const char* filename)
 //============================================================================
 {
 	ofstream fs = ofstream(filename);
@@ -228,10 +224,10 @@ void CTrack::BuildTrack() {
 						isFirst = false;
 
 						PathData pd;
-						pd.p0 = p0Id;
-						pd.p1 = idx;
-						pd.p2 = child;
-						pd.p3 = p3Id;
+						pd.p0    = p0Id;
+						pd.p1    = idx;
+						pd.p2    = child;
+						pd.p3    = p3Id;
 						pd.speed = 0.3;
 
 						p3 = points[p3Id];

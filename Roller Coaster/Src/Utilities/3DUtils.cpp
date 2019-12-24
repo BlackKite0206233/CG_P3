@@ -41,12 +41,12 @@ using std::vector;
 
 //*************************************************************************
 //
-// A utility function - draw a little cube at the origin (use a 
+// A utility function - draw a little cube at the origin (use a
 // transform to put it in the appropriate place)
 // note: we pass the size of the cube (rather than using a scale
 // transform) since we want our normals to stay unit length if possible
 //
-// Note: 
+// Note:
 //  1. This isn't necesarily the fastest way since I recompute each
 //       vertex.
 //  2. Notice that I don't keep all my polygons with the same orientations!
@@ -55,45 +55,45 @@ void drawCube(float x, float y, float z, float l)
 //===============================================================================
 {
 	glPushMatrix();
-		glTranslated(x,y,z);
-		glScalef(l,l,l);
-		glBegin(GL_QUADS);
-			glNormal3d( 0,0,1);
-			glVertex3d( 0.5, 0.5, 0.5);
-			glVertex3d(-0.5, 0.5, 0.5);
-			glVertex3d(-0.5,-0.5, 0.5);
-			glVertex3d( 0.5,-0.5, 0.5);
+	glTranslated(x, y, z);
+	glScalef(l, l, l);
+	glBegin(GL_QUADS);
+	glNormal3d(0, 0, 1);
+	glVertex3d(0.5, 0.5, 0.5);
+	glVertex3d(-0.5, 0.5, 0.5);
+	glVertex3d(-0.5, -0.5, 0.5);
+	glVertex3d(0.5, -0.5, 0.5);
 
-			glNormal3d( 0, 0, -1);
-			glVertex3d( 0.5, 0.5, -0.5);
-			glVertex3d( 0.5,-0.5, -0.5);
-			glVertex3d(-0.5,-0.5, -0.5);
-			glVertex3d(-0.5, 0.5, -0.5);
+	glNormal3d(0, 0, -1);
+	glVertex3d(0.5, 0.5, -0.5);
+	glVertex3d(0.5, -0.5, -0.5);
+	glVertex3d(-0.5, -0.5, -0.5);
+	glVertex3d(-0.5, 0.5, -0.5);
 
-			glNormal3d( 0, 1, 0);
-			glVertex3d( 0.5, 0.5, 0.5);
-			glVertex3d( 0.5, 0.5,-0.5);
-			glVertex3d(-0.5, 0.5,-0.5);
-			glVertex3d(-0.5, 0.5, 0.5);
+	glNormal3d(0, 1, 0);
+	glVertex3d(0.5, 0.5, 0.5);
+	glVertex3d(0.5, 0.5, -0.5);
+	glVertex3d(-0.5, 0.5, -0.5);
+	glVertex3d(-0.5, 0.5, 0.5);
 
-			glNormal3d( 0,-1,0);
-			glVertex3d( 0.5,-0.5, 0.5);
-			glVertex3d(-0.5,-0.5, 0.5);
-			glVertex3d(-0.5,-0.5,-0.5);
-			glVertex3d( 0.5,-0.5,-0.5);
+	glNormal3d(0, -1, 0);
+	glVertex3d(0.5, -0.5, 0.5);
+	glVertex3d(-0.5, -0.5, 0.5);
+	glVertex3d(-0.5, -0.5, -0.5);
+	glVertex3d(0.5, -0.5, -0.5);
 
-			glNormal3d( 1,0,0);
-			glVertex3d( 0.5, 0.5, 0.5);
-			glVertex3d( 0.5,-0.5, 0.5);
-			glVertex3d( 0.5,-0.5,-0.5);
-			glVertex3d( 0.5, 0.5,-0.5);
+	glNormal3d(1, 0, 0);
+	glVertex3d(0.5, 0.5, 0.5);
+	glVertex3d(0.5, -0.5, 0.5);
+	glVertex3d(0.5, -0.5, -0.5);
+	glVertex3d(0.5, 0.5, -0.5);
 
-			glNormal3d(-1,0,0);
-			glVertex3d(-0.5, 0.5, 0.5);
-			glVertex3d(-0.5, 0.5,-0.5);
-			glVertex3d(-0.5,-0.5,-0.5);
-			glVertex3d(-0.5,-0.5, 0.5);
-		glEnd();
+	glNormal3d(-1, 0, 0);
+	glVertex3d(-0.5, 0.5, 0.5);
+	glVertex3d(-0.5, 0.5, -0.5);
+	glVertex3d(-0.5, -0.5, -0.5);
+	glVertex3d(-0.5, -0.5, 0.5);
+	glEnd();
 	glPopMatrix();
 }
 
@@ -102,8 +102,8 @@ void drawCube(float x, float y, float z, float l)
 // the two colors for the floor for the check board
 //
 //*************************************************************************
-float floorColor1[3] = { .7f, .7f, .7f }; // Light color
-float floorColor2[3] = { .3f, .3f, .3f }; // Dark color
+float floorColor1[3] = {.7f, .7f, .7f}; // Light color
+float floorColor2[3] = {.3f, .3f, .3f}; // Dark color
 
 //*************************************************************************
 //
@@ -113,26 +113,26 @@ void drawFloor(float size, int nSquares)
 //===============================================================================
 {
 	// parameters:
-	float maxX = size/2, maxY = size/2;
-	float minX = -size/2, minY = -size/2;
+	float maxX =  size / 2, maxY =  size / 2;
+	float minX = -size / 2, minY = -size / 2;
 
-	int x,y,v[3],i;
-	float xp,yp,xd,yd;
+	int x, y, v[3], i;
+	float xp, yp, xd, yd;
 	v[2] = 0;
-	xd = (maxX - minX) / ((float) nSquares);
-	yd = (maxY - minY) / ((float) nSquares);
+	xd = (maxX - minX) / ((float)nSquares);
+	yd = (maxY - minY) / ((float)nSquares);
 	glBegin(GL_QUADS);
-	for(x=0,xp=minX; x<nSquares; x++,xp+=xd) {
-		for(y=0,yp=minY,i=x; y<nSquares; y++,i++,yp+=yd) {
-			glColor4fv(i%2==1 ? floorColor1:floorColor2);
-			glNormal3f(0, 1, 0); 
-			glVertex3d(xp,      0, yp);
-			glVertex3d(xp,      0, yp + yd);
+	for (x = 0, xp = minX; x < nSquares; x++, xp += xd) {
+		for (y = 0, yp = minY, i = x; y < nSquares; y++, i++, yp += yd) {
+			glColor4fv(i % 2 == 1 ? floorColor1 : floorColor2);
+			glNormal3f(0, 1, 0);
+			glVertex3d(xp, 0, yp);
+			glVertex3d(xp, 0, yp + yd);
 			glVertex3d(xp + xd, 0, yp + yd);
 			glVertex3d(xp + xd, 0, yp);
 
 		} // end of for j
-	}// end of for i
+	}	 // end of for i
 	glEnd();
 }
 
@@ -143,7 +143,7 @@ void drawFloor(float size, int nSquares)
 // * A trick: because we only want to draw the shadows
 //            on the ground plane, when we draw the ground plane
 //            we'll set the stencil buffer to 1. then we'll only
-//            draw shadows where the stencil buffer is one, so we 
+//            draw shadows where the stencil buffer is one, so we
 //            don't have shadows floating in space
 //===============================================================================
 void setupFloor(void)
@@ -151,9 +151,9 @@ void setupFloor(void)
 {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_STENCIL_TEST);
-	glStencilFunc(GL_ALWAYS,0x1,0x1);
-	glStencilOp(GL_REPLACE,GL_REPLACE,GL_REPLACE);
-	glStencilMask(0x1);		// only deal with the 1st bit
+	glStencilFunc(GL_ALWAYS, 0x1, 0x1);
+	glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+	glStencilMask(0x1); // only deal with the 1st bit
 }
 
 //*************************************************************************
@@ -166,17 +166,16 @@ void setupObjects(void)
 {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_STENCIL_TEST);
-	glStencilFunc(GL_ALWAYS,0x0,0x0);
-	glStencilOp(GL_REPLACE,GL_REPLACE,GL_REPLACE);
-	glStencilMask(0x1);		// only deal with the 1st bit
+	glStencilFunc(GL_ALWAYS, 0x0, 0x0);
+	glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+	glStencilMask(0x1); // only deal with the 1st bit
 }
-
 
 //*************************************************************************
 //
 // These are cheap "hack" shadows - basically just squish the objects onto the floor.
 //
-// * We'll use a projection matrix to do the squishing (basically set the 
+// * We'll use a projection matrix to do the squishing (basically set the
 //   Y component to zero)
 // * We'll also need to turn off lighting (since we want the objects to be black)
 // * To make things look nice, we'll draw the shadows as transparent (so
@@ -197,16 +196,16 @@ void setupShadows(void)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glEnable(GL_STENCIL_TEST);
-	glStencilFunc(GL_EQUAL,0x1,0x1);
-	glStencilOp(GL_KEEP,GL_ZERO,GL_ZERO);
-	glStencilMask(0x1);		// only deal with the 1st bit
+	glStencilFunc(GL_EQUAL, 0x1, 0x1);
+	glStencilOp(GL_KEEP, GL_ZERO, GL_ZERO);
+	glStencilMask(0x1); // only deal with the 1st bit
 
 	glPushMatrix();
 	// a matrix that squishes things onto the floor
-	float sm[16] = {1,0,0,0, 0,0,0,0, 0,0,1,0, 0,0,0,1};
+	float sm[16] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
 	glMultMatrixf(sm);
 	// draw in transparent black (to dim the floor)
-	glColor4f(0,0,0,.5);
+	glColor4f(0, 0, 0, .5);
 }
 
 //*************************************************************************
@@ -217,12 +216,11 @@ void setupShadows(void)
 void unsetupShadows(void)
 //===============================================================================
 {
-  glPopMatrix();
-  glEnable(GL_DEPTH_TEST);
-  glDisable(GL_STENCIL_TEST);
-  glDisable(GL_BLEND);
+	glPopMatrix();
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_STENCIL_TEST);
+	glDisable(GL_BLEND);
 }
-
 
 //*************************************************************************
 //
@@ -232,12 +230,12 @@ void unsetupShadows(void)
 // it assumes the plane parallel to the ground, unless the elevator
 // button is pushed, in which case it is the YZ plane
 //===============================================================================
-inline double ABS(double x) { return (x<0) ? -x : x; };
+inline double ABS(double x) { return (x < 0) ? -x : x; };
 //===============================================================================
 
 //*************************************************************************
 //
-// * When you have a mouse line, you want to pick a point where you think the user 
+// * When you have a mouse line, you want to pick a point where you think the user
 //   wants to drag to
 // * Idea: given a plane parallel to the floor, pick a point on that
 //         plane (where the line intersects it)
@@ -247,41 +245,51 @@ inline double ABS(double x) { return (x<0) ? -x : x; };
 //   1. Have an "elevator mode" where we use a plane perpindicular to the floor
 //   2. r1,r2 are two points on the line
 //      a. l is the initial position of the point - we need this to know where
-//         the plane is. 
+//         the plane is.
 //      b. r is the resulting position. it will share 1 of its coordinates
 //         with l, but will be on the line
 //===============================================================================
 void mousePoleGo(double r1x, double r1y, double r1z,
-									double r2x, double r2y, double r2z,
-									double lx, double ly, double lz, 
-									double &rx, double &ry, double &rz,
-									bool elevator)
+				 double r2x, double r2y, double r2z,
+				 double lx, double ly, double lz,
+				 double &rx, double &ry, double &rz,
+				 bool elevator)
 //===============================================================================
 {
-  rx = lx; ry=ly; rz=lz;
-  if (elevator || (ABS(r1y - r2y) < .01)) {
-	if (ABS(r1z-r2z) > ABS(r1x-r2x)) {
-	  double zd = r1z-r2z;
-	  if (ABS(zd) > .01) {
-		double zp = (lz - r1z) / zd;
-		rx = r1x + (r1x - r2x) * zp;
-		ry = r1y + (r1y - r2y) * zp;
-	  } 
-	} else {
-	  double xd = r1x-r2x;
-	  if (ABS(xd) > .01) {
-		double xp = (lx-r1x) / xd;
-		rz = r1z + (r1z - r2z) * xp;
-		ry = r1y + (r1y - r2y) * xp;
-	  } 
+	rx = lx;
+	ry = ly;
+	rz = lz;
+	if (elevator || (ABS(r1y - r2y) < .01))
+	{
+		if (ABS(r1z - r2z) > ABS(r1x - r2x))
+		{
+			double zd = r1z - r2z;
+			if (ABS(zd) > .01)
+			{
+				double zp = (lz - r1z) / zd;
+				rx = r1x + (r1x - r2x) * zp;
+				ry = r1y + (r1y - r2y) * zp;
+			}
+		}
+		else
+		{
+			double xd = r1x - r2x;
+			if (ABS(xd) > .01)
+			{
+				double xp = (lx - r1x) / xd;
+				rz = r1z + (r1z - r2z) * xp;
+				ry = r1y + (r1y - r2y) * xp;
+			}
+		}
 	}
-  } else {
-	double yd = r1y - r2y;
-	// we have already made sure that the elevator is not singular
-	double yp = (ly - r1y) / yd;
-	rx = r1x + (r1x - r2x) * yp;
-	rz = r1z + (r1z - r2z) * yp;
-  }
+	else
+	{
+		double yd = r1y - r2y;
+		// we have already made sure that the elevator is not singular
+		double yp = (ly - r1y) / yd;
+		rx = r1x + (r1x - r2x) * yp;
+		rz = r1z + (r1z - r2z) * yp;
+	}
 }
 
 //*******************************************************************************
@@ -310,7 +318,7 @@ struct LightState {
 	bool lighting;
 	bool smooth;
 
-	LightState(bool l, bool s) : lighting(l), smooth(s) {};
+	LightState(bool l, bool s) : lighting(l), smooth(s){};
 };
 static vector<LightState> lightStateStack;
 
@@ -323,18 +331,21 @@ void setLighting(const LightOnOff lighting, const LightOnOff smoothi)
 {
 	int smooth;
 	bool lights = glIsEnabled(GL_LIGHTING) > 0;
-	glGetIntegerv(GL_SHADE_MODEL,&smooth);
-	lightStateStack.push_back(LightState( lights, (smooth == GL_SMOOTH) ));
+	glGetIntegerv(GL_SHADE_MODEL, &smooth);
+	lightStateStack.push_back(LightState(lights, (smooth == GL_SMOOTH)));
 
 	if (lighting != keep) {
-		if (lighting == on) glEnable(GL_LIGHTING);
-		else glDisable(GL_LIGHTING);
+		if (lighting == on)
+			glEnable(GL_LIGHTING);
+		else
+			glDisable(GL_LIGHTING);
 	}
 	if (smoothi != keep) {
-		if (smoothi == on) glShadeModel(GL_SMOOTH);
-		else glShadeModel(GL_FLAT);
+		if (smoothi == on)
+			glShadeModel(GL_SMOOTH);
+		else
+			glShadeModel(GL_FLAT);
 	}
-
 }
 
 //*******************************************************************************
@@ -345,16 +356,15 @@ void restoreLighting()
 //===============================================================================
 {
 	if (!lightStateStack.empty()) {
-		if ((lightStateStack.end()-1)->lighting)
+		if ((lightStateStack.end() - 1)->lighting)
 			glEnable(GL_LIGHTING);
 		else
 			glDisable(GL_LIGHTING);
 
-		if ((lightStateStack.end()-1)->smooth)
+		if ((lightStateStack.end() - 1)->smooth)
 			glShadeModel(GL_SMOOTH);
 		else
 			glShadeModel(GL_FLAT);
-
 	}
 }
 

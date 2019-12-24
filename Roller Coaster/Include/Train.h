@@ -12,8 +12,7 @@ enum CarType {
 	Car,
 };
 
-class CTrain
-{
+class CTrain {
 public:
 	CTrain(CarType type);
 	CTrain(int p0, int p1, int p2, int p3, CarType type);
@@ -23,17 +22,17 @@ public:
 	void Draw(bool doingShadows, bool isSelected);
 	void AddCar();
 	void RemoveCar();
-	void SetNewPos(PathData& pd);
+	void SetNewPos(PathData &pd);
 
 public:
 	static bool isMove;
 	static double speed0;
-	static CTrack* track;
+	static CTrack *track;
 
 	double speed;
 	double carSpeed;
 	double t;
-	Pnt3f pos;  
+	Pnt3f pos;
 	Pnt3f orient;
 	Pnt3f v, v_orient;
 	vector<CTrain> car;
@@ -42,4 +41,3 @@ public:
 	CarType type;
 	QMatrix4x4 modelMatrix;
 };
-

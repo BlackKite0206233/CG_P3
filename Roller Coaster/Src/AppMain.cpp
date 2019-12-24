@@ -5,15 +5,13 @@
 #include <math.h>
 #include <time.h>
 
-AppMain* AppMain::Instance = NULL;
-AppMain::AppMain(QWidget *parent)
-	: QMainWindow(parent)
-{
+AppMain *AppMain::Instance = NULL;
+AppMain::AppMain(QWidget *parent) : QMainWindow(parent) {
 	ui.setupUi(this);
-	trainview = new TrainView();  
-	trainview->m_pTrack =  &m_Track;
+	trainview = new TrainView();
+	trainview->m_pTrack = &m_Track;
 	CTrain::track = &m_Track;
-	setGeometry(100,25,1000,768);   
+	setGeometry(100, 25, 1000, 768);
 	ui.mainLayout->layout()->addWidget(trainview);
 	trainview->installEventFilter(this);
 	this->currentMode = None;
@@ -26,26 +24,23 @@ AppMain::AppMain(QWidget *parent)
 	CTrain::isMove = false;
 	CTrain::speed0 = 3;
 
-	setWindowTitle( "Roller Coaster" );
+	setWindowTitle("Roller Coaster");
 
-	connect( ui.aLoadPath	,SIGNAL(triggered()),this,SLOT(LoadTrackPath())	);
-	connect( ui.aSavePath	,SIGNAL(triggered()),this,SLOT(SaveTrackPath())	);
-	connect( ui.aExit		,SIGNAL(triggered()),this,SLOT(ExitApp())		);
+	connect(ui.aLoadPath, SIGNAL(triggered()), this, SLOT(LoadTrackPath()));
+	connect(ui.aSavePath, SIGNAL(triggered()), this, SLOT(SaveTrackPath()));
+	connect(ui.aExit,     SIGNAL(triggered()), this, SLOT(ExitApp()));
 
 	ui.label->setText("Mode: Normal");
 }
 
-AppMain::~AppMain()
-{
-
+AppMain::~AppMain() {
 }
 
-void AppMain::changeMode(int& currentMode, Mode newMode) {
+void AppMain::changeMode(int &currentMode, Mode newMode) {
 	currentMode = (currentMode == newMode) ? None : newMode;
 	trainview->lastSelectedPoint = trainview->selectedPath = trainview->selectedPoint = trainview->selectedTrain = -1;
 	QString s;
-	switch (currentMode)
-	{
+	switch (currentMode) {
 	case None:
 		s = "Normal";
 		break;
@@ -64,14 +59,14 @@ void AppMain::changeMode(int& currentMode, Mode newMode) {
 
 bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 	if (e->type() == QEvent::MouseButtonPress) {
-		QMouseEvent *event = static_cast<QMouseEvent*> (e);
+		QMouseEvent *event = static_cast<QMouseEvent *>(e);
 		// Get the mouse position
 		float x, y;
-		trainview->arcball->getMouseNDC((float)event->localPos().x(), (float)event->localPos().y(), x,y);
+		trainview->arcball->getMouseNDC((float)event->localPos().x(), (float)event->localPos().y(), x, y);
 
 		// Compute the mouse position
 		trainview->arcball->down(x, y);
-		if(event->button()==Qt::LeftButton){
+		if (event->button() == Qt::LeftButton) {
 			if (trainview->camera == Train) {
 				return QWidget::eventFilter(watched, e);
 			}
@@ -98,7 +93,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 				break;
 			}
 
-			if(this->canpan)
+			if (this->canpan)
 				trainview->arcball->mode = trainview->arcball->Pan;
 			else {
 				trainview->arcball->mode = trainview->arcball->None;
@@ -108,7 +103,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 				trainview->m_pTrack->points[trainview->selectedPoint].setCenter((float)event->localPos().x(), (float)event->localPos().y());
 			}
 		}
-		if(event->button()==Qt::RightButton){
+		if (event->button() == Qt::RightButton) {
 			if (!(rotatePoint && trainview->selectedPoint >= 0))
 				trainview->arcball->mode = trainview->arcball->Rotate;
 			else {
@@ -126,25 +121,25 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 
 	if (e->type() == QEvent::Wheel) {
 		if (trainview->camera == Train) {
-			return QWidget::eventFilter(watched, e);;
+			return QWidget::eventFilter(watched, e);
 		}
-		QWheelEvent *event = static_cast<QWheelEvent*> (e);
-		float zamt = (event->delta() < 0) ? 1.1f : 1/1.1f;
+		QWheelEvent *event = static_cast<QWheelEvent *>(e);
+		float zamt = (event->delta() < 0) ? 1.1f : 1 / 1.1f;
 		trainview->arcball->eyeZ *= zamt;
 	}
 
 	if (e->type() == QEvent::MouseMove) {
-		QMouseEvent *event = static_cast<QMouseEvent*> (e);
-		if((rotatePoint || isHover) && trainview->selectedPoint >= 0){
+		QMouseEvent *event = static_cast<QMouseEvent *>(e);
+		if ((rotatePoint || isHover) && trainview->selectedPoint >= 0) {
 			if (trainview->camera == Train) {
-				return QWidget::eventFilter(watched, e);;
+				return QWidget::eventFilter(watched, e);
 			}
-			ControlPoint* cp = &trainview->m_pTrack->points[trainview->selectedPoint];
+			ControlPoint *cp = &trainview->m_pTrack->points[trainview->selectedPoint];
 			if (!rotatePoint) {
 				double r1x, r1y, r1z, r2x, r2y, r2z;
 				int x = event->localPos().x();
 				int iy = event->localPos().y();
-				double mat1[16], mat2[16];		// we have to deal with the projection matrices
+				double mat1[16], mat2[16]; // we have to deal with the projection matrices
 				int viewport[4];
 
 				glGetIntegerv(GL_VIEWPORT, viewport);
@@ -157,12 +152,12 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 				int i2 = gluUnProject((double)x, (double)y, .75, mat1, mat2, viewport, &r2x, &r2y, &r2z);
 
 				double rx, ry, rz;
-				mousePoleGo(r1x, r1y, r1z, r2x, r2y, r2z, 
-					static_cast<double>(cp->pos.x), 
-					static_cast<double>(cp->pos.y),
-					static_cast<double>(cp->pos.z),
-					rx, ry, rz,
-					false);
+				mousePoleGo(r1x, r1y, r1z, r2x, r2y, r2z,
+							static_cast<double>(cp->pos.x),
+							static_cast<double>(cp->pos.y),
+							static_cast<double>(cp->pos.z),
+							rx, ry, rz,
+							false);
 
 				cp->pos.x = (float)rx;
 				cp->pos.z = (float)rz;
@@ -175,18 +170,17 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 
 			trainview->m_pTrack->BuildTrack();
 		}
-		if(trainview->arcball->mode != trainview->arcball->None) { // we're taking the drags
-			float x,y;
-			trainview->arcball->getMouseNDC((float)event->localPos().x(), (float)event->localPos().y(),x,y);
-			trainview->arcball->computeNow(x,y);
+		if (trainview->arcball->mode != trainview->arcball->None) { // we're taking the drags
+			float x, y;
+			trainview->arcball->getMouseNDC((float)event->localPos().x(), (float)event->localPos().y(), x, y);
+			trainview->arcball->computeNow(x, y);
 		}
 	}
 
-	if(e->type() == QEvent::KeyPress){
-		QKeyEvent *event = static_cast< QKeyEvent*> (e);
+	if (e->type() == QEvent::KeyPress) {
+		QKeyEvent *event = static_cast<QKeyEvent *>(e);
 		// Set up the mode
-		switch (event->key())
-		{
+		switch (event->key()) {
 		case Qt::Key_Alt:
 			this->canpan = true;
 			break;
@@ -198,7 +192,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			break;
 		case Qt::Key_Minus:
 			CTrain::speed0 -= 0.2;
-			if (CTrain::speed0 < 0.2) 
+			if (CTrain::speed0 < 0.2)
 				CTrain::speed0 = 0.2;
 			break;
 
@@ -208,14 +202,14 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 
 		case Qt::Key_Up:
 			if (trainview->selectedPoint >= 0) {
-				ControlPoint* cp = &trainview->m_pTrack->points[trainview->selectedPoint];
+				ControlPoint *cp = &trainview->m_pTrack->points[trainview->selectedPoint];
 				cp->pos.y += 0.5;
 				trainview->m_pTrack->BuildTrack();
 			}
 			break;
 		case Qt::Key_Down:
 			if (trainview->selectedPoint >= 0) {
-				ControlPoint* cp = &trainview->m_pTrack->points[trainview->selectedPoint];
+				ControlPoint *cp = &trainview->m_pTrack->points[trainview->selectedPoint];
 				cp->pos.y -= 0.5;
 				trainview->m_pTrack->BuildTrack();
 			}
@@ -224,7 +218,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 	}
 
 	if (e->type() == QEvent::KeyRelease) {
-		QKeyEvent* event = static_cast<QKeyEvent*> (e);
+		QKeyEvent *event = static_cast<QKeyEvent *>(e);
 		// Set up the mode
 		switch (event->key()) {
 		case Qt::Key_Alt:
@@ -272,7 +266,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			break;
 
 		case Qt::Key_Q:
-			if (trainview->selectedTrain >= 0) 
+			if (trainview->selectedTrain >= 0)
 				trainview->trains[trainview->selectedTrain].AddCar();
 			break;
 		case Qt::Key_W:
@@ -323,72 +317,58 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 	return QWidget::eventFilter(watched, e);
 }
 
-void AppMain::ExitApp()
-{
+void AppMain::ExitApp() {
 	QApplication::quit();
 }
 
-AppMain * AppMain::getInstance()
-{
-	if( !Instance )
-	{
+AppMain *AppMain::getInstance() {
+	if (!Instance) {
 		Instance = new AppMain();
 		return Instance;
 	}
-	else 
+	else
 		return Instance;
 }
 
-void AppMain::ToggleMenuBar()
-{
-	ui.menuBar->setHidden( !ui.menuBar->isHidden() );
+void AppMain::ToggleMenuBar() {
+	ui.menuBar->setHidden(!ui.menuBar->isHidden());
 }
 
-void AppMain::ToggleToolBar()
-{
-	ui.mainToolBar->setHidden( !ui.mainToolBar->isHidden() );
+void AppMain::ToggleToolBar() {
+	ui.mainToolBar->setHidden(!ui.mainToolBar->isHidden());
 }
 
-void AppMain::ToggleStatusBar()
-{
-	ui.statusBar->setHidden( !ui.statusBar->isHidden() );
+void AppMain::ToggleStatusBar() {
+	ui.statusBar->setHidden(!ui.statusBar->isHidden());
 }
 
-void AppMain::LoadTrackPath()
-{
-	QString fileName = QFileDialog::getOpenFileName( 
+void AppMain::LoadTrackPath() {
+	QString fileName = QFileDialog::getOpenFileName(
 		this,
 		"OpenImage",
 		"./",
-		tr("Txt (*.txt)" )
-		);
+		tr("Txt (*.txt)"));
 	QByteArray byteArray = fileName.toLocal8Bit();
-	const char* fname = byteArray.data();
-	if ( !fileName.isEmpty() )
-	{
+	const char *fname = byteArray.data();
+	if (!fileName.isEmpty()) {
 		this->m_Track.readPoints(fname);
 	}
 }
 
-void AppMain::SaveTrackPath()
-{
-	QString fileName = QFileDialog::getSaveFileName( 
+void AppMain::SaveTrackPath() {
+	QString fileName = QFileDialog::getSaveFileName(
 		this,
 		"OpenImage",
 		"./",
-		tr("Txt (*.txt)" )
-		);
+		tr("Txt (*.txt)"));
 
 	QByteArray byteArray = fileName.toLocal8Bit();
-	const char* fname = byteArray.data();
-	if ( !fileName.isEmpty() )
-	{
+	const char *fname = byteArray.data();
+	if (!fileName.isEmpty()) {
 		this->m_Track.writePoints(fname);
 	}
 }
 
-
-void AppMain::SwitchPlayAndPause()
-{
+void AppMain::SwitchPlayAndPause() {
 	CTrain::isMove = !CTrain::isMove;
 }

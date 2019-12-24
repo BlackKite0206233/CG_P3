@@ -38,7 +38,6 @@
 //************************************************************************
 typedef float HMatrix[4][4];
 
-
 //************************************************************************
 // draw a little cube centered
 //************************************************************************
@@ -49,7 +48,7 @@ void drawCube(float x, float y, float z, float l);
 // draw a ground plane
 //************************************************************************
 // Note: this draws a colored checkerboard (so it does set the colors)
-//       the actual colors are two global variables 
+//       the actual colors are two global variables
 extern float floorColor1[3];
 extern float floorColor2[3];
 
@@ -64,14 +63,14 @@ void drawFloor(float size = 10, int nSquares = 8);
 //************************************************************************
 // handy utility for turning lights on and off - it remembers what the
 // state of the lighting was (on or off) and smooth shading (on or off)
-typedef enum { 
-	on		=  1, 
-	off	= -1, 
-	keep	=  0 
+typedef enum {
+	on = 1,
+	off = -1,
+	keep = 0
 } LightOnOff;
 
-void setLighting(const LightOnOff lighting=keep, const LightOnOff smooth=keep);
-void restoreLighting();		// pop last state off the stack
+void setLighting(const LightOnOff lighting = keep, const LightOnOff smooth = keep);
+void restoreLighting(); // pop last state off the stack
 
 //************************************************************************
 // Code for doing shadows with the stencil buffer and blending
@@ -81,7 +80,7 @@ void restoreLighting();		// pop last state off the stack
 // would save state)
 // how to use:
 //   1) call "setupFloor" :  draw your groundplane
-//   2) call "setupShadows" :  draw your objects without any colors (otherwise, 
+//   2) call "setupShadows" :  draw your objects without any colors (otherwise,
 //                             you'll get colored shadows
 //   3) call "unsetupShadows": draw your objects normally (with lighting, colors, ...)
 // Beware: to get nice looking shadows, this uses alpha blending and the stencil
@@ -101,10 +100,9 @@ void unsetupShadows(void);
 
 int mouseMoveEvent(QMouseEvent *e);
 
-			  
 //************************************************************************
 //
-// * When you have a mouse line, you want to pick a point where you think the user 
+// * When you have a mouse line, you want to pick a point where you think the user
 //   wants to drag to
 // * Idea: given a plane parallel to the floor, pick a point on that
 //         plane (where the line intersects it)
@@ -114,15 +112,15 @@ int mouseMoveEvent(QMouseEvent *e);
 //   1. Have an "elevator mode" where we use a plane perpindicular to the floor
 //   2. r1,r2 are two points on the line
 //      a. l is the initial position of the point - we need this to know where
-//         the plane is. 
+//         the plane is.
 //      b. r is the resulting position. it will share 1 of its coordinates
 //         with l, but will be on the line
 //************************************************************************
-void mousePoleGo( double r1x, double r1y, double r1z,
-									double r2x, double r2y, double r2z,
-									double lx, double ly, double lz, 
-									double &rx, double &ry, double &rz,
-									bool elevator);
+void mousePoleGo(double r1x, double r1y, double r1z,
+				 double r2x, double r2y, double r2z,
+				 double lx, double ly, double lz,
+				 double &rx, double &ry, double &rz,
+				 bool elevator);
 
 //************************************************************************
 // useful math

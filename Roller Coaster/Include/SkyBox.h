@@ -17,16 +17,16 @@ public:
 	SkyBox();
 
 	void Init();
-	void Render(GLfloat* ProjectionMatrix, GLfloat* ModelViewMatrix);
+	void Render(GLfloat *ProjectionMatrix, GLfloat *ModelViewMatrix);
 
 private:
 	void InitVAO();
 	void InitTexture();
 	void InitShader(QString vertexShaderPath, QString fragmentShaderPath);
 
-	QOpenGLShaderProgram* shaderProgram;
-	QOpenGLShader* vertexShader;
-	QOpenGLShader* fragmentShader;
+	QOpenGLShaderProgram *shaderProgram;
+	QOpenGLShader *vertexShader;
+	QOpenGLShader *fragmentShader;
 	QOpenGLVertexArrayObject vao;
 	GLuint texture;
 };

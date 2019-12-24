@@ -7,15 +7,13 @@
 #include <QtOpenGL/QtOpenGL>
 #include "Utilities/3DUtils.h"
 
-Model::Model(const QString &filePath, int s)
-	: m_fileName(QFileInfo(filePath).fileName())
-{
+Model::Model(const QString &filePath, int s) : m_fileName(QFileInfo(filePath).fileName()) {
 	QFile file(filePath);
 	if (!file.open(QIODevice::ReadOnly))
 		return;
 
-	Point3d boundsMin( 1e9, 1e9, 1e9);
-	Point3d boundsMax(-1e9,-1e9,-1e9);
+	Point3d boundsMin(1e9, 1e9, 1e9);
+	Point3d boundsMax(-1e9, -1e9, -1e9);
 
 	QTextStream in(&file);
 	while (!in.atEnd()) {
@@ -34,7 +32,8 @@ Model::Model(const QString &filePath, int s)
 				boundsMax[i] = qMax(boundsMax[i], p[i]);
 			}
 			m_points << p;
-		} else if (id == "f" || id == "fo") {
+		}
+		else if (id == "f" || id == "fo") {
 			QVarLengthArray<int, 4> p;
 
 			while (!ts.atEnd()) {
@@ -70,8 +69,8 @@ Model::Model(const QString &filePath, int s)
 	m_normals.resize(m_points.size());
 	for (int i = 0; i < m_pointIndices.size(); i += 3) {
 		const Point3d a = m_points.at(m_pointIndices.at(i));
-		const Point3d b = m_points.at(m_pointIndices.at(i+1));
-		const Point3d c = m_points.at(m_pointIndices.at(i+2));
+		const Point3d b = m_points.at(m_pointIndices.at(i + 1));
+		const Point3d c = m_points.at(m_pointIndices.at(i + 2));
 
 		const Point3d normal = cross(b - a, c - a).normalize();
 
@@ -85,8 +84,7 @@ Model::Model(const QString &filePath, int s)
 	Init();
 }
 
-void Model::render(QVector3D color, GLfloat* ProjectionMatrix, GLfloat*ViewMatrix, QMatrix4x4 ModelMatrix, bool wireframe, bool normals)
-{
+void Model::render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, bool wireframe, bool normals) {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
@@ -134,7 +132,6 @@ void Model::render(QVector3D color, GLfloat* ProjectionMatrix, GLfloat*ViewMatri
 	glDisable(GL_LIGHT0);
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
-	
 }
 
 void Model::Init() {
@@ -161,7 +158,7 @@ void Model::InitVBO() {
 
 void Model::InitShader(QString vertexShaderPath, QString fragmentShaderPath) {
 	shaderProgram = new QOpenGLShaderProgram();
-	QFileInfo  vertexShaderFile(vertexShaderPath);
+	QFileInfo vertexShaderFile(vertexShaderPath);
 	if (vertexShaderFile.exists()) {
 		vertexShader = new QOpenGLShader(QOpenGLShader::Vertex);
 		if (vertexShader->compileSourceFile(vertexShaderPath))
@@ -172,7 +169,7 @@ void Model::InitShader(QString vertexShaderPath, QString fragmentShaderPath) {
 	else
 		qDebug() << vertexShaderFile.filePath() << " can't be found";
 
-	QFileInfo  fragmentShaderFile(fragmentShaderPath);
+	QFileInfo fragmentShaderFile(fragmentShaderPath);
 	if (fragmentShaderFile.exists()) {
 		fragmentShader = new QOpenGLShader(QOpenGLShader::Fragment);
 		if (fragmentShader->compileSourceFile(fragmentShaderPath))

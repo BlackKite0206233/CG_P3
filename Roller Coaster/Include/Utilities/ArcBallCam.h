@@ -59,10 +59,10 @@
 //
 // * if you need to pass that to OpenGL, try...
 //===========================================================================
-inline float* asGlMatrix(HMatrix m) 
+inline float *asGlMatrix(HMatrix m)
 //===========================================================================
 {
-	return (float*) m; 
+	return (float *)m;
 };
 
 //**************************************************************************
@@ -71,103 +71,99 @@ inline float* asGlMatrix(HMatrix m)
 //
 //**************************************************************************
 class ArcBallCam {
-	public:
-		ArcBallCam();
+public:
+	ArcBallCam();
 
-	public:
-		// you must call setup before doing anything!
-		void setup(QWidget* wind,
-					float fieldOfView=40.0,						 // field of view, in degrees
-					double eyeX = 0, double eyeY = 0, double eyeZ = 20.0,							 // how far away camera is from the center of the world
-					float isx=0, float isy=0, float isz = 0 // initial rotation
-					);
+public:
+	// you must call setup before doing anything!
+	void setup(QWidget *wind,
+			   float fieldOfView = 40.0,							 // field of view, in degrees
+			   double eyeX = 0, double eyeY = 0, double eyeZ = 20.0, // how far away camera is from the center of the world
+			   float isx = 0, float isy = 0, float isz = 0			 // initial rotation
+	);
 
-		//*********************************************************************
-		//
-		//	all you really need is: handle and setProjection
-		//
-		//*********************************************************************
+	//*********************************************************************
+	//
+	//	all you really need is: handle and setProjection
+	//
+	//*********************************************************************
 
-		// this sets the projection for viewing. it clears (and sets) the
-		// projection and modelview matrices
-		// note: we might not want to clear out the projection matrix
-		// (for example, if there is a pick matrix), so we give the option
-		// of not doing the load identity
-		void setProjection(bool doClear=true);
+	// this sets the projection for viewing. it clears (and sets) the
+	// projection and modelview matrices
+	// note: we might not want to clear out the projection matrix
+	// (for example, if there is a pick matrix), so we give the option
+	// of not doing the load identity
+	void setProjection(bool doClear = true);
 
-		// Reset to a basic configuration
-		void reset();
+	// Reset to a basic configuration
+	void reset();
 
-		//*********************************************************************
-		//
-		// Simplified user interface
-		//
-		//*********************************************************************
-		// multiply matrix ontop of stack
-		void multMatrix();	
+	//*********************************************************************
+	//
+	// Simplified user interface
+	//
+	//*********************************************************************
+	// multiply matrix ontop of stack
+	void multMatrix();
 
-		// call this when the mouse goes down
-		void down(const float x, const float y);
+	// call this when the mouse goes down
+	void down(const float x, const float y);
 
-		// this updates the cached positions - call it when the mouse is dragged
-		void computeNow(const float nowX, const float nowY);
+	// this updates the cached positions - call it when the mouse is dragged
+	void computeNow(const float nowX, const float nowY);
 
-		// this gets the global matrix (start and now)
-		void getMatrix(HMatrix) const;
+	// this gets the global matrix (start and now)
+	void getMatrix(HMatrix) const;
 
-		// Spin the ball by some vector - if you don't understand
-		// how an arcball works, you probably don't care about this
-		// but: basically you give it a vector to rotate the world around
-		// - the length of the vector is how much to rotate around that
-		//   axis
-		void spin(float x, float y, float z, float w);
-		// Internal routine
-		// this gets the position of the mouse in "normalized device coordinates"
-		// that is X & Y go from -1 to 1 (with zero at the center)
-		// this really goes with the window, but its handy here, and we can't
-		// assume the window does it
-		void getMouseNDC(float mx, float my, float& x, float& y);
+	// Spin the ball by some vector - if you don't understand
+	// how an arcball works, you probably don't care about this
+	// but: basically you give it a vector to rotate the world around
+	// - the length of the vector is how much to rotate around that
+	//   axis
+	void spin(float x, float y, float z, float w);
+	// Internal routine
+	// this gets the position of the mouse in "normalized device coordinates"
+	// that is X & Y go from -1 to 1 (with zero at the center)
+	// this really goes with the window, but its handy here, and we can't
+	// assume the window does it
+	void getMouseNDC(float mx, float my, float &x, float &y);
 
-	public:
-		// This keeps track of the rotation - the current rotation is
-		// start*now
-		Quat				start;	// orientation at the start of drag
-		Quat				now;		// quaternion "now" (while dragging)
+public:
+	// This keeps track of the rotation - the current rotation is
+	// start*now
+	Quat start; // orientation at the start of drag
+	Quat now;   // quaternion "now" (while dragging)
 
-		float				downX;	// where the mouse went down
-		float				downY;	
+	float downX; // where the mouse went down
+	float downY;
 
-		// are we panning or rotating (or not tracking)
-		enum {
-			None, 
-			Rotate, 
-			Pan
-		} mode;	
+	// are we panning or rotating (or not tracking)
+	enum {
+		None,
+		Rotate,
+		Pan
+	} mode;
 
-		enum {
-			World,
-			Top,
-			Train
-		} type;
+	enum {
+		World,
+		Top,
+		Train
+	} type;
 
-			
-		
-		float				panX;		// this keeps track of the panning - the current pan is 
-		float				panY;		
+	float panX; // this keeps track of the panning - the current pan is
+	float panY;
 
-		float				eyeX;		// in eyeX, eyeY, but this is the displacement for undoing the last
-		float				eyeY;		// addition
-		float				eyeZ;
+	float eyeX; // in eyeX, eyeY, but this is the displacement for undoing the last
+	float eyeY; // addition
+	float eyeZ;
 
-		float				initEyeZ;
-		float				fieldOfView; // View of field
+	float initEyeZ;
+	float fieldOfView; // View of field
 
+	float isx; // save a preferred rotation to return to
+	float isy;
+	float isz;
+	float isw;
 
-		
-		float				isx;		// save a preferred rotation to return to
-		float				isy;
-		float				isz;
-		float				isw;
-
-		QWidget* wind;	// Draw window
+	QWidget *wind; // Draw window
 };
