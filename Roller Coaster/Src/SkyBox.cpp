@@ -57,9 +57,10 @@ void SkyBox::InitTexture() {
     glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
 
     for (unsigned int i = 0; i < faces.size(); i++) {
-        unsigned char *data = QImage(("./Textures/ct_" + faces[i]).c_str()).bits();
+        QImage tex = QImage(("./Textures/ct_" + faces[i]).c_str());
+        tex = QGLWidget::convertToGLFormat(tex);
         if (data) {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, tex.width(), tex.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, tex.bits());
         } else {
             std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
         }

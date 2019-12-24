@@ -10,6 +10,7 @@
 #include <QFileInfo>
 #include <QDebug>
 #include <QString>
+#include <QGLWidget>
 
 class SkyBox {
 public:
