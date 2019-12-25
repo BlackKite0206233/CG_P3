@@ -30,6 +30,9 @@
 
 #include <QtWidgets/QMainWindow>
 #include <QtGui/QOpenGLFunctions_4_3_Core>
+#include <QtGui/QOpenGLShaderProgram>
+#include <QFileInfo>
+#include <QtGui/QOpenGLShader>
 
 //************************************************************************
 // this typedef is useful for lots of stuff
@@ -128,3 +131,4 @@ void mousePoleGo(double r1x, double r1y, double r1z,
 float radiansToDegrees(const float);
 
 void DimensionTransformation(GLfloat source[], GLfloat target[][4]);
+QOpenGLShaderProgram *InitShader(QString vertexShaderPath, QString fragmentShaderPath);

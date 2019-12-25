@@ -30,7 +30,6 @@ public:
 	void Init();
 	void InitVAO();
 	void InitVBO();
-	void InitShader(QString vertexShaderPath, QString fragmentShaderPath);
 
 private:
 	QString m_fileName;
@@ -40,8 +39,6 @@ private:
 	QVector<int> m_pointIndices;
 
 	QOpenGLShaderProgram *shaderProgram;
-	QOpenGLShader *vertexShader;
-	QOpenGLShader *fragmentShader;
 	QVector<QVector3D> vertices;
 	QVector<QVector3D> normals;
 	QOpenGLVertexArrayObject vao;

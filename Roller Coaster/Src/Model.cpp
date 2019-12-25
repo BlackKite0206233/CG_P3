@@ -135,7 +135,7 @@ void Model::render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatr
 }
 
 void Model::Init() {
-	InitShader("./Shader/model.vs", "./Shader/model.fs");
+	shaderProgram = InitShader("./Shader/model.vs", "./Shader/model.fs");
 	InitVAO();
 	InitVBO();
 }
@@ -154,30 +154,4 @@ void Model::InitVBO() {
 	vvbo.bind();
 	vvbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
 	vvbo.allocate(vertices.constData(), vertices.size() * sizeof(QVector3D));
-}
-
-void Model::InitShader(QString vertexShaderPath, QString fragmentShaderPath) {
-	shaderProgram = new QOpenGLShaderProgram();
-	QFileInfo vertexShaderFile(vertexShaderPath);
-	if (vertexShaderFile.exists()) {
-		vertexShader = new QOpenGLShader(QOpenGLShader::Vertex);
-		if (vertexShader->compileSourceFile(vertexShaderPath))
-			shaderProgram->addShader(vertexShader);
-		else
-			qWarning() << "Vertex Shader Error " << vertexShader->log();
-	}
-	else
-		qDebug() << vertexShaderFile.filePath() << " can't be found";
-
-	QFileInfo fragmentShaderFile(fragmentShaderPath);
-	if (fragmentShaderFile.exists()) {
-		fragmentShader = new QOpenGLShader(QOpenGLShader::Fragment);
-		if (fragmentShader->compileSourceFile(fragmentShaderPath))
-			shaderProgram->addShader(fragmentShader);
-		else
-			qWarning() << "fragment Shader Error " << fragmentShader->log();
-	}
-	else
-		qDebug() << fragmentShaderFile.filePath() << " can't be found";
-	shaderProgram->link();
 }

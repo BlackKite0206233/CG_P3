@@ -51,7 +51,7 @@ void Triangle::Paint(GLfloat *ProjectionMatrix, GLfloat *ModelViewMatrix) {
 }
 
 void Triangle::Init() {
-	InitShader("./Shader/Triangle.vs", "./Shader/Triangle.fs");
+	shaderProgram = InitShader("./Shader/Triangle.vs", "./Shader/Triangle.fs");
 	InitVAO();
 	InitVBO();
 }
@@ -89,31 +89,4 @@ void Triangle::InitVBO() {
 	cvbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
 	// Allocate and initialize the information
 	cvbo.allocate(colors.constData(), colors.size() * sizeof(QVector3D));
-}
-
-void Triangle::InitShader(QString vertexShaderPath, QString fragmentShaderPath) {
-	// Create Shader
-	shaderProgram = new QOpenGLShaderProgram();
-	QFileInfo vertexShaderFile(vertexShaderPath);
-	if (vertexShaderFile.exists()) {
-		vertexShader = new QOpenGLShader(QOpenGLShader::Vertex);
-		if (vertexShader->compileSourceFile(vertexShaderPath))
-			shaderProgram->addShader(vertexShader);
-		else
-			qWarning() << "Vertex Shader Error " << vertexShader->log();
-	}
-	else
-		qDebug() << vertexShaderFile.filePath() << " can't be found";
-
-	QFileInfo fragmentShaderFile(fragmentShaderPath);
-	if (fragmentShaderFile.exists()) {
-		fragmentShader = new QOpenGLShader(QOpenGLShader::Fragment);
-		if (fragmentShader->compileSourceFile(fragmentShaderPath))
-			shaderProgram->addShader(fragmentShader);
-		else
-			qWarning() << "fragment Shader Error " << fragmentShader->log();
-	}
-	else
-		qDebug() << fragmentShaderFile.filePath() << " can't be found";
-	shaderProgram->link();
 }

@@ -25,11 +25,8 @@ private:
 	void InitVAO();
 	void InitVBO();
 	void InitTexture();
-	void InitShader(QString vertexShaderPath, QString fragmentShaderPath);
 
 	QOpenGLShaderProgram *shaderProgram;
-	QOpenGLShader *vertexShader;
-	QOpenGLShader *fragmentShader;
 	QOpenGLVertexArrayObject vao;
 	GLuint texture;
 	QVector<QVector3D> vertices;

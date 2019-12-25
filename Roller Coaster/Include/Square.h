@@ -17,8 +17,6 @@
 class Square {
 public:
 	QOpenGLShaderProgram *shaderProgram;
-	QOpenGLShader *vertexShader;
-	QOpenGLShader *fragmentShader;
 	QVector<QVector3D> vertices;
 	QVector<QVector2D> uvs;
 	QOpenGLVertexArrayObject vao;
@@ -30,7 +28,6 @@ public:
 	void Init();
 	void InitVAO();
 	void InitVBO();
-	void InitShader(QString vertexShaderPath, QString fragmentShaderPath);
 	void Begin();
 	void Paint(GLfloat *ProjectionMatrix, GLfloat *ModelViewMatrix);
 	void End();

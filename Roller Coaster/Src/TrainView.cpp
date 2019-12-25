@@ -117,6 +117,7 @@ void TrainView::paintGL()
 	// we need to set up the lights AFTER setting up the projection
 	//######################################################################
 	// enable the lighting
+	
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
@@ -131,12 +132,13 @@ void TrainView::paintGL()
 		glEnable(GL_LIGHT1);
 		glEnable(GL_LIGHT2);
 	}
-
+	
 	//*********************************************************************
 	//
 	// * set the light parameters
 	//
 	//**********************************************************************
+	
 	GLfloat lightPosition1[] = {0, 1, 1, 0}; // {50, 200.0, 50, 1.0};
 	GLfloat lightPosition2[] = {1, 0, 0, 0};
 	GLfloat lightPosition3[] = {0, -1, 0, 0};
@@ -154,12 +156,12 @@ void TrainView::paintGL()
 
 	glLightfv(GL_LIGHT2, GL_POSITION, lightPosition3);
 	glLightfv(GL_LIGHT2, GL_DIFFUSE, blueLight);
+	
 
 	//*********************************************************************
 	// now draw the ground plane
 	//*********************************************************************
 	setupFloor();
-	glDisable(GL_LIGHTING);
 	drawFloor(200, 10);
 
 	//*********************************************************************
@@ -169,24 +171,13 @@ void TrainView::paintGL()
 	glEnable(GL_LIGHTING);
 	setupObjects();
 
-	drawStuff();
 	// this time drawing is for shadows (except for top view)
-	if (this->camera != Top) {
+	/*if (this->camera != Top) {
 		setupShadows();
 		drawStuff(true);
 		unsetupShadows();
-	}
-
-	if (CTrain::isMove) {
-		if (clock() - lastRedraw > CLOCKS_PER_SEC / 65) {
-			lastRedraw = clock();
-			MoveTrain();
-		}
-	}
-
-	for (int i = 0; i < trains.size(); i++) {
-		trains[i].Draw(false, i == selectedTrain);
-	}
+	}*/
+	drawStuff();
 
 	/*
 	//Call triangle's render function, pass ModelViewMatrex and ProjectionMatrex
@@ -279,7 +270,16 @@ void TrainView::drawStuff(bool doingShadows)
 #endif
 	this->m_pTrack->Draw(doingShadows, selectedPath);
 
-	
+	if (CTrain::isMove) {
+		if (clock() - lastRedraw > CLOCKS_PER_SEC / 65) {
+			lastRedraw = clock();
+			MoveTrain();
+		}
+	}
+
+	for (int i = 0; i < trains.size(); i++) {
+		trains[i].Draw(false, i == selectedTrain);
+	}
 	// draw the train
 	//####################################################################
 	// TODO:
