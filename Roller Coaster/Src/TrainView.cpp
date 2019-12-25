@@ -52,6 +52,8 @@ void TrainView::resetArcball()
 	cameras[2].setup(this, 40, 0, 0, 250);
 }
 
+static unsigned long lastRedraw = 0;
+
 void TrainView::paintGL()
 {
 
@@ -78,6 +80,36 @@ void TrainView::paintGL()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	setProjection(); // put the code to set up matrices here
+
+	//Get projection matrix
+	glGetFloatv(GL_PROJECTION_MATRIX, ProjectionMatrex);
+	//Get modelview matrix
+	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
+
+	GLfloat viewMatrix[16];
+
+	viewMatrix[0] = ModelViewMatrex[0];
+	viewMatrix[1] = ModelViewMatrex[1];
+	viewMatrix[2] = ModelViewMatrex[2];
+	viewMatrix[3] = 0;
+	viewMatrix[4] = ModelViewMatrex[4];
+	viewMatrix[5] = ModelViewMatrex[5];
+	viewMatrix[6] = ModelViewMatrex[6];
+	viewMatrix[7] = 0;
+	viewMatrix[8] = ModelViewMatrex[8];
+	viewMatrix[9] = ModelViewMatrex[9];
+	viewMatrix[10] = ModelViewMatrex[10];
+	viewMatrix[11] = 0;
+	viewMatrix[12] = 0;
+	viewMatrix[13] = 0;
+	viewMatrix[14] = 0;
+	viewMatrix[15] = 1;
+
+
+	skybox->Begin();
+	glActiveTexture(GL_TEXTURE0);
+	skybox->Render(ProjectionMatrex, viewMatrix);
+	skybox->End();
 
 	//######################################################################
 	// TODO:
@@ -137,20 +169,23 @@ void TrainView::paintGL()
 	glEnable(GL_LIGHTING);
 	setupObjects();
 
-	//Get modelview matrix
-	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
-	//Get projection matrix
-	glGetFloatv(GL_PROJECTION_MATRIX, ProjectionMatrex);
-
-	skybox->Render(ProjectionMatrex, ModelViewMatrex);
-
 	drawStuff();
-
 	// this time drawing is for shadows (except for top view)
 	if (this->camera != Top) {
 		setupShadows();
 		drawStuff(true);
 		unsetupShadows();
+	}
+
+	if (CTrain::isMove) {
+		if (clock() - lastRedraw > CLOCKS_PER_SEC / 65) {
+			lastRedraw = clock();
+			MoveTrain();
+		}
+	}
+
+	for (int i = 0; i < trains.size(); i++) {
+		trains[i].Draw(false, i == selectedTrain);
 	}
 
 	/*
@@ -202,7 +237,6 @@ void TrainView::setProjection()
 	update();
 }
 
-static unsigned long lastRedraw = 0;
 //************************************************************************
 //
 // * this draws all of the stuff in the world
@@ -245,16 +279,7 @@ void TrainView::drawStuff(bool doingShadows)
 #endif
 	this->m_pTrack->Draw(doingShadows, selectedPath);
 
-	if (CTrain::isMove) {
-		if (clock() - lastRedraw > CLOCKS_PER_SEC / 65) {
-			lastRedraw = clock();
-			MoveTrain();
-		}
-	}
-
-	for (int i = 0; i < trains.size(); i++) {
-		trains[i].Draw(doingShadows, i == selectedTrain);
-	}
+	
 	// draw the train
 	//####################################################################
 	// TODO:

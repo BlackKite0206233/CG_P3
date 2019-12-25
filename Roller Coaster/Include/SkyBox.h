@@ -17,10 +17,13 @@ public:
 	SkyBox();
 
 	void Init();
-	void Render(GLfloat *ProjectionMatrix, GLfloat *ModelViewMatrix);
+	void Begin();
+	void Render(GLfloat *ProjectionMatrix, GLfloat *viewMatrix);
+	void End();
 
 private:
 	void InitVAO();
+	void InitVBO();
 	void InitTexture();
 	void InitShader(QString vertexShaderPath, QString fragmentShaderPath);
 
@@ -29,4 +32,6 @@ private:
 	QOpenGLShader *fragmentShader;
 	QOpenGLVertexArrayObject vao;
 	GLuint texture;
+	QVector<QVector3D> vertices;
+	QOpenGLBuffer vbo;
 };
