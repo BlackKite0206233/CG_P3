@@ -62,7 +62,7 @@ void CTrain::Move() {
 }
 
 double getT(PathData& pd, double l) {
-	ControlPoint pnt = pd.pointSet[0];
+	CtrlPoint pnt = pd.pointSet[0];
 	double len_0, len = 0;
 	double t_;
 	for (int i = 1; i < pd.pointSet.size(); i++) {
@@ -79,7 +79,7 @@ double getT(PathData& pd, double l) {
 }
 
 void CTrain::SetNewPos(PathData& pd) {
-	ControlPoint qt, qt_1;
+	CtrlPoint qt, qt_1;
 
 	qt   = pd.CalInterpolation(getT(pd, this->t));
 	qt_1 = pd.CalInterpolation(getT(pd, this->t + 1));

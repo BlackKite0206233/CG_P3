@@ -83,10 +83,33 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 				trainview->lastSelectedPoint = trainview->selectedPoint;
 				break;
 			case InsertPoint:
-				p.pos = Pnt3f(50 - (rand() % 100), 0, 50 - (rand() % 100));
-				p.orient = Pnt3f(0, 1, 0);
-				// TODO: calculate the coordinates of p
+			{
+				double r1x, r1y, r1z, r2x, r2y, r2z;
+				int x = event->localPos().x();
+				int iy = event->localPos().y();
+				double mat1[16], mat2[16];
+				int viewport[4];
+
+				glGetIntegerv(GL_VIEWPORT, viewport);
+				glGetDoublev(GL_MODELVIEW_MATRIX, mat1);
+				glGetDoublev(GL_PROJECTION_MATRIX, mat2);
+
+				int y = viewport[3] - iy;
+
+				int i1 = gluUnProject((double)x, (double)y, .25, mat1, mat2, viewport, &r1x, &r1y, &r1z);
+				int i2 = gluUnProject((double)x, (double)y, .75, mat1, mat2, viewport, &r2x, &r2y, &r2z);
+
+				double rx, ry, rz;
+				mousePoleGo(r1x, r1y, r1z, r2x, r2y, r2z,
+					static_cast<double>(0),
+					static_cast<double>(0),
+					static_cast<double>(0),
+					rx, ry, rz,
+					false);
+
+				p.center = CtrlPoint(Pnt3f(rx, 5, rz), Pnt3f(0, 1, 0));
 				trainview->m_pTrack->AddPoint(p);
+			}
 				break;
 			case InsertTrain:
 				trainview->AddTrain();
@@ -153,14 +176,14 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 
 				double rx, ry, rz;
 				mousePoleGo(r1x, r1y, r1z, r2x, r2y, r2z,
-							static_cast<double>(cp->pos.x),
-							static_cast<double>(cp->pos.y),
-							static_cast<double>(cp->pos.z),
+							static_cast<double>(cp->center.pos.x),
+							static_cast<double>(cp->center.pos.y),
+							static_cast<double>(cp->center.pos.z),
 							rx, ry, rz,
 							false);
 
-				cp->pos.x = (float)rx;
-				cp->pos.z = (float)rz;
+				cp->center.pos.x = (float)rx;
+				cp->center.pos.z = (float)rz;
 			}
 			else if (!isHover) {
 				float x, y;
@@ -203,14 +226,14 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 		case Qt::Key_Up:
 			if (trainview->selectedPoint >= 0) {
 				ControlPoint *cp = &trainview->m_pTrack->points[trainview->selectedPoint];
-				cp->pos.y += 0.5;
+				cp->center.pos.y += 0.5;
 				trainview->m_pTrack->BuildTrack();
 			}
 			break;
 		case Qt::Key_Down:
 			if (trainview->selectedPoint >= 0) {
 				ControlPoint *cp = &trainview->m_pTrack->points[trainview->selectedPoint];
-				cp->pos.y -= 0.5;
+				cp->center.pos.y -= 0.5;
 				trainview->m_pTrack->BuildTrack();
 			}
 			break;

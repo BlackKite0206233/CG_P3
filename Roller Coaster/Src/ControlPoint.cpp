@@ -35,11 +35,21 @@
 #include "Utilities/3dUtils.h"
 
 using namespace std;
+
+CtrlPoint::CtrlPoint() : pos(0, 0, 0), orient(0, 1, 0) {
+}
+
+CtrlPoint::CtrlPoint(const Pnt3f& _pos) : pos(_pos), orient(0, 1, 0) {
+}
+
+CtrlPoint::CtrlPoint(const Pnt3f& _pos, const Pnt3f& _orient) : pos(_pos), orient(_orient) {
+	orient.normalize();
+}
 //****************************************************************************
 //
 // * Default contructor
 //============================================================================
-ControlPoint::ControlPoint() : pos(0, 0, 0), orient(0, 1, 0), children(set<int>()), parents(set<int>())
+ControlPoint::ControlPoint() : center(), children(set<int>()), parents(set<int>())
 //============================================================================
 {
 }
@@ -48,7 +58,7 @@ ControlPoint::ControlPoint() : pos(0, 0, 0), orient(0, 1, 0), children(set<int>(
 //
 // * Set up the position and set orientation to default (0, 1, 0)
 //============================================================================
-ControlPoint::ControlPoint(const Pnt3f &_pos) : pos(_pos), orient(0, 1, 0), children(set<int>()), parents(set<int>())
+ControlPoint::ControlPoint(const Pnt3f &_pos) : center(_pos), children(set<int>()), parents(set<int>())
 //============================================================================
 {
 }
@@ -57,10 +67,9 @@ ControlPoint::ControlPoint(const Pnt3f &_pos) : pos(_pos), orient(0, 1, 0), chil
 //
 // * Set up the position and orientation
 //============================================================================
-ControlPoint::ControlPoint(const Pnt3f &_pos, const Pnt3f &_orient) : pos(_pos), orient(_orient), children(set<int>()), parents(set<int>())
+ControlPoint::ControlPoint(const Pnt3f &_pos, const Pnt3f &_orient) : center(_pos, _orient), children(set<int>()), parents(set<int>())
 //============================================================================
 {
-	orient.normalize();
 }
 
 //****************************************************************************
@@ -73,10 +82,10 @@ void ControlPoint::draw()
 	float size = 2.0;
 
 	glPushMatrix();
-	glTranslatef(pos.x, pos.y, pos.z);
-	float theta1 = -radiansToDegrees(atan2(orient.z, orient.x));
+	glTranslatef(center.pos.x, center.pos.y, center.pos.z);
+	float theta1 = -radiansToDegrees(atan2(center.orient.z, center.orient.x));
 	glRotatef(theta1, 0, 1, 0);
-	float theta2 = -radiansToDegrees(acos(orient.y));
+	float theta2 = -radiansToDegrees(acos(center.orient.y));
 	glRotatef(theta2, 0, 0, 1);
 
 	glBegin(GL_QUADS);
@@ -208,10 +217,10 @@ void ControlPoint::computeNow(const float nowX, const float nowY)
 	HMatrix m;
 	getMatrix(m);
 	QMatrix4x4 mat(m[0][0], m[0][1], m[0][2], m[0][3], m[1][0], m[1][1], m[1][2], m[1][3], m[2][0], m[2][1], m[2][2], m[2][3], m[3][0], m[3][1], m[3][2], m[3][3]);
-	QVector4D vec(orient.x, orient.y, orient.x, 0);
+	QVector4D vec(center.orient.x, center.orient.y, center.orient.x, 0);
 	vec = mat * vec;
-	orient.x = vec.x();
-	orient.y = vec.y();
-	orient.z = vec.z();
-	orient.normalize();
+	center.orient.x = vec.x();
+	center.orient.y = vec.y();
+	center.orient.z = vec.z();
+	center.orient.normalize();
 }

@@ -7,8 +7,8 @@
 CurveType PathData::curve;
 TrackType PathData::track;
 
-ControlPoint PathData::CalInterpolation(double t) {
-	ControlPoint qt;
+CtrlPoint PathData::CalInterpolation(double t) {
+	CtrlPoint qt;
 	if (curve == Linear) {
 		qt.pos    = (1 - t) * a.pos    + t * b.pos;
 		qt.orient = (1 - t) * a.orient + t * b.orient;
@@ -38,7 +38,7 @@ void PathData::DrawLine(int side) {
 	glEnd();
 }
 
-void DrawBlock(ControlPoint p0, ControlPoint p1) {
+void DrawBlock(CtrlPoint p0, CtrlPoint p1) {
 	Pnt3f w, v, u, p;
 	glBegin(GL_QUADS);
 	v = p1.pos - p0.pos;
@@ -58,7 +58,7 @@ void DrawBlock(ControlPoint p0, ControlPoint p1) {
 
 void PathData::DrawTrack() {
 	DrawBlock(pointSet[0], pointSet[1]);
-	ControlPoint pnt = pointSet[0];
+	CtrlPoint pnt = pointSet[0];
 	double len_0, len = 0;
 	for (int i = 1; i < pointSet.size(); i++) {
 		len_0 = len;

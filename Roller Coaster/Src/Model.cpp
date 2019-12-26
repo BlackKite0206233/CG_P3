@@ -33,8 +33,16 @@ Model::Model(const QString &filePath) : m_fileName(QFileInfo(filePath).fileName(
 			}
 			m_points << p;
 		}
+		else if (id == "vn") {
+			Point3d n;
+			for (int i = 0; i < 3; ++i) {
+				ts >> n[i];
+			}
+			m_normals << n;
+		}
 		else if (id == "f" || id == "fo") {
 			QVarLengthArray<int, 4> p;
+			QVarLengthArray<int, 4> n;
 
 			while (!ts.atEnd()) {
 				QString vertex;
@@ -42,6 +50,10 @@ Model::Model(const QString &filePath) : m_fileName(QFileInfo(filePath).fileName(
 				const int vertexIndex = vertex.split('/').value(0).toInt();
 				if (vertexIndex)
 					p.append(vertexIndex > 0 ? vertexIndex - 1 : m_points.size() + vertexIndex);
+
+				const int normalIndex = vertex.split('/').value(2).toInt();
+				if (normalIndex)
+					n.append(normalIndex > 0 ? normalIndex - 1 : m_normals.size() + normalIndex);
 			}
 
 			for (int i = 0; i < p.size(); ++i) {
@@ -58,6 +70,13 @@ Model::Model(const QString &filePath) : m_fileName(QFileInfo(filePath).fileName(
 			if (p.size() == 4)
 				for (int i = 0; i < 3; ++i)
 					m_pointIndices << p[(i + 2) % 4];
+
+			for (int i = 0; i < 3; ++i)
+				m_normalIndices << n[i];
+
+			if (n.size() == 4)
+				for (int i = 0; i < 3; ++i)
+					m_normalIndices << n[(i + 2) % 4];
 		}
 	}
 
@@ -65,21 +84,6 @@ Model::Model(const QString &filePath) : m_fileName(QFileInfo(filePath).fileName(
 	
 	for (int i = 0; i < m_points.size(); ++i)
 		m_points[i] = (m_points[i] - (boundsMin + bounds * 0.5));
-
-	m_normals.resize(m_points.size());
-	for (int i = 0; i < m_pointIndices.size(); i += 3) {
-		const Point3d a = m_points.at(m_pointIndices.at(i));
-		const Point3d b = m_points.at(m_pointIndices.at(i + 1));
-		const Point3d c = m_points.at(m_pointIndices.at(i + 2));
-
-		const Point3d normal = cross(b - a, c - a).normalize();
-
-		for (int j = 0; j < 3; ++j)
-			m_normals[m_pointIndices.at(i + j)] += normal;
-	}
-
-	for (int i = 0; i < m_normals.size(); ++i)
-		m_normals[i] = m_normals[i].normalize();
 
 	Init();
 }
@@ -111,14 +115,15 @@ void Model::render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatr
 	const GLfloat scale = s / qMax(bounds.x, qMax(bounds.y, bounds.z));
 	shaderProgram->setUniformValue("Scale", scale);
 
-	// Bind the buffer so that it is the current active buffer.
 	vvbo.bind();
-	// Enable Attribute 0
 	shaderProgram->enableAttributeArray(0);
-	// Set Attribute 0 to be position
 	shaderProgram->setAttributeArray(0, GL_FLOAT, 0, 3, NULL);
-	//unbind buffer
 	vvbo.release();
+
+	nvbo.bind();
+	shaderProgram->enableAttributeArray(1);
+	shaderProgram->setAttributeArray(1, GL_FLOAT, 0, 3, NULL);
+	nvbo.release();
 
 	//Draw a triangle with 3 indices starting from the 0th index
 	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
@@ -157,4 +162,13 @@ void Model::InitVBO() {
 	vvbo.bind();
 	vvbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
 	vvbo.allocate(vertices.constData(), vertices.size() * sizeof(QVector3D));
+
+	for (int i = 0; i < m_normalIndices.size(); i++) {
+		Point3d n = m_normals.at(m_normalIndices[i]);
+		normals << QVector3D(n.x, n.y, n.z);
+	}
+	nvbo.create();
+	nvbo.bind();
+	nvbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+	nvbo.allocate(normals.constData(), normals.size() * sizeof(QVector3D));
 }

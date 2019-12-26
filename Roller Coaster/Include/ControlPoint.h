@@ -30,6 +30,15 @@
 
 using namespace std;
 
+struct CtrlPoint {
+	CtrlPoint();
+	CtrlPoint(const Pnt3f& pos);
+	CtrlPoint(const Pnt3f& pos, const Pnt3f& orient);
+	Pnt3f pos;
+	Pnt3f orient;
+	double inter;
+};
+
 class ControlPoint {
 public:
 	// constructors
@@ -50,14 +59,11 @@ public:
 	void computeNow(const float nowX, const float nowY);
 	void down(const float x, const float y);
 	void setCenter(float x, float y);
-
 public:
-	Pnt3f pos;	// Position of this control point
-	Pnt3f orient; // Orientation of this control point
+	CtrlPoint center;
 	set<int> children;
 	set<int> parents;
 	bool visited = false;
-	double inter;
 
 	Quat start;
 	Quat now;

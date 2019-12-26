@@ -37,6 +37,7 @@ private:
 	QVector<Point3d> m_normals;
 	QVector<int> m_edgeIndices;
 	QVector<int> m_pointIndices;
+	QVector<int> m_normalIndices;
 
 	QOpenGLShaderProgram *shaderProgram;
 	QVector<QVector3D> vertices;

@@ -82,9 +82,11 @@ void CTrack::readPoints(const char* filename)
 			// get lines until EOF or we have enough points
 			for (int i = 0; i < n; i++) {
 				ControlPoint p;
+				CtrlPoint center;
 				double x, y, z, ox, oy, oz;
-				fs >> p.pos.x >> p.pos.y >> p.pos.z >> p.orient.x >> p.orient.y >> p.orient.z;
-				p.orient.normalize();
+				fs >> center.pos.x >> center.pos.y >> center.pos.z >> center.orient.x >> center.orient.y >> center.orient.z;
+				center.orient.normalize();
+				p.center = center;
 				points[pointCount++] = p;
 			}
 		}
@@ -122,7 +124,7 @@ void CTrack::writePoints(const char* filename)
 	} else {
 		fs << points.size() << endl;
 		for (const auto& v : points) {
-			ControlPoint p = v.second;
+			CtrlPoint p = v.second.center;
 			fs << p.pos.x << " " << p.pos.y << " " << p.pos.z << " " << p.orient.x << " " << p.orient.y << " " << p.orient.z << endl;
 		}
 		fs << paths.size() << endl;
@@ -133,7 +135,7 @@ void CTrack::writePoints(const char* filename)
 	}
 }
 
-void calParam(const ControlPoint& p0, const ControlPoint& p1, const ControlPoint& p2, const ControlPoint& p3, PathData& pd) {
+void calParam(const CtrlPoint& p0, const CtrlPoint& p1, const CtrlPoint& p2, const CtrlPoint& p3, PathData& pd) {
 	if (PathData::curve == Cardinal) {
 		pd.a.pos = -0.5 * p0.pos + 1.5 * p1.pos - 1.5 * p2.pos + 0.5 * p3.pos;
 		pd.b.pos =        p0.pos - 2.5 * p1.pos + 2   * p2.pos - 0.5 * p3.pos;
@@ -157,9 +159,9 @@ void calParam(const ControlPoint& p0, const ControlPoint& p1, const ControlPoint
 	}
 }
 
-void subdivision(PathData &pd, ControlPoint p1, ControlPoint p2) {
+void subdivision(PathData &pd, CtrlPoint p1, CtrlPoint p2) {
 	double t = (p1.inter + p2.inter) / 2;
-	ControlPoint mid = pd.CalInterpolation(t);
+	CtrlPoint mid = pd.CalInterpolation(t);
 	Pnt3f pos = (p1.pos + p2.pos) * 0.5;
 	Pnt3f orient = (p1.orient + p2.orient) * 0.5;
 	if ((pos - mid.pos).Lenth() > 0.05 || (orient - mid.orient).Lenth() > 0.05) {
@@ -232,14 +234,14 @@ void CTrack::BuildTrack() {
 
 						p3 = points[p3Id];
 						if (PathData::curve != Linear) {
-							calParam(p0, p1, p2, p3, pd);
+							calParam(p0.center, p1.center, p2.center, p3.center, pd);
 						}
 						else {
-							pd.a = p1;
-							pd.b = p2;
+							pd.a = p1.center;
+							pd.b = p2.center;
 						}
 
-						ControlPoint p1, p2;
+						CtrlPoint p1, p2;
 						p1 = pd.CalInterpolation(0);
 						p2 = pd.CalInterpolation(1);
 						pd.pointSet.push_back(p1);
