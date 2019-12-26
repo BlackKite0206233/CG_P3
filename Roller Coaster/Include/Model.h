@@ -18,9 +18,9 @@
 class Model {
 public:
 	Model() {}
-	Model(const QString &filePath, int s);
+	Model(const QString &filePath);
 
-	void render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, bool wireframe = false, bool normals = false);
+	void render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, double s = 1, bool wireframe = false, bool normals = false);
 
 	QString fileName() const { return m_fileName; }
 	int faces() const { return m_pointIndices.size() / 3; }
@@ -44,6 +44,8 @@ private:
 	QOpenGLVertexArrayObject vao;
 	QOpenGLBuffer vvbo;
 	QOpenGLBuffer nvbo;
+
+	Point3d bounds;
 };
 
 #endif

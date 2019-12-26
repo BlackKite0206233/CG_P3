@@ -7,7 +7,7 @@
 #include <QtOpenGL/QtOpenGL>
 #include "Utilities/3DUtils.h"
 
-Model::Model(const QString &filePath, int s) : m_fileName(QFileInfo(filePath).fileName()) {
+Model::Model(const QString &filePath) : m_fileName(QFileInfo(filePath).fileName()) {
 	QFile file(filePath);
 	if (!file.open(QIODevice::ReadOnly))
 		return;
@@ -61,10 +61,10 @@ Model::Model(const QString &filePath, int s) : m_fileName(QFileInfo(filePath).fi
 		}
 	}
 
-	const Point3d bounds = boundsMax - boundsMin;
-	const qreal scale = s / qMax(bounds.x, qMax(bounds.y, bounds.z));
+	bounds = boundsMax - boundsMin;
+	
 	for (int i = 0; i < m_points.size(); ++i)
-		m_points[i] = (m_points[i] - (boundsMin + bounds * 0.5)) * scale;
+		m_points[i] = (m_points[i] - (boundsMin + bounds * 0.5));
 
 	m_normals.resize(m_points.size());
 	for (int i = 0; i < m_pointIndices.size(); i += 3) {
@@ -84,7 +84,7 @@ Model::Model(const QString &filePath, int s) : m_fileName(QFileInfo(filePath).fi
 	Init();
 }
 
-void Model::render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, bool wireframe, bool normals) {
+void Model::render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, double s, bool wireframe, bool normals) {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
@@ -107,6 +107,9 @@ void Model::render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatr
 	shaderProgram->setUniformValue("ModelMatrix", ModelMatrix);
 
 	shaderProgram->setUniformValue("Color", color);
+
+	const GLfloat scale = s / qMax(bounds.x, qMax(bounds.y, bounds.z));
+	shaderProgram->setUniformValue("Scale", scale);
 
 	// Bind the buffer so that it is the current active buffer.
 	vvbo.bind();

@@ -22,27 +22,33 @@ ControlPoint PathData::CalInterpolation(double t) {
 }
 
 void PathData::DrawLine(int side) {
-	Pnt3f w;
+	Pnt3f w, v;
 	glBegin(GL_LINE_STRIP);
 	for (int i = 0; i < pointSet.size() - 1; i++) {
-		w = Pnt3f::CrossProduct(pointSet[i + 1].pos - pointSet[i].pos, pointSet[i].orient);
+		v = pointSet[i + 1].pos - pointSet[i].pos;
+		w = v * pointSet[i].orient;
 		w.normalize();
 		w = w * 2.5;
-		glVertex3dv((pointSet[i].pos + side * w).v());
+		glVertex3dv((pointSet[i].pos - side * w).v());
 	}
-	glVertex3dv((pointSet.back().pos + side * w).v());
+	w = v * pointSet.back().orient;
+	w.normalize();
+	w = w * 2.5;
+	glVertex3dv((pointSet.back().pos - side * w).v());
 	glEnd();
 }
 
 void DrawBlock(ControlPoint p0, ControlPoint p1) {
-	Pnt3f w, v, p;
+	Pnt3f w, v, u, p;
 	glBegin(GL_QUADS);
 	v = p1.pos - p0.pos;
 	v.normalize();
-	w = Pnt3f::CrossProduct(v, p0.orient);
+	w = v * p0.orient;
 	w.normalize();
 	w = w * 5;
-	p = p0.pos - p0.orient;
+	u = v * w;
+	u.normalize();
+	p = p0.pos + u;
 	glVertex3dv((p + w + v).v());
 	glVertex3dv((p + w - v).v());
 	glVertex3dv((p - w - v).v());

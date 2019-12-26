@@ -124,6 +124,7 @@ void TrainView::paintGL()
 	glEnable(GL_LIGHT0);
 
 	// top view only needs one light
+	/*
 	if (this->camera == Top) {
 		glDisable(GL_LIGHT1);
 		glDisable(GL_LIGHT2);
@@ -132,6 +133,7 @@ void TrainView::paintGL()
 		glEnable(GL_LIGHT1);
 		glEnable(GL_LIGHT2);
 	}
+	*/
 	
 	//*********************************************************************
 	//

@@ -10,10 +10,10 @@ CTrack* CTrain::track;
 
 CTrain::CTrain(CarType type): t(0), type(type), speed(0), carSpeed(0) {
 	if (type == CarType::Head) {
-		this->model = new Model("./toon_train.obj", 25);
+		this->model = new Model("./toon_train.obj");
 	}
 	else {
-		this->model = new Model("./car.obj", 25);
+		this->model = new Model("./car.obj");
 	}
 }
 
@@ -22,10 +22,10 @@ CTrain::CTrain(int p0, int p1, int p2, int p3, CarType type): p0(p0), p1(p1), p2
 	speed = pd.speed * CTrain::speed0;
 	SetNewPos(pd);
 	if (type == CarType::Head) {
-		this->model = new Model("./toon_train.obj", 25);
+		this->model = new Model("./toon_train.obj");
 	}
 	else {
-		this->model = new Model("./car.obj", 25);
+		this->model = new Model("./car.obj");
 	}
 }
 
@@ -117,7 +117,7 @@ void CTrain::Draw(bool doingShadows, bool isSelected) {
 	glGetFloatv(GL_MODELVIEW_MATRIX, ViewMatrex);
 	glGetFloatv(GL_PROJECTION_MATRIX, ProjectionMatrex);
 
-	this->model->render(color, ProjectionMatrex, ViewMatrex, modelMatrix);
+	this->model->render(color, ProjectionMatrex, ViewMatrex, modelMatrix, 25);
 
 	for (int i = 0; i < car.size(); i++) {
 		CTrain prev = i ? car[i - 1] : *this;
