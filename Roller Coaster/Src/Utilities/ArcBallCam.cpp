@@ -131,7 +131,7 @@ void ArcBallCam::setProjection(bool doClear)
 		glOrtho(-wi, wi, -he, he, INT16_MAX, INT16_MIN);
 	}
 	else {
-		gluPerspective(fieldOfView, aspect, .1, 1000);
+		gluPerspective(fieldOfView, aspect, .1, INFINITE);
 	}
 
 	// Put the camera where we want it to be

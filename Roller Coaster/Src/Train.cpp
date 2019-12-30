@@ -33,9 +33,9 @@ void CTrain::Move() {
 	PathData pd = track->GetPath(p0, p1, p2, p3);
 	Pnt3f n = v - pos;
 	n.normalize();
-	carSpeed -= Pnt3f::DotProduct(n, Pnt3f(0, 1, 0)) * 0.5;
-	if (carSpeed > 3) {
-		carSpeed = 3;
+	carSpeed -= Pnt3f::DotProduct(n, Pnt3f(0, 1, 0)) * 0.3;
+	if (carSpeed > 5) {
+		carSpeed = 5;
 	}
 	else if (carSpeed < 0) {
 		carSpeed = 0;

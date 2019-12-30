@@ -2,10 +2,12 @@
 #include <windows.h>
 #include <GL/gl.h>
 
-#define INTERVAL 5
+#define BLOCK_INTERVAL 5
+#define POLE_INTERVAL 20
 
 CurveType PathData::curve;
 TrackType PathData::track;
+double PathData::speed;
 
 CtrlPoint PathData::CalInterpolation(double t) {
 	CtrlPoint qt;
@@ -63,8 +65,8 @@ void PathData::DrawTrack() {
 	for (int i = 1; i < pointSet.size(); i++) {
 		len_0 = len;
 		len += (pointSet[i].pos - pnt.pos).Lenth();
-		if (len >= INTERVAL) {
-			double t = (pnt.inter * (len - INTERVAL) + pointSet[i].inter * (INTERVAL - len_0)) / (len - len_0);
+		if (len >= BLOCK_INTERVAL) {
+			double t = (pnt.inter * (len - BLOCK_INTERVAL) + pointSet[i].inter * (BLOCK_INTERVAL - len_0)) / (len - len_0);
 			pnt = CalInterpolation(t);
 			DrawBlock(pnt, pointSet[i]);
 			len = 0;
@@ -91,6 +93,44 @@ void PathData::DrawRoad() {
 	glEnd();
 }
 
+void DrawStick(CtrlPoint p0, CtrlPoint p1) {
+	if (p0.orient.y < 0)
+		return;
+	Pnt3f w, v, u, p;
+	glBegin(GL_LINES);
+	v = p1.pos - p0.pos;
+	v.normalize();
+	w = v * p0.orient;
+	w.normalize();
+	w = w * 2.5;
+	p = p0.pos + u;
+	glVertex3dv((p0.pos + w).v());
+	glVertex3d(p0.pos.x + w.x, 0, p0.pos.z + w.z);
+	glVertex3dv((p0.pos - w).v());
+	glVertex3d(p0.pos.x - w.x, 0, p0.pos.z - w.z);
+	glEnd();
+}
+
+void PathData::DrawPole() {
+	DrawStick(pointSet[0], pointSet[1]);
+	CtrlPoint pnt = pointSet[0];
+	double len_0, len = 0;
+	for (int i = 1; i < pointSet.size(); i++) {
+		len_0 = len;
+		len += (pointSet[i].pos - pnt.pos).Lenth();
+		if (len >= POLE_INTERVAL) {
+			double t = (pnt.inter * (len - POLE_INTERVAL) + pointSet[i].inter * (POLE_INTERVAL - len_0)) / (len - len_0);
+			pnt = CalInterpolation(t);
+			DrawStick(pnt, pointSet[i]);
+			len = 0;
+			i--;
+		}
+		else {
+			pnt = pointSet[i];
+		}
+	}
+}
+
 void PathData::Draw(bool doingShadows, bool isSelected) {
 	if (!doingShadows) {
 		if (isSelected)
@@ -100,6 +140,7 @@ void PathData::Draw(bool doingShadows, bool isSelected) {
 	}
 	DrawLine(1);
 	DrawLine(-1);
+	DrawPole();
 	if (!doingShadows) {
 		if (isSelected)
 			glColor3d(1, 1, 0);

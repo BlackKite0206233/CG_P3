@@ -230,7 +230,6 @@ void CTrack::BuildTrack() {
 						pd.p1    = idx;
 						pd.p2    = child;
 						pd.p3    = p3Id;
-						pd.speed = 0.3;
 
 						p3 = points[p3Id];
 						if (PathData::curve != Linear) {

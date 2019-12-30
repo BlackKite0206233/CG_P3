@@ -23,6 +23,7 @@ AppMain::AppMain(QWidget *parent) : QMainWindow(parent) {
 	PathData::track = Line;
 	CTrain::isMove = false;
 	CTrain::speed0 = 3;
+	PathData::speed = 0.3;
 
 	setWindowTitle("Roller Coaster");
 
