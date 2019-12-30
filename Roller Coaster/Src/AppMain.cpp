@@ -9,11 +9,11 @@ AppMain *AppMain::Instance = NULL;
 AppMain::AppMain(QWidget *parent) : QMainWindow(parent) {
 	ui.setupUi(this);
 	trainview = new TrainView();
-	trainview->m_pTrack = &m_Track;
-	CTrain::track = &m_Track;
 	setGeometry(100, 25, 1000, 768);
 	ui.mainLayout->layout()->addWidget(trainview);
 	trainview->installEventFilter(this);
+	trainview->m_pTrack = &m_Track;
+	CTrain::track = &m_Track;
 	this->currentMode = None;
 	this->canpan = false;
 	this->isHover = false;

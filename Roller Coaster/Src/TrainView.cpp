@@ -12,6 +12,11 @@ TrainView::TrainView(QWidget *parent) : QGLWidget(parent) {
 	resetArcball();
 
 	srand(time(NULL));
+
+	light.position = QVector4D(100000, 0, 0, 1);
+	light.ambientColor = light.diffuseColor = light.specularColor = QVector3D(1, 1, 1);
+	light.rotationMatrix.setToIdentity();
+	light.rotationMatrix.rotate(0.1, 0, 0, 1);
 }
 
 TrainView::~TrainView() {
@@ -62,16 +67,17 @@ void TrainView::paintGL()
 	// * Set up basic opengl informaiton
 	//
 	//**********************************************************************
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// Set up the view port
 	glViewport(0, 0, width(), height());
 	// clear the window, be sure to clear the Z-Buffer too
-	glClearColor(0, 0, 0.3f, 0);
+	glClearColor(0, 0, 0, 0);
 
 	// we need to clear out the stencil buffer since we'll use
 	// it for shadows
 	glClearStencil(0);
-	glEnable(GL_DEPTH);
+	//glEnable(GL_DEPTH);
 
 	// Blayne prefers GL_DIFFUSE
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
@@ -118,10 +124,9 @@ void TrainView::paintGL()
 	//######################################################################
 	// enable the lighting
 	
-	glEnable(GL_COLOR_MATERIAL);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
+	// glEnable(GL_COLOR_MATERIAL);
+	//glEnable(GL_LIGHTING);
+	//glEnable(GL_LIGHT0);
 
 	// top view only needs one light
 	/*
@@ -140,7 +145,7 @@ void TrainView::paintGL()
 	// * set the light parameters
 	//
 	//**********************************************************************
-	
+	/*
 	GLfloat lightPosition1[] = {0, 1, 1, 0}; // {50, 200.0, 50, 1.0};
 	GLfloat lightPosition2[] = {1, 0, 0, 0};
 	GLfloat lightPosition3[] = {0, -1, 0, 0};
@@ -158,6 +163,7 @@ void TrainView::paintGL()
 
 	glLightfv(GL_LIGHT2, GL_POSITION, lightPosition3);
 	glLightfv(GL_LIGHT2, GL_DIFFUSE, blueLight);
+	*/
 	
 
 	//*********************************************************************
@@ -170,7 +176,7 @@ void TrainView::paintGL()
 	// now draw the object and we need to do it twice
 	// once for real, and then once for shadows
 	//*********************************************************************
-	glEnable(GL_LIGHTING);
+	//glEnable(GL_LIGHTING);
 	setupObjects();
 
 	// this time drawing is for shadows (except for top view)
@@ -244,19 +250,22 @@ void TrainView::setProjection()
 //========================================================================
 void TrainView::drawStuff(bool doingShadows)
 {
+	this->m_pTrack->Draw(doingShadows, selectedPath);
+
 	// Draw the control points
 	// don't draw the control points if you're driving
 	// (otherwise you get sea-sick as you drive through them)
 	if (this->camera != Train) {
 		int i = 0;
+		QVector3D color;
 		for (auto &p : this->m_pTrack->points) {
 			if (!doingShadows) {
 				if (p.first != selectedPoint)
-					glColor3ub(240, 60, 60);
+					color = QVector3D(240 / 255.0, 60 / 255.0, 60 / 255.0);
 				else
-					glColor3ub(240, 240, 30);
+					color = QVector3D(240 / 255.0, 240 / 255.0, 30 / 255.0);
 			}
-			p.second.draw();
+			p.second.draw(color, ProjectionMatrex, ModelViewMatrex, light, arcball->getPosition());
 			i++;
 		}
 		update();
@@ -270,17 +279,17 @@ void TrainView::drawStuff(bool doingShadows)
 #ifdef EXAMPLE_SOLUTION
 	drawTrack(this, doingShadows);
 #endif
-	this->m_pTrack->Draw(doingShadows, selectedPath);
 
-	if (CTrain::isMove) {
-		if (clock() - lastRedraw > CLOCKS_PER_SEC / 65) {
-			lastRedraw = clock();
+	if (clock() - lastRedraw > CLOCKS_PER_SEC / 65) {
+		lastRedraw = clock();
+		if (CTrain::isMove) {
 			MoveTrain();
 		}
+		light.Move();
 	}
 
 	for (int i = 0; i < trains.size(); i++) {
-		trains[i].Draw(false, i == selectedTrain);
+		trains[i].Draw(false, i == selectedTrain, light, arcball->getPosition());
 	}
 	// draw the train
 	//####################################################################
@@ -313,6 +322,11 @@ void TrainView::doPick(int mx, int my)
 	// now set up the projection
 	setProjection();
 
+	GLfloat ProjectionMatrex[16];
+	GLfloat ModelViewMatrex[16];
+	glGetFloatv(GL_PROJECTION_MATRIX, ProjectionMatrex);
+	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex); 
+
 	// now draw the objects - but really only see what we hit
 	GLuint buf[100];
 	glSelectBuffer(100, buf);
@@ -324,7 +338,7 @@ void TrainView::doPick(int mx, int my)
 	auto it1 = m_pTrack->points.begin();
 	for (int i = 0; it1 != m_pTrack->points.end(); i++, it1++) {
 		glLoadName((GLuint)(i + 1));
-		it1->second.draw();
+		it1->second.draw(QVector3D(0, 0, 0), ProjectionMatrex, ModelViewMatrex, light, arcball->getPosition());
 	}
 
 	auto it2 = m_pTrack->paths.begin();
@@ -337,7 +351,7 @@ void TrainView::doPick(int mx, int my)
 
 	for (int i = 0; i < trains.size(); i++) {
 		glLoadName((GLuint)(i + 1 + m_pTrack->points.size() + m_pTrack->paths.size()));
-		trains[i].Draw(false, false);
+		trains[i].Draw(false, false, light, arcball->getPosition());
 	}
 
 	// go back to drawing mode, and see how picking did

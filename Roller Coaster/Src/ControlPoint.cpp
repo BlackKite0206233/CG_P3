@@ -39,10 +39,10 @@ using namespace std;
 CtrlPoint::CtrlPoint() : pos(0, 0, 0), orient(0, 1, 0) {
 }
 
-CtrlPoint::CtrlPoint(const Pnt3f& _pos) : pos(_pos), orient(0, 1, 0) {
+CtrlPoint::CtrlPoint(Pnt3f& _pos) : pos(_pos), orient(0, 1, 0) {
 }
 
-CtrlPoint::CtrlPoint(const Pnt3f& _pos, const Pnt3f& _orient) : pos(_pos), orient(_orient) {
+CtrlPoint::CtrlPoint(Pnt3f& _pos, Pnt3f& _orient) : pos(_pos), orient(_orient) {
 	orient.normalize();
 }
 //****************************************************************************
@@ -52,90 +52,92 @@ CtrlPoint::CtrlPoint(const Pnt3f& _pos, const Pnt3f& _orient) : pos(_pos), orien
 ControlPoint::ControlPoint() : center(), children(set<int>()), parents(set<int>())
 //============================================================================
 {
+	vao = new QOpenGLVertexArrayObject();
+	Init();
 }
 
 //****************************************************************************
 //
 // * Set up the position and set orientation to default (0, 1, 0)
 //============================================================================
-ControlPoint::ControlPoint(const Pnt3f &_pos) : center(_pos), children(set<int>()), parents(set<int>())
+ControlPoint::ControlPoint(Pnt3f &_pos) : center(_pos), children(set<int>()), parents(set<int>())
 //============================================================================
 {
+	vao = new QOpenGLVertexArrayObject();
+	Init();
 }
 
 //****************************************************************************
 //
 // * Set up the position and orientation
 //============================================================================
-ControlPoint::ControlPoint(const Pnt3f &_pos, const Pnt3f &_orient) : center(_pos, _orient), children(set<int>()), parents(set<int>())
+ControlPoint::ControlPoint(Pnt3f &_pos, Pnt3f &_orient) : center(_pos, _orient), children(set<int>()), parents(set<int>())
 //============================================================================
 {
+	vao = new QOpenGLVertexArrayObject();
+	Init();
 }
 
 //****************************************************************************
 //
 // * Draw the control point
 //============================================================================
-void ControlPoint::draw()
+void ControlPoint::draw(QVector3D color, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos)
 //============================================================================
 {
-	float size = 2.0;
-
-	glPushMatrix();
-	glTranslatef(center.pos.x, center.pos.y, center.pos.z);
+	ModelMatrix.setToIdentity();
+	ModelMatrix.translate(center.pos.x, center.pos.y, center.pos.z);
 	float theta1 = -radiansToDegrees(atan2(center.orient.z, center.orient.x));
-	glRotatef(theta1, 0, 1, 0);
+	ModelMatrix.rotate(theta1, 0, 1, 0);
 	float theta2 = -radiansToDegrees(acos(center.orient.y));
-	glRotatef(theta2, 0, 0, 1);
+	ModelMatrix.rotate(theta2, 0, 0, 1);
 
-	glBegin(GL_QUADS);
-	glNormal3f(0, 0, 1);
-	glVertex3f(size, size, size);
-	glVertex3f(-size, size, size);
-	glVertex3f(-size, -size, size);
-	glVertex3f(size, -size, size);
+	GLfloat P[4][4];
+	GLfloat V[4][4];
+	DimensionTransformation(ProjectionMatrix, P);
+	DimensionTransformation(ViewMatrix, V);
 
-	glNormal3f(0, 0, -1);
-	glVertex3f(size, size, -size);
-	glVertex3f(size, -size, -size);
-	glVertex3f(-size, -size, -size);
-	glVertex3f(-size, size, -size);
+	//Bind the shader we want to draw with
+	shaderProgram->bind();
+	//Bind the VAO we want to draw
+	vao->bind();
 
-	// no top - it will be the point
+	//pass projection matrix to shader
+	shaderProgram->setUniformValue("ProjectionMatrix", P);
+	//pass modelview matrix to shader
+	shaderProgram->setUniformValue("ViewMatrix", V);
+	shaderProgram->setUniformValue("ModelMatrix", ModelMatrix);
 
-	glNormal3f(0, -1, 0);
-	glVertex3f(size, -size, size);
-	glVertex3f(-size, -size, size);
-	glVertex3f(-size, -size, -size);
-	glVertex3f(size, -size, -size);
+	shaderProgram->setUniformValue("color_ambient", light.ambientColor);
+	shaderProgram->setUniformValue("color_diffuse", light.diffuseColor);
+	shaderProgram->setUniformValue("color_specular", light.specularColor);
+	shaderProgram->setUniformValue("light_position", light.position);
+	shaderProgram->setUniformValue("eye_position", eyePos);
 
-	glNormal3f(1, 0, 0);
-	glVertex3f(size, size, size);
-	glVertex3f(size, -size, size);
-	glVertex3f(size, -size, -size);
-	glVertex3f(size, size, -size);
+	shaderProgram->setUniformValue("Color", color);
 
-	glNormal3f(-1, 0, 0);
-	glVertex3f(-size, size, size);
-	glVertex3f(-size, size, -size);
-	glVertex3f(-size, -size, -size);
-	glVertex3f(-size, -size, size);
-	glEnd();
-	glBegin(GL_TRIANGLE_FAN);
-	glNormal3f(0, 1.0f, 0);
-	glVertex3f(0, 3.0f * size, 0);
-	glNormal3f(1.0f, 0.0f, 1.0f);
-	glVertex3f(size, size, size);
-	glNormal3f(-1.0f, 0.0f, 1.0f);
-	glVertex3f(-size, size, size);
-	glNormal3f(-1.0f, 0.0f, -1.0f);
-	glVertex3f(-size, size, -size);
-	glNormal3f(1.0f, 0.0f, -1.0f);
-	glVertex3f(size, size, -size);
-	glNormal3f(1.0f, 0.0f, 1.0f);
-	glVertex3f(size, size, size);
-	glEnd();
-	glPopMatrix();
+	shaderProgram->setUniformValue("Scale", GLfloat(2.0));
+
+	vvbo.bind();
+	shaderProgram->enableAttributeArray(0);
+	shaderProgram->setAttributeArray(0, GL_FLOAT, 0, 3, NULL);
+	vvbo.release();
+
+	nvbo.bind();
+	shaderProgram->enableAttributeArray(1);
+	shaderProgram->setAttributeArray(1, GL_FLOAT, 0, 3, NULL);
+	nvbo.release();
+
+	//Draw a triangle with 3 indices starting from the 0th index
+	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+	//Disable Attribute 0&1
+	shaderProgram->disableAttributeArray(0);
+	shaderProgram->disableAttributeArray(1);
+
+	//unbind vao
+	vao->release();
+	//unbind vao
+	shaderProgram->release();
 }
 
 void ControlPoint::setCenter(float x, float y) {
@@ -223,4 +225,137 @@ void ControlPoint::computeNow(const float nowX, const float nowY)
 	center.orient.y = vec.y();
 	center.orient.z = vec.z();
 	center.orient.normalize();
+}
+
+
+void ControlPoint::Init() {
+	shaderProgram = InitShader("./Shader/model.vs", "./Shader/model.fs");
+	InitVAO();
+	InitVBO();
+}
+
+void ControlPoint::InitVAO() {
+	vao->create();
+	vao->bind();
+}
+
+void ControlPoint::InitVBO() {
+	vertices 
+		<< QVector3D( 1,  1, 1)
+		<< QVector3D(-1,  1, 1)
+		<< QVector3D(-1, -1, 1)
+		<< QVector3D(-1, -1, 1)
+		<< QVector3D( 1, -1, 1)
+		<< QVector3D( 1,  1, 1)
+
+		<< QVector3D( 1,  1, -1)
+		<< QVector3D(-1, -1, -1)
+		<< QVector3D(-1,  1, -1)
+		<< QVector3D(-1, -1, -1)
+		<< QVector3D( 1,  1, -1)
+		<< QVector3D( 1, -1, -1)
+
+		<< QVector3D( 1, -1,  1)
+		<< QVector3D(-1, -1,  1)
+		<< QVector3D(-1, -1, -1)
+		<< QVector3D(-1, -1, -1)
+		<< QVector3D( 1, -1, -1)
+		<< QVector3D( 1, -1,  1)
+
+		<< QVector3D(1,  1,  1)
+		<< QVector3D(1, -1,  1)
+		<< QVector3D(1, -1, -1)
+		<< QVector3D(1, -1, -1)
+		<< QVector3D(1,  1, -1)
+		<< QVector3D(1,  1,  1)
+
+		<< QVector3D(-1,  1,  1)
+		<< QVector3D(-1, -1, -1)
+		<< QVector3D(-1, -1,  1)
+		<< QVector3D(-1, -1, -1)
+		<< QVector3D(-1,  1,  1)
+		<< QVector3D(-1,  1, -1)
+
+		<< QVector3D(0, 3, 0)
+		<< QVector3D(-1, 1, 1)
+		<< QVector3D(1, 1, 1)
+
+		<< QVector3D(0, 3, 0)
+		<< QVector3D(-1, 1, -1)
+		<< QVector3D(-1, 1, 1)
+
+		<< QVector3D(0, 3, 0)
+		<< QVector3D(1, 1, -1)
+		<< QVector3D(-1, 1, -1)
+
+		<< QVector3D(0, 3, 0)
+		<< QVector3D(1, 1, 1)
+		<< QVector3D(1, 1, -1);
+
+	vvbo.create();
+	vvbo.bind();
+	vvbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+	vvbo.allocate(vertices.constData(), vertices.size() * sizeof(QVector3D));
+
+	QVector3D triNorm0 = QVector3D::crossProduct(QVector3D(-1, 1, 1) - QVector3D(0, 3, 0), QVector3D(1, 1, 1) - QVector3D(0, 3, 0));
+	QVector3D triNorm1 = QVector3D::crossProduct(QVector3D(-1, 1, -1) - QVector3D(0, 3, 0), QVector3D(-1, 1, 1) - QVector3D(0, 3, 0));
+	QVector3D triNorm2 = QVector3D::crossProduct(QVector3D(1, 1, -1) - QVector3D(0, 3, 0), QVector3D(-1, 1, -1) - QVector3D(0, 3, 0));
+	QVector3D triNorm3 = QVector3D::crossProduct(QVector3D(1, 1, 1) - QVector3D(0, 3, 0), QVector3D(1, 1, -1) - QVector3D(0, 3, 0));
+
+	normals
+		<< QVector3D(0, 0, 1)
+		<< QVector3D(0, 0, 1)
+		<< QVector3D(0, 0, 1)
+		<< QVector3D(0, 0, 1)
+		<< QVector3D(0, 0, 1)
+		<< QVector3D(0, 0, 1)
+
+		<< QVector3D(0, 0, -1)
+		<< QVector3D(0, 0, -1)
+		<< QVector3D(0, 0, -1)
+		<< QVector3D(0, 0, -1)
+		<< QVector3D(0, 0, -1)
+		<< QVector3D(0, 0, -1)
+
+		<< QVector3D(0, -1, 0)
+		<< QVector3D(0, -1, 0)
+		<< QVector3D(0, -1, 0)
+		<< QVector3D(0, -1, 0)
+		<< QVector3D(0, -1, 0)
+		<< QVector3D(0, -1, 0)
+
+		<< QVector3D(1, 0, 0)
+		<< QVector3D(1, 0, 0)
+		<< QVector3D(1, 0, 0)
+		<< QVector3D(1, 0, 0)
+		<< QVector3D(1, 0, 0)
+		<< QVector3D(1, 0, 0)
+
+		<< QVector3D(-1, 0, 0)
+		<< QVector3D(-1, 0, 0)
+		<< QVector3D(-1, 0, 0)
+		<< QVector3D(-1, 0, 0)
+		<< QVector3D(-1, 0, 0)
+		<< QVector3D(-1, 0, 0)
+
+		<< triNorm0
+		<< triNorm0
+		<< triNorm0
+
+		<< triNorm1
+		<< triNorm1
+		<< triNorm1
+
+		<< triNorm2
+		<< triNorm2
+		<< triNorm2
+
+		<< triNorm3
+		<< triNorm3
+		<< triNorm3;
+
+	nvbo.create();
+	nvbo.bind();
+	nvbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+	nvbo.allocate(normals.constData(), normals.size() * sizeof(QVector3D));
 }

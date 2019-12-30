@@ -33,7 +33,7 @@ void CTrain::Move() {
 	PathData pd = track->GetPath(p0, p1, p2, p3);
 	Pnt3f n = v - pos;
 	n.normalize();
-	carSpeed -= Pnt3f::DotProduct(n, Pnt3f(0, 1, 0));
+	carSpeed -= Pnt3f::DotProduct(n, Pnt3f(0, 1, 0)) * 0.5;
 	if (carSpeed > 3) {
 		carSpeed = 3;
 	}
@@ -98,7 +98,7 @@ void CTrain::SetNewPos(PathData& pd) {
 	modelMatrix = modelMatrix.inverted();
 }
 
-void CTrain::Draw(bool doingShadows, bool isSelected) {
+void CTrain::Draw(bool doingShadows, bool isSelected, Light& light, QVector3D& eyePos) {
 	PathData pd = track->GetPath(p0, p1, p2, p3);
 	SetNewPos(pd);
 
@@ -117,7 +117,7 @@ void CTrain::Draw(bool doingShadows, bool isSelected) {
 	glGetFloatv(GL_MODELVIEW_MATRIX, ViewMatrex);
 	glGetFloatv(GL_PROJECTION_MATRIX, ProjectionMatrex);
 
-	this->model->render(color, ProjectionMatrex, ViewMatrex, modelMatrix, 25);
+	this->model->render(color, ProjectionMatrex, ViewMatrex, modelMatrix, light, eyePos, 25);
 
 	for (int i = 0; i < car.size(); i++) {
 		CTrain prev = i ? car[i - 1] : *this;
@@ -133,7 +133,7 @@ void CTrain::Draw(bool doingShadows, bool isSelected) {
 			car[i].p2 = prevPd.p2;
 			car[i].p3 = prevPd.p3;
 		}
-		car[i].Draw(doingShadows, isSelected);
+		car[i].Draw(doingShadows, isSelected, light, eyePos);
 	}
 }
 

@@ -24,16 +24,22 @@
 
 *************************************************************************/
 #pragma once
+#include <QtGui/QOpenGLFunctions_4_3_Core>
+#include <QtGui/QOpenGLVertexArrayObject>
+#include <QtGui/QOpenGLBuffer>
+#include <QtGui/QOpenGLShader>
+#include <QtGui/QOpenGLShaderProgram>
 #include <set>
 #include "Utilities/Pnt3f.h"
 #include "Utilities/Quat.h"
+#include "Light.h"
 
 using namespace std;
 
 struct CtrlPoint {
 	CtrlPoint();
-	CtrlPoint(const Pnt3f& pos);
-	CtrlPoint(const Pnt3f& pos, const Pnt3f& orient);
+	CtrlPoint(Pnt3f& pos);
+	CtrlPoint(Pnt3f& pos, Pnt3f& orient);
 	Pnt3f pos;
 	Pnt3f orient;
 	double inter;
@@ -46,19 +52,23 @@ public:
 	ControlPoint();
 
 	// create in a position
-	ControlPoint(const Pnt3f &pos);
+	ControlPoint(Pnt3f &pos);
 
 	// Create in a position and orientation
-	ControlPoint(const Pnt3f &pos, const Pnt3f &orient);
+	ControlPoint(Pnt3f &pos, Pnt3f &orient);
 
 	// draw the control point - assumes the color is correct
-	void draw();
+	void draw(QVector3D color, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos);
 
 	void getMouseNDC(float mx, float my, float &x, float &y);
 	void getMatrix(HMatrix) const;
 	void computeNow(const float nowX, const float nowY);
 	void down(const float x, const float y);
 	void setCenter(float x, float y);
+
+	void Init();
+	void InitVAO();
+	void InitVBO();
 public:
 	CtrlPoint center;
 	set<int> children;
@@ -73,4 +83,13 @@ public:
 
 	float centerX;
 	float centerY;
+
+	QMatrix4x4 ModelMatrix;
+
+	QOpenGLShaderProgram* shaderProgram;
+	QVector<QVector3D> vertices;
+	QVector<QVector3D> normals;
+	QOpenGLVertexArrayObject* vao;
+	QOpenGLBuffer vvbo;
+	QOpenGLBuffer nvbo;
 };

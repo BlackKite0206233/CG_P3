@@ -88,12 +88,7 @@ Model::Model(const QString &filePath) : m_fileName(QFileInfo(filePath).fileName(
 	Init();
 }
 
-void Model::render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, double s, bool wireframe, bool normals) {
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glEnable(GL_COLOR_MATERIAL);
-
+void Model::render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, Light& light, QVector3D& eyePos, double s, bool wireframe, bool normals) {
 	GLfloat P[4][4];
 	GLfloat V[4][4];
 	DimensionTransformation(ProjectionMatrix, P);
@@ -109,6 +104,12 @@ void Model::render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatr
 	//pass modelview matrix to shader
 	shaderProgram->setUniformValue("ViewMatrix", V);
 	shaderProgram->setUniformValue("ModelMatrix", ModelMatrix);
+
+	shaderProgram->setUniformValue("color_ambient", light.ambientColor);
+	shaderProgram->setUniformValue("color_diffuse", light.diffuseColor);
+	shaderProgram->setUniformValue("color_specular", light.specularColor);
+	shaderProgram->setUniformValue("light_position", light.position);
+	shaderProgram->setUniformValue("eye_position", eyePos);
 
 	shaderProgram->setUniformValue("Color", color);
 
@@ -135,11 +136,6 @@ void Model::render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatr
 	vao.release();
 	//unbind vao
 	shaderProgram->release();
-
-	glDisable(GL_COLOR_MATERIAL);
-	glDisable(GL_LIGHT0);
-	glDisable(GL_LIGHTING);
-	glDisable(GL_DEPTH_TEST);
 }
 
 void Model::Init() {

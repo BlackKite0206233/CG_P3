@@ -221,6 +221,7 @@
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_AppMain.h" />
     <ClInclude Include="Include\ControlPoint.h" />
+    <ClInclude Include="Include\Light.h" />
     <ClInclude Include="Include\Model.h" />
     <ClInclude Include="Include\Path.h" />
     <ClInclude Include="Include\Point3d.h" />

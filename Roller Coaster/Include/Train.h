@@ -2,6 +2,7 @@
 #include "ControlPoint.h"
 #include "Model.h"
 #include "Track.h"
+#include "Light.h"
 #include <vector>
 #include <QMatrix4x4>
 
@@ -19,7 +20,7 @@ public:
 
 public:
 	void Move();
-	void Draw(bool doingShadows, bool isSelected);
+	void Draw(bool doingShadows, bool isSelected, Light& light, QVector3D& eyePos);
 	void AddCar();
 	void RemoveCar();
 	void SetNewPos(PathData &pd);

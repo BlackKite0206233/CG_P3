@@ -15,6 +15,7 @@
 #include "Train.h"
 #include "Model.h"
 #include "SkyBox.h"
+#include "Light.h"
 
 using namespace std;
 
@@ -87,5 +88,7 @@ public:
 	QVector<QOpenGLTexture *> Textures;
 	vector<CTrain> trains;
 	int currentTrain = 0;
+	Light light;
+
 };
 #endif // TRAINVIEW_H

@@ -14,13 +14,14 @@
 
 #include "Point3d.h"
 #include "Utilities/Pnt3f.h"
+#include "Light.h"
 
 class Model {
 public:
 	Model() {}
 	Model(const QString &filePath);
 
-	void render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, double s = 1, bool wireframe = false, bool normals = false);
+	void render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, Light& light, QVector3D& eyePos, double s = 1, bool wireframe = false, bool normals = false);
 
 	QString fileName() const { return m_fileName; }
 	int faces() const { return m_pointIndices.size() / 3; }
