@@ -94,7 +94,7 @@ void PathData::DrawRoad() {
 }
 
 void DrawStick(CtrlPoint p0, CtrlPoint p1) {
-	if (p0.orient.y < 0)
+	if (p0.pos.y <= 0 || p0.orient.y < 0)
 		return;
 	Pnt3f w, v, u, p;
 	glBegin(GL_LINES);

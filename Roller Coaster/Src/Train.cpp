@@ -98,7 +98,7 @@ void CTrain::SetNewPos(PathData& pd) {
 	modelMatrix = modelMatrix.inverted();
 }
 
-void CTrain::Draw(bool doingShadows, bool isSelected, Light& light, QVector3D& eyePos) {
+void CTrain::Draw(bool doingShadows, bool isSelected, Light& light, QVector3D& eyePos, QVector4D& clipPlane) {
 	PathData pd = track->GetPath(p0, p1, p2, p3);
 	SetNewPos(pd);
 
@@ -117,7 +117,7 @@ void CTrain::Draw(bool doingShadows, bool isSelected, Light& light, QVector3D& e
 	glGetFloatv(GL_MODELVIEW_MATRIX, ViewMatrex);
 	glGetFloatv(GL_PROJECTION_MATRIX, ProjectionMatrex);
 
-	this->model->render(color, ProjectionMatrex, ViewMatrex, modelMatrix, light, eyePos, 25);
+	this->model->render(color, ProjectionMatrex, ViewMatrex, modelMatrix, light, eyePos, clipPlane, 25);
 
 	for (int i = 0; i < car.size(); i++) {
 		CTrain prev = i ? car[i - 1] : *this;

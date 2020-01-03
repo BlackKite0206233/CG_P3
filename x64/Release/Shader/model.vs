@@ -8,12 +8,16 @@ uniform mat4 ViewMatrix;
 uniform mat4 ModelMatrix;
 uniform float Scale;
 
+uniform vec4 clipPlane;
+
 out vec3 vs_worldpos;
 out vec3 vs_normal;
 
 void main(void)
 {
     vec4 position = ModelMatrix * vec4(Scale * vertex, 1.0);
+
+    gl_ClipDistance[0] = dot(position, clipPlane);
 
     gl_Position = ProjectionMatrix * ViewMatrix * position;
     vs_worldpos = position.xyz;

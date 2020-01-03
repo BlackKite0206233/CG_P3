@@ -88,7 +88,7 @@ Model::Model(const QString &filePath) : m_fileName(QFileInfo(filePath).fileName(
 	Init();
 }
 
-void Model::render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, Light& light, QVector3D& eyePos, double s, bool wireframe, bool normals) {
+void Model::render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, Light& light, QVector3D& eyePos, QVector4D clipPlane, double s, bool wireframe, bool normals) {
 	GLfloat P[4][4];
 	GLfloat V[4][4];
 	DimensionTransformation(ProjectionMatrix, P);
@@ -110,6 +110,7 @@ void Model::render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatr
 	shaderProgram->setUniformValue("color_specular", light.specularColor);
 	shaderProgram->setUniformValue("light_position", light.position);
 	shaderProgram->setUniformValue("eye_position", eyePos);
+	shaderProgram->setUniformValue("clipPlane", clipPlane);
 
 	shaderProgram->setUniformValue("Color", color);
 
@@ -139,7 +140,7 @@ void Model::render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatr
 }
 
 void Model::Init() {
-	shaderProgram = InitShader("./Shader/model.vs", "./Shader/model.fs");
+	shaderProgram = InitShader("./Shader/Model.vs", "./Shader/Model.fs");
 	InitVAO();
 	InitVBO();
 }

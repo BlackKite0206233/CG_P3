@@ -13,9 +13,9 @@
 #include "Triangle.h"
 #include "Square.h"
 #include "Train.h"
-#include "Model.h"
 #include "SkyBox.h"
 #include "Light.h"
+#include "Water.h"
 
 using namespace std;
 
@@ -48,7 +48,8 @@ public:
 	// all of the actual drawing happens in this routine
 	// it has to be encapsulated, since we draw differently if
 	// we're drawing shadows (no colors, for example)
-	void drawStuff(bool doingShadows = false);
+	void drawStuff(QVector4D& clipplane = QVector4D(0, 0, 0, 0), bool doingShadows = false);
+	void drawSkyBox();
 
 	// setup the projection - assuming that the projection stack has been
 	// cleared for you
@@ -89,6 +90,9 @@ public:
 	vector<CTrain> trains;
 	int currentTrain = 0;
 	Light light;
+	Water *water;
 
+	GLuint refractorFrameBuffer;
+	GLuint reflectorFrameBuffer;
 };
 #endif // TRAINVIEW_H

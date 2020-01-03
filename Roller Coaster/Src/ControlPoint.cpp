@@ -82,7 +82,7 @@ ControlPoint::ControlPoint(Pnt3f &_pos, Pnt3f &_orient) : center(_pos, _orient),
 //
 // * Draw the control point
 //============================================================================
-void ControlPoint::draw(QVector3D color, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos)
+void ControlPoint::draw(QVector3D color, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, QVector4D& clipPlane)
 //============================================================================
 {
 	ModelMatrix.setToIdentity();
@@ -113,6 +113,7 @@ void ControlPoint::draw(QVector3D color, GLfloat* ProjectionMatrix, GLfloat* Vie
 	shaderProgram->setUniformValue("color_specular", light.specularColor);
 	shaderProgram->setUniformValue("light_position", light.position);
 	shaderProgram->setUniformValue("eye_position", eyePos);
+	shaderProgram->setUniformValue("clipPlane", clipPlane);
 
 	shaderProgram->setUniformValue("Color", color);
 
@@ -229,7 +230,7 @@ void ControlPoint::computeNow(const float nowX, const float nowY)
 
 
 void ControlPoint::Init() {
-	shaderProgram = InitShader("./Shader/model.vs", "./Shader/model.fs");
+	shaderProgram = InitShader("./Shader/Model.vs", "./Shader/Model.fs");
 	InitVAO();
 	InitVBO();
 }

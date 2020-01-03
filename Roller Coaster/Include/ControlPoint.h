@@ -58,7 +58,7 @@ public:
 	ControlPoint(Pnt3f &pos, Pnt3f &orient);
 
 	// draw the control point - assumes the color is correct
-	void draw(QVector3D color, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos);
+	void draw(QVector3D color, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, QVector4D& clipPlane = QVector4D(0, 0, 0, 0));
 
 	void getMouseNDC(float mx, float my, float &x, float &y);
 	void getMatrix(HMatrix) const;

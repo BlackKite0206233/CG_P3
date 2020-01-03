@@ -35,14 +35,24 @@ void TrainView::initializeGL() {
 
 	skybox = new SkyBox();
 	skybox->Init();
+
+	water = new Water(1000, 1000);
+	water->Init();
 	//Initialize texture
 	initializeTexture();
+
+	glGenFramebuffers(1, &reflectorFrameBuffer);
+	glGenFramebuffers(1, &refractorFrameBuffer);
 }
 
 void TrainView::initializeTexture()
 {
 	//Load and create a texture for square;'stexture
-	QOpenGLTexture *texture = new QOpenGLTexture(QImage("./Textures/Tupi.bmp"));
+	QOpenGLTexture* texture = new QOpenGLTexture(QImage("./Textures/Tupi.bmp"));
+	Textures.push_back(texture);
+	texture = new QOpenGLTexture(QImage("./Textures/dudv_map.png"));
+	Textures.push_back(texture);
+	texture = new QOpenGLTexture(QImage("./Textures/normal_map.png"));
 	Textures.push_back(texture);
 }
 
@@ -92,30 +102,6 @@ void TrainView::paintGL()
 	//Get modelview matrix
 	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
 
-	GLfloat viewMatrix[16];
-
-	viewMatrix[0] = ModelViewMatrex[0];
-	viewMatrix[1] = ModelViewMatrex[1];
-	viewMatrix[2] = ModelViewMatrex[2];
-	viewMatrix[3] = 0;
-	viewMatrix[4] = ModelViewMatrex[4];
-	viewMatrix[5] = ModelViewMatrex[5];
-	viewMatrix[6] = ModelViewMatrex[6];
-	viewMatrix[7] = 0;
-	viewMatrix[8] = ModelViewMatrex[8];
-	viewMatrix[9] = ModelViewMatrex[9];
-	viewMatrix[10] = ModelViewMatrex[10];
-	viewMatrix[11] = 0;
-	viewMatrix[12] = 0;
-	viewMatrix[13] = 0;
-	viewMatrix[14] = 0;
-	viewMatrix[15] = 1;
-
-
-	skybox->Begin();
-	glActiveTexture(GL_TEXTURE0);
-	skybox->Render(ProjectionMatrex, viewMatrix);
-	skybox->End();
 
 	//######################################################################
 	// TODO:
@@ -169,15 +155,59 @@ void TrainView::paintGL()
 	//*********************************************************************
 	// now draw the ground plane
 	//*********************************************************************
-	setupFloor();
-	drawFloor(200, 10);
+	// setupFloor();
+	// drawFloor(200, 10);
 
 	//*********************************************************************
 	// now draw the object and we need to do it twice
 	// once for real, and then once for shadows
 	//*********************************************************************
 	//glEnable(GL_LIGHTING);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, reflectorFrameBuffer);
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	drawSkyBox();
 	setupObjects();
+	GLdouble equation0[] = { 0, 1, 0, 0 };
+	glClipPlane(GL_CLIP_PLANE0, equation0);
+	glEnable(GL_CLIP_PLANE0);
+	glEnable(GL_CLIP_DISTANCE0);
+	drawStuff(QVector4D(equation0[0], equation0[1], equation0[2], equation0[3]));
+	glDisable(GL_CLIP_PLANE0);
+	glDisable(GL_CLIP_DISTANCE0);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, refractorFrameBuffer);
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	drawSkyBox();
+	setupObjects();
+	GLdouble equation1[] = { 0, -1, 0, 0 };
+	glClipPlane(GL_CLIP_PLANE0, equation1);
+	glEnable(GL_CLIP_PLANE0);
+	glEnable(GL_CLIP_DISTANCE0);
+	drawStuff(QVector4D(equation1[0], equation1[1], equation1[2], equation1[3]));
+	glDisable(GL_CLIP_PLANE0);
+	glDisable(GL_CLIP_DISTANCE0);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	drawSkyBox();
+	setupObjects();
+	drawStuff();
+	this->water->Render(lastRedraw, ProjectionMatrex, ModelViewMatrex, light, arcball->getPosition());
+	
+	if (clock() - lastRedraw > CLOCKS_PER_SEC / 65) {
+		lastRedraw = clock();
+		if (CTrain::isMove) {
+			MoveTrain();
+		}
+		light.Move();
+	}
 
 	// this time drawing is for shadows (except for top view)
 	/*if (this->camera != Top) {
@@ -185,7 +215,6 @@ void TrainView::paintGL()
 		drawStuff(true);
 		unsetupShadows();
 	}*/
-	drawStuff();
 
 	/*
 	//Call triangle's render function, pass ModelViewMatrex and ProjectionMatrex
@@ -236,6 +265,33 @@ void TrainView::setProjection()
 	update();
 }
 
+void TrainView::drawSkyBox() {
+	GLfloat viewMatrix[16];
+
+	viewMatrix[0] = ModelViewMatrex[0];
+	viewMatrix[1] = ModelViewMatrex[1];
+	viewMatrix[2] = ModelViewMatrex[2];
+	viewMatrix[3] = 0;
+	viewMatrix[4] = ModelViewMatrex[4];
+	viewMatrix[5] = ModelViewMatrex[5];
+	viewMatrix[6] = ModelViewMatrex[6];
+	viewMatrix[7] = 0;
+	viewMatrix[8] = ModelViewMatrex[8];
+	viewMatrix[9] = ModelViewMatrex[9];
+	viewMatrix[10] = ModelViewMatrex[10];
+	viewMatrix[11] = 0;
+	viewMatrix[12] = 0;
+	viewMatrix[13] = 0;
+	viewMatrix[14] = 0;
+	viewMatrix[15] = 1;
+
+
+	skybox->Begin();
+	glActiveTexture(GL_TEXTURE0);
+	skybox->Render(ProjectionMatrex, viewMatrix);
+	skybox->End();
+}
+
 //************************************************************************
 //
 // * this draws all of the stuff in the world
@@ -248,7 +304,7 @@ void TrainView::setProjection()
 // if you have other objects in the world, make sure to draw them
 //########################################################################
 //========================================================================
-void TrainView::drawStuff(bool doingShadows)
+void TrainView::drawStuff(QVector4D& clipPlane, bool doingShadows)
 {
 	this->m_pTrack->Draw(doingShadows, selectedPath);
 
@@ -265,7 +321,7 @@ void TrainView::drawStuff(bool doingShadows)
 				else
 					color = QVector3D(240 / 255.0, 240 / 255.0, 30 / 255.0);
 			}
-			p.second.draw(color, ProjectionMatrex, ModelViewMatrex, light, arcball->getPosition());
+			p.second.draw(color, ProjectionMatrex, ModelViewMatrex, light, arcball->getPosition(), clipPlane);
 			i++;
 		}
 		update();
@@ -280,16 +336,8 @@ void TrainView::drawStuff(bool doingShadows)
 	drawTrack(this, doingShadows);
 #endif
 
-	if (clock() - lastRedraw > CLOCKS_PER_SEC / 65) {
-		lastRedraw = clock();
-		if (CTrain::isMove) {
-			MoveTrain();
-		}
-		light.Move();
-	}
-
 	for (int i = 0; i < trains.size(); i++) {
-		trains[i].Draw(false, i == selectedTrain, light, arcball->getPosition());
+		trains[i].Draw(false, i == selectedTrain, light, arcball->getPosition(), clipPlane);
 	}
 	// draw the train
 	//####################################################################

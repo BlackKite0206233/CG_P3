@@ -21,7 +21,7 @@ public:
 	Model() {}
 	Model(const QString &filePath);
 
-	void render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, Light& light, QVector3D& eyePos, double s = 1, bool wireframe = false, bool normals = false);
+	void render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, Light& light, QVector3D& eyePos, QVector4D clipPlane = QVector4D(0, 0, 0, 0), double s = 1, bool wireframe = false, bool normals = false);
 
 	QString fileName() const { return m_fileName; }
 	int faces() const { return m_pointIndices.size() / 3; }
