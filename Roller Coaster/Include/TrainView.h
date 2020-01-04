@@ -16,6 +16,7 @@
 #include "SkyBox.h"
 #include "Light.h"
 #include "Water.h"
+#include "WaterFrameBuffer.h"
 
 using namespace std;
 
@@ -91,8 +92,6 @@ public:
 	int currentTrain = 0;
 	Light light;
 	Water *water;
-
-	GLuint refractorFrameBuffer;
-	GLuint reflectorFrameBuffer;
+	WaterFrameBuffer *fbos;
 };
 #endif // TRAINVIEW_H

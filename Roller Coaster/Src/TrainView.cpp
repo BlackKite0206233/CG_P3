@@ -38,11 +38,11 @@ void TrainView::initializeGL() {
 
 	water = new Water(1000, 1000);
 	water->Init();
+
+	fbos = new WaterFrameBuffer(this);
 	//Initialize texture
 	initializeTexture();
 
-	glGenFramebuffers(1, &reflectorFrameBuffer);
-	glGenFramebuffers(1, &refractorFrameBuffer);
 }
 
 void TrainView::initializeTexture()
@@ -164,7 +164,7 @@ void TrainView::paintGL()
 	//*********************************************************************
 	//glEnable(GL_LIGHTING);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, reflectorFrameBuffer);
+	fbos->BindReflectionFrameBuffer();
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -177,8 +177,9 @@ void TrainView::paintGL()
 	drawStuff(QVector4D(equation0[0], equation0[1], equation0[2], equation0[3]));
 	glDisable(GL_CLIP_PLANE0);
 	glDisable(GL_CLIP_DISTANCE0);
+	fbos->UnbindCurrentFrameBuffer();
 	
-	glBindFramebuffer(GL_FRAMEBUFFER, refractorFrameBuffer);
+	fbos->BindRefractionFrameBuffer();
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
@@ -191,8 +192,8 @@ void TrainView::paintGL()
 	drawStuff(QVector4D(equation1[0], equation1[1], equation1[2], equation1[3]));
 	glDisable(GL_CLIP_PLANE0);
 	glDisable(GL_CLIP_DISTANCE0);
+	fbos->UnbindCurrentFrameBuffer();
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
