@@ -191,6 +191,20 @@ void TrainView::paintGL()
 
 	arcball->setProjection();
 	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
+	//QVector3D cameraPos = getCameraPosition();
+	m = QMatrix4x4(ModelViewMatrex);
+	QVector4D ray(0, 0, 1, 0);
+	ray = m.inverted() * ray;
+	ray.normalize();
+	double tmp = acos(QVector3D::dotProduct(QVector3D(ray), QVector3D(0, 1, 0)));
+	double angle = tmp - asin(sin(tmp) / 1.3);
+	QMatrix4x4 rotationMat;
+	rotationMat.setToIdentity();
+	rotationMat.rotate(angle, QVector3D::crossProduct(QVector3D(ray), QVector3D(0, 1, 0)));
+	m = rotationMat * m;
+	//m.translate(0, 10, 0);
+	m.copyDataTo(ModelViewMatrex);
+	glLoadMatrixf(ModelViewMatrex);
 	
 	drawSkyBox();
 	setupObjects();
@@ -205,6 +219,9 @@ void TrainView::paintGL()
 
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	arcball->setProjection();
+	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
 
 	drawSkyBox();
 	setupObjects();
