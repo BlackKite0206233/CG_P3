@@ -71,6 +71,8 @@ public:
 	void RemoveTrain(int index);
 	void MoveTrain();
 
+	QVector3D getCameraPosition();
+
 public:
 	ArcBallCam *arcball; // keep an ArcBall for the UI
 	vector<ArcBallCam> cameras;

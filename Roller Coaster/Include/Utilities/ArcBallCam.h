@@ -129,7 +129,6 @@ public:
 	// assume the window does it
 	void getMouseNDC(float mx, float my, float &x, float &y);
 	
-	QVector3D getPosition();
 public:
 	// This keeps track of the rotation - the current rotation is
 	// start*now

@@ -309,11 +309,3 @@ void ArcBallCam::computeNow(const float nowX, const float nowY)
 		panY = dy;
 	}
 }
-
-QVector3D ArcBallCam::getPosition() {
-	GLfloat ModelViewMatrex[16];
-	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
-	QMatrix4x4 m(ModelViewMatrex);
-	m.inverted();
-	return QVector3D(m(0, 3), m(1, 3), m(2, 3));
-}

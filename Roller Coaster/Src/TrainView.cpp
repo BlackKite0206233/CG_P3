@@ -97,12 +97,6 @@ void TrainView::paintGL()
 	glLoadIdentity();
 	setProjection(); // put the code to set up matrices here
 
-	//Get projection matrix
-	glGetFloatv(GL_PROJECTION_MATRIX, ProjectionMatrex);
-	//Get modelview matrix
-	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
-
-
 	//######################################################################
 	// TODO:
 	// you might want to set the lighting up differently. if you do,
@@ -163,18 +157,22 @@ void TrainView::paintGL()
 	// once for real, and then once for shadows
 	//*********************************************************************
 	//glEnable(GL_LIGHTING);
+	glGetFloatv(GL_PROJECTION_MATRIX, ProjectionMatrex);
 
 	fbos->BindReflectionFrameBuffer();
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
+	QMatrix4x4 m(ModelViewMatrex);
+
 	drawSkyBox();
 	setupObjects();
-	GLdouble equation0[] = { 0, 1, 0, 0 };
-	glClipPlane(GL_CLIP_PLANE0, equation0);
+	GLdouble reflectionClipPlane[] = { 0, 1, 0, 0 };
+	glClipPlane(GL_CLIP_PLANE0, reflectionClipPlane);
 	glEnable(GL_CLIP_PLANE0);
 	glEnable(GL_CLIP_DISTANCE0);
-	drawStuff(QVector4D(equation0[0], equation0[1], equation0[2], equation0[3]));
+	drawStuff(QVector4D(reflectionClipPlane[0], reflectionClipPlane[1], reflectionClipPlane[2], reflectionClipPlane[3]));
 	glDisable(GL_CLIP_PLANE0);
 	glDisable(GL_CLIP_DISTANCE0);
 	fbos->UnbindCurrentFrameBuffer();
@@ -182,14 +180,16 @@ void TrainView::paintGL()
 	fbos->BindRefractionFrameBuffer();
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
 	
 	drawSkyBox();
 	setupObjects();
-	GLdouble equation1[] = { 0, -1, 0, 0 };
-	glClipPlane(GL_CLIP_PLANE0, equation1);
+	GLdouble refractionClipPlane[] = { 0, -1, 0, 0 };
+	glClipPlane(GL_CLIP_PLANE0, refractionClipPlane);
 	glEnable(GL_CLIP_PLANE0);
 	glEnable(GL_CLIP_DISTANCE0);
-	drawStuff(QVector4D(equation1[0], equation1[1], equation1[2], equation1[3]));
+	drawStuff(QVector4D(refractionClipPlane[0], refractionClipPlane[1], refractionClipPlane[2], refractionClipPlane[3]));
 	glDisable(GL_CLIP_PLANE0);
 	glDisable(GL_CLIP_DISTANCE0);
 	fbos->UnbindCurrentFrameBuffer();
@@ -197,10 +197,12 @@ void TrainView::paintGL()
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
+
 	drawSkyBox();
 	setupObjects();
 	drawStuff();
-	this->water->Render(lastRedraw, ProjectionMatrex, ModelViewMatrex, light, arcball->getPosition());
+	this->water->Render(lastRedraw, ProjectionMatrex, ModelViewMatrex, light, getCameraPosition());
 	
 	if (clock() - lastRedraw > CLOCKS_PER_SEC / 65) {
 		lastRedraw = clock();
@@ -322,7 +324,7 @@ void TrainView::drawStuff(QVector4D& clipPlane, bool doingShadows)
 				else
 					color = QVector3D(240 / 255.0, 240 / 255.0, 30 / 255.0);
 			}
-			p.second.draw(color, ProjectionMatrex, ModelViewMatrex, light, arcball->getPosition(), clipPlane);
+			p.second.draw(color, ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), clipPlane);
 			i++;
 		}
 		update();
@@ -338,7 +340,7 @@ void TrainView::drawStuff(QVector4D& clipPlane, bool doingShadows)
 #endif
 
 	for (int i = 0; i < trains.size(); i++) {
-		trains[i].Draw(false, i == selectedTrain, light, arcball->getPosition(), clipPlane);
+		trains[i].Draw(false, i == selectedTrain, light, getCameraPosition(), clipPlane);
 	}
 	// draw the train
 	//####################################################################
@@ -387,7 +389,7 @@ void TrainView::doPick(int mx, int my)
 	auto it1 = m_pTrack->points.begin();
 	for (int i = 0; it1 != m_pTrack->points.end(); i++, it1++) {
 		glLoadName((GLuint)(i + 1));
-		it1->second.draw(QVector3D(0, 0, 0), ProjectionMatrex, ModelViewMatrex, light, arcball->getPosition());
+		it1->second.draw(QVector3D(0, 0, 0), ProjectionMatrex, ModelViewMatrex, light, getCameraPosition());
 	}
 
 	auto it2 = m_pTrack->paths.begin();
@@ -400,7 +402,7 @@ void TrainView::doPick(int mx, int my)
 
 	for (int i = 0; i < trains.size(); i++) {
 		glLoadName((GLuint)(i + 1 + m_pTrack->points.size() + m_pTrack->paths.size()));
-		trains[i].Draw(false, false, light, arcball->getPosition());
+		trains[i].Draw(false, false, light, getCameraPosition());
 	}
 
 	// go back to drawing mode, and see how picking did
@@ -478,4 +480,12 @@ void TrainView::MoveTrain() {
 
 void TrainView::RemoveTrain(int index) {
 	trains.erase(trains.begin() + index);
+}
+
+QVector3D TrainView::getCameraPosition() {
+	GLfloat ModelViewMatrex[16];
+	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
+	QMatrix4x4 m(ModelViewMatrex);
+	m.inverted();
+	return QVector3D(m(0, 3), m(1, 3), m(2, 3));
 }
