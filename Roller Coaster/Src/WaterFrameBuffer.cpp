@@ -1,11 +1,12 @@
 #include "WaterFrameBuffer.h"
 
-int WaterFrameBuffer::REFLECTION_WIDTH = 320;
-int WaterFrameBuffer::REFLECTION_HEIGHT = 180;
-int WaterFrameBuffer::REFRACTION_WIDTH = 1280;
-int WaterFrameBuffer::REFRACTION_HEIGHT = 720;
+int WaterFrameBuffer::REFLECTION_WIDTH = 1920;
+int WaterFrameBuffer::REFLECTION_HEIGHT = 1080;
+int WaterFrameBuffer::REFRACTION_WIDTH = 1920;
+int WaterFrameBuffer::REFRACTION_HEIGHT = 1080;
 
 WaterFrameBuffer::WaterFrameBuffer(QWidget *w) {
+    initializeOpenGLFunctions();
     wind = w;
     initReflectionFrameBuffer();
     initRefractionFrameBuffer();
@@ -18,7 +19,7 @@ void WaterFrameBuffer::CleanUp() {
 
     glDeleteFramebuffers(1, &refractionFrameBuffer);
     glDeleteTextures(1, &refractionTexture);
-    glDeleteRenderbuffers(1, &refractionDepthBuffer);
+    glDeleteRenderbuffers(1, &refractionDepthTexture);
 }
 
 void WaterFrameBuffer::BindReflectionFrameBuffer() {
@@ -77,7 +78,7 @@ GLuint WaterFrameBuffer::createTextureAttachment(int width, int height) {
     GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, null);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0);
@@ -88,7 +89,7 @@ GLuint WaterFrameBuffer::createDepthTextureAttachment(int width, int height) {
     GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, null);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture, 0);

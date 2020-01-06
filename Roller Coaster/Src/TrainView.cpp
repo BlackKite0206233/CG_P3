@@ -165,6 +165,14 @@ void TrainView::paintGL()
 
 	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
 	QMatrix4x4 m(ModelViewMatrex);
+	m = QMatrix4x4({
+		1, 0, 0, 0,
+		0, -1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1
+		}) * m;
+	m.copyDataTo(ModelViewMatrex);
+	glLoadMatrixf(ModelViewMatrex);
 
 	drawSkyBox();
 	setupObjects();
@@ -181,6 +189,7 @@ void TrainView::paintGL()
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	arcball->setProjection();
 	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
 	
 	drawSkyBox();
@@ -197,12 +206,10 @@ void TrainView::paintGL()
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
-
 	drawSkyBox();
 	setupObjects();
 	drawStuff();
-	this->water->Render(lastRedraw, ProjectionMatrex, ModelViewMatrex, light, getCameraPosition());
+	this->water->Render(lastRedraw, ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), *fbos);
 	
 	if (clock() - lastRedraw > CLOCKS_PER_SEC / 65) {
 		lastRedraw = clock();
@@ -219,22 +226,23 @@ void TrainView::paintGL()
 		unsetupShadows();
 	}*/
 
-	/*
+	
 	//Call triangle's render function, pass ModelViewMatrex and ProjectionMatrex
- 	triangle->Paint(ProjectionMatrex,ModelViewMatrex);
+ 	//triangle->Paint(ProjectionMatrex,ModelViewMatrex);
     
 	//we manage textures by Trainview class, so we modify square's render function
-	square->Begin();
-		//Active Texture
-		glActiveTexture(GL_TEXTURE0);
-		//Bind square's texture
-		Textures[0]->bind();
-		//pass texture to shader
-		square->shaderProgram->setUniformValue("Texture", 0);
-		//Call square's render function, pass ModelViewMatrex and ProjectionMatrex
-		square->Paint(ProjectionMatrex,ModelViewMatrex);
-	square->End();
-	*/
+	//square->Begin();
+	//	//Active Texture
+	//	glActiveTexture(GL_TEXTURE0);
+	//	//Bind square's texture
+	//	//Textures[0]->bind();
+	//	glBindTexture(GL_TEXTURE_2D, fbos->getReflectionTexture());
+	//	//pass texture to shader
+	//	square->shaderProgram->setUniformValue("Texture", 0);
+	//	//Call square's render function, pass ModelViewMatrex and ProjectionMatrex
+	//	square->Paint(ProjectionMatrex,ModelViewMatrex);
+	//square->End();
+	
 }
 
 //************************************************************************

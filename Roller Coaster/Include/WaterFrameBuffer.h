@@ -8,7 +8,7 @@
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QMainWindow>
 
-class WaterFrameBuffer {
+class WaterFrameBuffer: protected QOpenGLFunctions_4_3_Core {
 private:
     static int REFLECTION_WIDTH;
     static int REFLECTION_HEIGHT;

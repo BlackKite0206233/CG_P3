@@ -196,6 +196,7 @@
     <ClCompile Include="Src\Utilities\Pnt3f.cpp" />
     <ClCompile Include="Src\Utilities\Quat.cpp" />
     <ClCompile Include="Src\Water.cpp" />
+    <ClCompile Include="Src\WaterFrameBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="AppMain.ui">
@@ -234,6 +235,7 @@
     <ClInclude Include="Include\Utilities\Pnt3f.h" />
     <ClInclude Include="Include\Utilities\Quat.h" />
     <ClInclude Include="Include\Water.h" />
+    <ClInclude Include="Include\WaterFrameBuffer.h" />
     <CustomBuild Include="Include\TrainView.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>

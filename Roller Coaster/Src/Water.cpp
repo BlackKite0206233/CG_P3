@@ -7,6 +7,7 @@
 #include "Utilities/3dUtils.h"
 
 Water::Water(int w, int h) {
+	initializeOpenGLFunctions();
 	width = w;
 	height = h;
 	vao = new QOpenGLVertexArrayObject();
@@ -38,7 +39,7 @@ void Water::InitVBO() {
 	vbo.allocate(vertices.constData(), vertices.size() * sizeof(QVector3D));
 }
 
-void Water::Render(int t, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos) {
+void Water::Render(int t, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, WaterFrameBuffer& fbo) {
 	GLfloat P[4][4];
 	GLfloat V[4][4];
 	DimensionTransformation(ProjectionMatrix, P);
@@ -54,6 +55,9 @@ void Water::Render(int t, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light&
 	//pass modelview matrix to shader
 	shaderProgram->setUniformValue("ViewMatrix", V);
 
+	shaderProgram->setUniformValue("reflectionTexture", 0);
+	shaderProgram->setUniformValue("refractionTexture", 1);
+
 	shaderProgram->setUniformValue("color_ambient", light.ambientColor);
 	shaderProgram->setUniformValue("color_diffuse", light.diffuseColor);
 	shaderProgram->setUniformValue("color_specular", light.specularColor);
@@ -67,6 +71,11 @@ void Water::Render(int t, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light&
 	shaderProgram->enableAttributeArray(0);
 	shaderProgram->setAttributeArray(0, GL_FLOAT, 0, 3, NULL);
 	vbo.release();
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, fbo.getReflectionTexture());
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, fbo.getRefractionTexture());
 
 	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 	//Disable Attribute 0&1
