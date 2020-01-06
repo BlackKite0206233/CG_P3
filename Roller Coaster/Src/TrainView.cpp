@@ -191,20 +191,29 @@ void TrainView::paintGL()
 
 	arcball->setProjection();
 	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
+	//QMatrix4x4 rotationMatrix = QMatrix4x4({ 
+	//	ModelViewMatrex[0], ModelViewMatrex[1], ModelViewMatrex[2], 0,
+	//	ModelViewMatrex[4], ModelViewMatrex[5], ModelViewMatrex[6], 0,
+	//	ModelViewMatrex[8], ModelViewMatrex[9], ModelViewMatrex[10], 0,
+	//	0, 0, 0, 1
+	//	});
+	//rotationMatrix = rotationMatrix.transposed();
+	//QVector4D ray(0, 0, 1, 0);
+	//ray = rotationMatrix.inverted() * ray;
+	//ray.normalize();
+	//double angle1 = acos(QVector3D::dotProduct(QVector3D(ray), QVector3D(0, -1, 0)));
+	//double angle2 = asin(sin(angle1) / 1.3);
+	//rotationMatrix.rotate(angle1 - angle2, QVector3D::crossProduct(QVector3D(ray), QVector3D(0, -1, 0)));
+
 	//QVector3D cameraPos = getCameraPosition();
-	m = QMatrix4x4(ModelViewMatrex);
-	QVector4D ray(0, 0, 1, 0);
-	ray = m.inverted() * ray;
-	ray.normalize();
-	double tmp = acos(QVector3D::dotProduct(QVector3D(ray), QVector3D(0, 1, 0)));
-	double angle = tmp - asin(sin(tmp) / 1.3);
-	QMatrix4x4 rotationMat;
-	rotationMat.setToIdentity();
-	rotationMat.rotate(angle, QVector3D::crossProduct(QVector3D(ray), QVector3D(0, 1, 0)));
-	m = rotationMat * m;
-	//m.translate(0, 10, 0);
-	m.copyDataTo(ModelViewMatrex);
-	glLoadMatrixf(ModelViewMatrex);
+	//double dx = tan(angle1) * cameraPos[1];
+	//double dy = dx / tan(angle2);
+	//m.setToIdentity();
+	//m.translate(ModelViewMatrex[12], ModelViewMatrex[13], ModelViewMatrex[14]);
+	//m = m * rotationMatrix;
+	//m = m.transposed();
+	//m.copyDataTo(ModelViewMatrex);
+	//glLoadMatrixf(ModelViewMatrex);
 	
 	drawSkyBox();
 	setupObjects();
@@ -226,7 +235,7 @@ void TrainView::paintGL()
 	drawSkyBox();
 	setupObjects();
 	drawStuff();
-	this->water->Render(lastRedraw, ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), *fbos);
+	this->water->Render((clock() - lastRedraw) / 65.0, ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), *fbos, Textures);
 	
 	if (clock() - lastRedraw > CLOCKS_PER_SEC / 65) {
 		lastRedraw = clock();
@@ -511,6 +520,6 @@ QVector3D TrainView::getCameraPosition() {
 	GLfloat ModelViewMatrex[16];
 	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
 	QMatrix4x4 m(ModelViewMatrex);
-	m.inverted();
-	return QVector3D(m(0, 3), m(1, 3), m(2, 3));
+	m = m.inverted();
+	return QVector3D(m(3, 0), m(3, 1), m(3, 2));
 }

@@ -6,10 +6,13 @@
 #include <QVector4D>
 #include "Utilities/3dUtils.h"
 
+double Water::WAVE_SPEED = 0.003;
+
 Water::Water(int w, int h) {
 	initializeOpenGLFunctions();
 	width = w;
 	height = h;
+	moveFactor = 0;
 	vao = new QOpenGLVertexArrayObject();
 }
 
@@ -39,7 +42,7 @@ void Water::InitVBO() {
 	vbo.allocate(vertices.constData(), vertices.size() * sizeof(QVector3D));
 }
 
-void Water::Render(int t, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, WaterFrameBuffer& fbo) {
+void Water::Render(double t, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, WaterFrameBuffer& fbo, QVector<QOpenGLTexture*>& textures) {
 	GLfloat P[4][4];
 	GLfloat V[4][4];
 	DimensionTransformation(ProjectionMatrix, P);
@@ -57,6 +60,11 @@ void Water::Render(int t, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light&
 
 	shaderProgram->setUniformValue("reflectionTexture", 0);
 	shaderProgram->setUniformValue("refractionTexture", 1);
+	shaderProgram->setUniformValue("dudvMap", 2);
+
+	moveFactor += WAVE_SPEED * t;
+	moveFactor = fmod(moveFactor, 1);
+	shaderProgram->setUniformValue("moveFactor", GLfloat(moveFactor));
 
 	shaderProgram->setUniformValue("color_ambient", light.ambientColor);
 	shaderProgram->setUniformValue("color_diffuse", light.diffuseColor);
@@ -76,6 +84,8 @@ void Water::Render(int t, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light&
 	glBindTexture(GL_TEXTURE_2D, fbo.getReflectionTexture());
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, fbo.getRefractionTexture());
+	glActiveTexture(GL_TEXTURE2);
+	textures[1]->bind();
 
 	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 	//Disable Attribute 0&1
