@@ -4,6 +4,8 @@ in vec3 vs_worldpos;
 in vec3 vs_normal;
 in vec4 gl_FragCoord;
 
+out vec4 fColor;
+
 uniform vec3 color_ambient;
 uniform vec3 color_diffuse;
 uniform vec3 color_specular;
@@ -13,8 +15,6 @@ uniform float shininess = 32.0;
 uniform float ambientStrength  = 0.4;
 uniform float specularStrength = 0.7;
 uniform vec3 Color;
-
-out vec4 fColor;
 
 void main()
 {

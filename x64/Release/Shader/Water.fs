@@ -3,6 +3,9 @@
 in vec4 clipSpace;
 in vec2 textureCoords;
 
+in vec3 vs_worldpos;
+in vec3 vs_normal;
+
 out vec4 fColor;
 
 uniform sampler2D reflectionTexture;
@@ -41,6 +44,9 @@ void main(void) {
     vec4 reflectionColor = texture(reflectionTexture, reflectionTexCoords);
     vec4 refractionColor = texture(refractionTexture, refractionTexCoords);
 
-	fColor = mix(reflectionColor, refractionColor, 0.5);
+    vec3 eye_direction = normalize(eye_position - vs_worldpos);
+    float reflectiveFactor = dot(eye_direction, vs_normal);
+
+	fColor = mix(reflectionColor, refractionColor, reflectiveFactor);
 	fColor = mix(fColor, vec4(0, 0.3, 0.5, 1.0), 0.2);
 }

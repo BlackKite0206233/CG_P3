@@ -3,15 +3,15 @@
 layout(location = 0) in vec3 vertex;
 layout(location = 1) in vec3 normal;
 
+out vec3 vs_worldpos;
+out vec3 vs_normal;
+
 uniform mat4 ProjectionMatrix;
 uniform mat4 ViewMatrix;
 uniform mat4 ModelMatrix;
 uniform float Scale;
 
 uniform vec4 clipPlane;
-
-out vec3 vs_worldpos;
-out vec3 vs_normal;
 
 void main(void)
 {

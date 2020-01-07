@@ -5,6 +5,9 @@ layout (location = 0) in vec3 position;
 out vec4 clipSpace;
 out vec2 textureCoords;
 
+out vec3 vs_worldpos;
+out vec3 vs_normal;
+
 uniform mat4 ProjectionMatrix;
 uniform mat4 ViewMatrix;
 
@@ -14,7 +17,9 @@ uniform float height;
 const float tiling = 30.0;
 
 void main(void) {
-    clipSpace = ProjectionMatrix * ViewMatrix * vec4(position.x * width, position.y, position.z * height, 1.0);
+    vs_worldpos = vec3(position.x * width, position.y, position.z * height);
+    vs_normal = vec3(0.0, 1.0, 0.0);
+    clipSpace = ProjectionMatrix * ViewMatrix * vec4(vs_worldpos, 1.0);
 	gl_Position = clipSpace;
     textureCoords = vec2(position.x / 2.0 + 0.5, position.z / 2.0 + 0.5) * tiling;
 }
