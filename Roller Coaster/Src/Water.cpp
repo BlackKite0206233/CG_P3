@@ -61,13 +61,12 @@ void Water::Render(double t, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Lig
 	shaderProgram->setUniformValue("reflectionTexture", 0);
 	shaderProgram->setUniformValue("refractionTexture", 1);
 	shaderProgram->setUniformValue("dudvMap", 2);
+	shaderProgram->setUniformValue("normalMap", 3);
 
 	moveFactor += WAVE_SPEED * t;
 	moveFactor = fmod(moveFactor, 1);
 	shaderProgram->setUniformValue("moveFactor", GLfloat(moveFactor));
 
-	shaderProgram->setUniformValue("color_ambient", light.ambientColor);
-	shaderProgram->setUniformValue("color_diffuse", light.diffuseColor);
 	shaderProgram->setUniformValue("color_specular", light.specularColor);
 	shaderProgram->setUniformValue("light_position", light.position);
 	shaderProgram->setUniformValue("eye_position", eyePos);
@@ -86,6 +85,8 @@ void Water::Render(double t, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Lig
 	glBindTexture(GL_TEXTURE_2D, fbo.getRefractionTexture());
 	glActiveTexture(GL_TEXTURE2);
 	textures[1]->bind();
+	glActiveTexture(GL_TEXTURE3);
+	textures[2]->bind();
 
 	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 	//Disable Attribute 0&1

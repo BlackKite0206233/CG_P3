@@ -4,18 +4,16 @@ in vec4 clipSpace;
 in vec2 textureCoords;
 
 in vec3 vs_worldpos;
-in vec3 vs_normal;
 
 out vec4 fColor;
 
 uniform sampler2D reflectionTexture;
 uniform sampler2D refractionTexture;
 uniform sampler2D dudvMap;
+uniform sampler2D normalMap;
 
 uniform float moveFactor;
 
-uniform vec3 color_ambient;
-uniform vec3 color_diffuse;
 uniform vec3 color_specular;
 uniform vec4 light_position;
 uniform vec3 eye_position;
@@ -29,24 +27,30 @@ const float waveStrength = 0.01;
 
 void main(void) {
     vec2 ndc = (clipSpace.xy / clipSpace.w) / 2.0 + 0.5;
-    vec2 reflectionTexCoords = vec2(ndc.x, ndc.y);
-    vec2 refractionTexCoords = vec2(ndc.x, ndc.y);
 
-    vec2 distortion1 = (texture(dudvMap, vec2(textureCoords.x + moveFactor, textureCoords.y)).rg * 2.0 - 1.0) * waveStrength;
-    vec2 distortion2 = (texture(dudvMap, vec2(-textureCoords.x + moveFactor, textureCoords.y + moveFactor)).rg * 2.0 - 1.0) * waveStrength;
-    vec2 totalDistortion = distortion1 + distortion2;
+    vec2 distortedTexCoords = texture(dudvMap, vec2(textureCoords.x + moveFactor, textureCoords.y)).rg * 0.1;
+	distortedTexCoords = textureCoords + vec2(distortedTexCoords.x, distortedTexCoords.y + moveFactor);
+	vec2 totalDistortion = (texture(dudvMap, distortedTexCoords).rg * 2.0 - 1.0) * waveStrength;
 
-    reflectionTexCoords += totalDistortion;
-    reflectionTexCoords = clamp(reflectionTexCoords, 0.001, 0.999);
-    refractionTexCoords += totalDistortion;
-    refractionTexCoords = clamp(refractionTexCoords, 0.001, 0.999);
 
-    vec4 reflectionColor = texture(reflectionTexture, reflectionTexCoords);
-    vec4 refractionColor = texture(refractionTexture, refractionTexCoords);
+    ndc += totalDistortion;
+    ndc = clamp(ndc, 0.001, 0.999);
+
+    vec4 reflectionColor = texture(reflectionTexture, ndc);
+    vec4 refractionColor = texture(refractionTexture, ndc);
 
     vec3 eye_direction = normalize(eye_position - vs_worldpos);
     float reflectiveFactor = dot(eye_direction, vs_normal);
 
+    vec4 normalMapColor = texture(normalMap, distortedTexCoords);
+    vec3 normal = vec3(normalMapColor.r * 2.0 - 1.0, normalMapColor.b, normalMapColor.g * 2.0 - 1.0);
+    normal = normalize(normal);
+
+    vec3 light_direction = normalize(light_position.xyz - vs_worldpos);
+    vec3 half_vector = normalize(light_direction + eye_direction);
+    float specular = pow(max(0.0, dot(normal, half_vector)), shininess);
+    vec3 specular_highlight = color_specular * specular * specularStrength;
+
 	fColor = mix(reflectionColor, refractionColor, reflectiveFactor);
-	fColor = mix(fColor, vec4(0, 0.3, 0.5, 1.0), 0.2);
+	fColor = mix(fColor, vec4(0, 0.3, 0.5, 1.0), 0.2) + vec4(specular_highlight, 0.0);
 }
