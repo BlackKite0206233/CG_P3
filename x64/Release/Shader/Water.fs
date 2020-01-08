@@ -39,12 +39,13 @@ void main(void) {
     vec4 reflectionColor = texture(reflectionTexture, ndc);
     vec4 refractionColor = texture(refractionTexture, ndc);
 
-    vec3 eye_direction = normalize(eye_position - vs_worldpos);
-    float reflectiveFactor = dot(eye_direction, vs_normal);
-
     vec4 normalMapColor = texture(normalMap, distortedTexCoords);
     vec3 normal = vec3(normalMapColor.r * 2.0 - 1.0, normalMapColor.b, normalMapColor.g * 2.0 - 1.0);
     normal = normalize(normal);
+
+    vec3 eye_direction = normalize(eye_position - vs_worldpos);
+    float reflectiveFactor = dot(eye_direction, normal);
+
 
     vec3 light_direction = normalize(light_position.xyz - vs_worldpos);
     vec3 half_vector = normalize(light_direction + eye_direction);
