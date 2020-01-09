@@ -1,30 +1,28 @@
-#include "TrainView.h"  
+#include "TrainView.h"
 #include <ctime>
 #include <cstdlib>
 
-TrainView::TrainView(QWidget *parent) :  
-QGLWidget(parent)  
-{  
+TrainView::TrainView(QWidget *parent) : QGLWidget(parent) {
 	QWidget::setFocusPolicy(Qt::StrongFocus);
 	cameras = vector<ArcBallCam>(3);
-	cameras[0].setup(this, 40, 250, .2f, .4f, 0);
-	cameras[0].type = ArcBallCam::Perspective;
-	cameras[1].setup(this, 40, 250, 1, 0, 0);
-	cameras[1].type = ArcBallCam::Orthogonal;
-	cameras[2].setup(this, 40, 250, .2f, .4f, 0);
-	cameras[2].type = ArcBallCam::Perspective;
+	cameras[0].type = ArcBallCam::World;
+	cameras[1].type = ArcBallCam::Top;
+	cameras[2].type = ArcBallCam::Train;
 	SetCamera(World);
 	resetArcball();
 
 	srand(time(NULL));
-	CTrain::speed = 3;
-}  
 
-TrainView::~TrainView()  
-{}  
+	light.position = QVector4D(100000, 0, 0, 1);
+	light.ambientColor = light.diffuseColor = light.specularColor = QVector3D(1, 1, 1);
+	light.rotationMatrix.setToIdentity();
+	light.rotationMatrix.rotate(0.1, 0, 0, 1);
+}
 
-void TrainView::initializeGL()
-{
+TrainView::~TrainView() {
+}
+
+void TrainView::initializeGL() {
 	initializeOpenGLFunctions();
 	//Create a triangle object
 	triangle = new Triangle();
@@ -34,25 +32,42 @@ void TrainView::initializeGL()
 	square = new Square();
 	//Initialize the square object
 	square->Init();
-	//Initialize texture 
+
+	skybox = new SkyBox();
+	skybox->Init();
+
+	water = new Water(1000, 1000);
+	water->Init();
+
+	fbos = new WaterFrameBuffer(this);
+	//Initialize texture
 	initializeTexture();
-	
+
 }
+
 void TrainView::initializeTexture()
 {
 	//Load and create a texture for square;'stexture
 	QOpenGLTexture* texture = new QOpenGLTexture(QImage("./Textures/Tupi.bmp"));
 	Textures.push_back(texture);
+	texture = new QOpenGLTexture(QImage("./Textures/dudv_map.png"));
+	Textures.push_back(texture);
+	texture = new QOpenGLTexture(QImage("./Textures/normal_map.png"));
+	Textures.push_back(texture);
 }
-void TrainView:: resetArcball()
-	//========================================================================
+
+void TrainView::resetArcball()
+//========================================================================
 {
 	// Set up the camera to look at the world
 	// these parameters might seem magical, and they kindof are
 	// a little trial and error goes a long way
-	cameras[0].setup(this, 40, 250, .2f, .4f, 0);
-	cameras[1].setup(this, 40, 250, 0.5, 0, 0);
+	cameras[0].setup(this, 40, 0, 0, 250, M_PI / 4, 0, 0);
+	cameras[1].setup(this, 40, 0, 0, 250);
+	cameras[2].setup(this, 40, 0, 0, 250);
 }
+
+static unsigned long lastRedraw = 0;
 
 void TrainView::paintGL()
 {
@@ -62,115 +77,148 @@ void TrainView::paintGL()
 	// * Set up basic opengl informaiton
 	//
 	//**********************************************************************
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+	glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// Set up the view port
-	glViewport(0,0,width(),height());
+	glViewport(0, 0, width(), height());
 	// clear the window, be sure to clear the Z-Buffer too
-	glClearColor(0,0,0.3f,0);
-	
+	glClearColor(0, 0, 0, 0);
+
 	// we need to clear out the stencil buffer since we'll use
 	// it for shadows
 	glClearStencil(0);
-	glEnable(GL_DEPTH);
+	//glEnable(GL_DEPTH);
 
 	// Blayne prefers GL_DIFFUSE
-    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 
 	// prepare for projection
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	setProjection();		// put the code to set up matrices here
-
-	//######################################################################
-	// TODO: 
-	// you might want to set the lighting up differently. if you do, 
-	// we need to set up the lights AFTER setting up the projection
-	//######################################################################
-	// enable the lighting
-	glEnable(GL_COLOR_MATERIAL);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-
-	// top view only needs one light
-	if (this->camera == Top) {
-		glDisable(GL_LIGHT1);
-		glDisable(GL_LIGHT2);
-	} else {
-		glEnable(GL_LIGHT1);
-		glEnable(GL_LIGHT2);
-	}
-
-	//*********************************************************************
-	//
-	// * set the light parameters
-	//
-	//**********************************************************************
-	GLfloat lightPosition1[]	= {0,1,1,0}; // {50, 200.0, 50, 1.0};
-	GLfloat lightPosition2[]	= {1, 0, 0, 0};
-	GLfloat lightPosition3[]	= {0, -1, 0, 0};
-	GLfloat yellowLight[]		= {0.5f, 0.5f, .1f, 1.0};
-	GLfloat whiteLight[]		= {1.0f, 1.0f, 1.0f, 1.0};
-	GLfloat blueLight[]			= {.1f,.1f,.3f,1.0};
-	GLfloat grayLight[]			= {.3f, .3f, .3f, 1.0};
-
-	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition1);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, whiteLight);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, grayLight);
-
-	glLightfv(GL_LIGHT1, GL_POSITION, lightPosition2);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, yellowLight);
-
-	glLightfv(GL_LIGHT2, GL_POSITION, lightPosition3);
-	glLightfv(GL_LIGHT2, GL_DIFFUSE, blueLight);
-
-
+	setProjection(); // put the code to set up matrices here
 
 	//*********************************************************************
 	// now draw the ground plane
 	//*********************************************************************
-	setupFloor();
-	glDisable(GL_LIGHTING);
-	drawFloor(200,10);
+	// setupFloor();
+	// drawFloor(200, 10);
 
+	glGetFloatv(GL_PROJECTION_MATRIX, ProjectionMatrex);
 
-	//*********************************************************************
-	// now draw the object and we need to do it twice
-	// once for real, and then once for shadows
-	//*********************************************************************
-	glEnable(GL_LIGHTING);
+	fbos->BindReflectionFrameBuffer();
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
+	QMatrix4x4 m(ModelViewMatrex);
+	m = QMatrix4x4({
+		1, 0, 0, 0,
+		0, -1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1
+		}) * m;
+	m.copyDataTo(ModelViewMatrex);
+	glLoadMatrixf(ModelViewMatrex);
+
+	drawSkyBox();
 	setupObjects();
+	GLdouble reflectionClipPlane[] = { 0, 1, 0, 0 };
+	glClipPlane(GL_CLIP_PLANE0, reflectionClipPlane);
+	glEnable(GL_CLIP_PLANE0);
+	glEnable(GL_CLIP_DISTANCE0);
+	drawStuff(QVector4D(reflectionClipPlane[0], reflectionClipPlane[1], reflectionClipPlane[2], reflectionClipPlane[3]));
+	glDisable(GL_CLIP_PLANE0);
+	glDisable(GL_CLIP_DISTANCE0);
+	fbos->UnbindCurrentFrameBuffer();
+	
+	fbos->BindRefractionFrameBuffer();
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	setProjection();
+	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
+	//QMatrix4x4 rotationMatrix = QMatrix4x4({ 
+	//	ModelViewMatrex[0], ModelViewMatrex[1], ModelViewMatrex[2], 0,
+	//	ModelViewMatrex[4], ModelViewMatrex[5], ModelViewMatrex[6], 0,
+	//	ModelViewMatrex[8], ModelViewMatrex[9], ModelViewMatrex[10], 0,
+	//	0, 0, 0, 1
+	//	});
+	//rotationMatrix = rotationMatrix.transposed();
+	//QVector4D ray(0, 0, 1, 0);
+	//ray = rotationMatrix.inverted() * ray;
+	//ray.normalize();
+	//double angle1 = acos(QVector3D::dotProduct(QVector3D(ray), QVector3D(0, -1, 0)));
+	//double angle2 = asin(sin(angle1) / 1.3);
+	//rotationMatrix.rotate(angle1 - angle2, QVector3D::crossProduct(QVector3D(ray), QVector3D(0, -1, 0)));
+
+	//QVector3D cameraPos = getCameraPosition();
+	//double dx = tan(angle1) * cameraPos[1];
+	//double dy = dx / tan(angle2);
+	//m.setToIdentity();
+	//m.translate(ModelViewMatrex[12], ModelViewMatrex[13], ModelViewMatrex[14]);
+	//m = m * rotationMatrix;
+	//m = m.transposed();
+	//m.copyDataTo(ModelViewMatrex);
+	//glLoadMatrixf(ModelViewMatrex);
+	
+	drawSkyBox();
+	setupObjects();
+	GLdouble refractionClipPlane[] = { 0, -1, 0, 0 };
+	glClipPlane(GL_CLIP_PLANE0, refractionClipPlane);
+	glEnable(GL_CLIP_PLANE0);
+	glEnable(GL_CLIP_DISTANCE0);
+	drawStuff(QVector4D(refractionClipPlane[0], refractionClipPlane[1], refractionClipPlane[2], refractionClipPlane[3]));
+	glDisable(GL_CLIP_PLANE0);
+	glDisable(GL_CLIP_DISTANCE0);
+	fbos->UnbindCurrentFrameBuffer();
+
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	setProjection();
+	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
+
+	drawSkyBox();
+	setupObjects();
 	drawStuff();
+	this->water->Render((clock() - lastRedraw) / 65.0, ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), *fbos, Textures);
+	
+	if (clock() - lastRedraw > CLOCKS_PER_SEC / 65) {
+		lastRedraw = clock();
+		if (CTrain::isMove) {
+			MoveTrain();
+		}
+		light.Move();
+	}
 
 	// this time drawing is for shadows (except for top view)
-	if (this->camera != Top) {
+	/*if (this->camera != Top) {
 		setupShadows();
 		drawStuff(true);
 		unsetupShadows();
-	}
+	}*/
 
-	//Get modelview matrix
- 	glGetFloatv(GL_MODELVIEW_MATRIX,ModelViewMatrex);
-	//Get projection matrix
- 	glGetFloatv(GL_PROJECTION_MATRIX,ProjectionMatrex);
-
-	/*
+	
 	//Call triangle's render function, pass ModelViewMatrex and ProjectionMatrex
- 	triangle->Paint(ProjectionMatrex,ModelViewMatrex);
+ 	//triangle->Paint(ProjectionMatrex,ModelViewMatrex);
     
 	//we manage textures by Trainview class, so we modify square's render function
-	square->Begin();
-		//Active Texture
-		glActiveTexture(GL_TEXTURE0);
-		//Bind square's texture
-		Textures[0]->bind();
-		//pass texture to shader
-		square->shaderProgram->setUniformValue("Texture", 0);
-		//Call square's render function, pass ModelViewMatrex and ProjectionMatrex
-		square->Paint(ProjectionMatrex,ModelViewMatrex);
-	square->End();
-	*/
+	//square->Begin();
+	//	//Active Texture
+	//	glActiveTexture(GL_TEXTURE0);
+	//	//Bind square's texture
+	//	//Textures[0]->bind();
+	//	glBindTexture(GL_TEXTURE_2D, fbos->getReflectionTexture());
+	//	//pass texture to shader
+	//	square->shaderProgram->setUniformValue("Texture", 0);
+	//	//Call square's render function, pass ModelViewMatrex and ProjectionMatrex
+	//	square->Paint(ProjectionMatrex,ModelViewMatrex);
+	//square->End();
+	
 }
 
 //************************************************************************
@@ -179,70 +227,108 @@ void TrainView::paintGL()
 //   HOWEVER: it doesn't clear the projection first (the caller handles
 //   that) - its important for picking
 //========================================================================
-void TrainView::
-setProjection()
+void TrainView::setProjection()
 //========================================================================
 {
-	arcball->setProjection(false);
+	if (camera == Train && !trains.empty()) {
+		CTrain train = trains[currentTrain];
+		glMatrixMode(GL_PROJECTION);
+		double aspect = ((double)width() / (double)height());
+		gluPerspective(40, aspect, .1, INFINITE);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		Pnt3f n = train.v - train.pos;
+		n.normalize();
+		Pnt3f v = train.v + train.v_orient * 20;
+		Pnt3f pos = train.pos + train.orient * 20 - 20 * n;
+		arcball->multMatrix();
+		gluLookAt(pos.x, pos.y, pos.z,
+				  v.x, v.y, v.z,
+				  train.orient.x, train.orient.y, train.orient.z);
+	}
+	else {
+		arcball->setProjection(false);
+	}
 	update();
 }
 
-static unsigned long lastRedraw = 0;
+void TrainView::drawSkyBox() {
+	GLfloat viewMatrix[16];
+
+	viewMatrix[0] = ModelViewMatrex[0];
+	viewMatrix[1] = ModelViewMatrex[1];
+	viewMatrix[2] = ModelViewMatrex[2];
+	viewMatrix[3] = 0;
+	viewMatrix[4] = ModelViewMatrex[4];
+	viewMatrix[5] = ModelViewMatrex[5];
+	viewMatrix[6] = ModelViewMatrex[6];
+	viewMatrix[7] = 0;
+	viewMatrix[8] = ModelViewMatrex[8];
+	viewMatrix[9] = ModelViewMatrex[9];
+	viewMatrix[10] = ModelViewMatrex[10];
+	viewMatrix[11] = 0;
+	viewMatrix[12] = 0;
+	viewMatrix[13] = 0;
+	viewMatrix[14] = 0;
+	viewMatrix[15] = 1;
+
+
+	skybox->Begin();
+	glActiveTexture(GL_TEXTURE0);
+	skybox->Render(ProjectionMatrex, viewMatrix);
+	skybox->End();
+}
+
 //************************************************************************
 //
 // * this draws all of the stuff in the world
 //
-//	NOTE: if you're drawing shadows, DO NOT set colors (otherwise, you get 
-//       colored shadows). this gets called twice per draw 
+//	NOTE: if you're drawing shadows, DO NOT set colors (otherwise, you get
+//       colored shadows). this gets called twice per draw
 //       -- once for the objects, once for the shadows
 //########################################################################
-// TODO: 
+// TODO:
 // if you have other objects in the world, make sure to draw them
 //########################################################################
 //========================================================================
-void TrainView::drawStuff(bool doingShadows)
+void TrainView::drawStuff(QVector4D& clipPlane, bool doingShadows)
 {
+	this->m_pTrack->Draw(doingShadows, selectedPath);
+
 	// Draw the control points
-	// don't draw the control points if you're driving 
+	// don't draw the control points if you're driving
 	// (otherwise you get sea-sick as you drive through them)
 	if (this->camera != Train) {
 		int i = 0;
-		for(auto& p : this->m_pTrack->points) {
+		QVector3D color;
+		for (auto &p : this->m_pTrack->points) {
 			if (!doingShadows) {
-				if (i != selectedPoint)
-					glColor3ub(240, 60, 60);
+				if (p.first != selectedPoint)
+					color = QVector3D(240 / 255.0, 60 / 255.0, 60 / 255.0);
 				else
-					glColor3ub(240, 240, 30);
+					color = QVector3D(240 / 255.0, 240 / 255.0, 30 / 255.0);
 			}
-			p.second.draw();
+			p.second.draw(color, ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), clipPlane);
 			i++;
 		}
 		update();
 	}
 	// draw the track
 	//####################################################################
-	// TODO: 
+	// TODO:
 	// call your own track drawing code
 	//####################################################################
 
 #ifdef EXAMPLE_SOLUTION
 	drawTrack(this, doingShadows);
 #endif
-	this->m_pTrack->Draw(doingShadows, selectedPath);
-
-	if (CTrain::isMove) {
-		if (clock() - lastRedraw > CLOCKS_PER_SEC / 30) {
-			lastRedraw = clock();
-			MoveTrain();
-		}
-	}
 
 	for (int i = 0; i < trains.size(); i++) {
-		trains[i].Draw(doingShadows, i == selectedTrain);
+		trains[i].Draw(false, i == selectedTrain, light, getCameraPosition(), clipPlane);
 	}
 	// draw the train
 	//####################################################################
-	// TODO: 
+	// TODO:
 	//	call your own train drawing code
 	//####################################################################
 #ifdef EXAMPLE_SOLUTION
@@ -252,11 +338,10 @@ void TrainView::drawStuff(bool doingShadows)
 #endif
 }
 
-void TrainView::
-	doPick(int mx, int my)
-	//========================================================================
+void TrainView::doPick(int mx, int my)
+//========================================================================
 {
-	// since we'll need to do some GL stuff so we make this window as 
+	// since we'll need to do some GL stuff so we make this window as
 	// active window
 	makeCurrent();
 
@@ -267,46 +352,51 @@ void TrainView::
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	gluPickMatrix((double)mx, (double)(viewport[3]-my), 5, 5, viewport);
+	gluPickMatrix((double)mx, (double)(viewport[3] - my), 5, 5, viewport);
 
 	// now set up the projection
 	setProjection();
 
+	GLfloat ProjectionMatrex[16];
+	GLfloat ModelViewMatrex[16];
+	glGetFloatv(GL_PROJECTION_MATRIX, ProjectionMatrex);
+	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex); 
+
 	// now draw the objects - but really only see what we hit
 	GLuint buf[100];
-	glSelectBuffer(100,buf);
+	glSelectBuffer(100, buf);
 	glRenderMode(GL_SELECT);
 	glInitNames();
 	glPushName(0);
 
-
 	// draw the cubes, loading the names as we go
-	for(size_t i=0; i<m_pTrack->points.size(); ++i) {
-		glLoadName((GLuint) (i+1));
-		m_pTrack->points[i].draw();
+	auto it1 = m_pTrack->points.begin();
+	for (int i = 0; it1 != m_pTrack->points.end(); i++, it1++) {
+		glLoadName((GLuint)(i + 1));
+		it1->second.draw(QVector3D(0, 0, 0), ProjectionMatrex, ModelViewMatrex, light, getCameraPosition());
 	}
 
-	auto it = m_pTrack->paths.begin();
-	for (int i = 0; it != m_pTrack->paths.end(); i++, it++) {
+	auto it2 = m_pTrack->paths.begin();
+	for (int i = 0; it2 != m_pTrack->paths.end(); i++, it2++) {
 		glLoadName((GLuint)(i + 1 + m_pTrack->points.size()));
-		for (auto& pathData : it->second) {
+		for (auto &pathData : it2->second) {
 			pathData.second.Draw(false, false);
 		}
 	}
 
 	for (int i = 0; i < trains.size(); i++) {
 		glLoadName((GLuint)(i + 1 + m_pTrack->points.size() + m_pTrack->paths.size()));
-		trains[i].Draw(false, false);
+		trains[i].Draw(false, false, light, getCameraPosition());
 	}
 
 	// go back to drawing mode, and see how picking did
 	int hits = glRenderMode(GL_RENDER);
-	
+
 	selectedPoint = selectedPath = selectedTrain = -1;
 	if (hits) {
 		// warning; this just grabs the first object hit - if there
 		// are multiple objects, you really want to pick the closest
-		// one - see the OpenGL manual 
+		// one - see the OpenGL manual
 		// remember: we load names that are one more than the index
 		int tmp = buf[3] - 1;
 		if (tmp < m_pTrack->points.size()) {
@@ -336,7 +426,7 @@ void TrainView::SetCamera(CameraType type) {
 void TrainView::AddTrain() {
 	if (m_pTrack->paths.empty())
 		return;
-	
+
 	PathData pd;
 	if (selectedPoint >= 0) {
 		auto children = m_pTrack->points[selectedPoint].children;
@@ -367,11 +457,19 @@ void TrainView::AddTrain() {
 }
 
 void TrainView::MoveTrain() {
-	for (auto& train : trains) {
+	for (auto &train : trains) {
 		train.Move();
 	}
 }
 
 void TrainView::RemoveTrain(int index) {
 	trains.erase(trains.begin() + index);
+}
+
+QVector3D TrainView::getCameraPosition() {
+	GLfloat ModelViewMatrex[16];
+	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
+	QMatrix4x4 m(ModelViewMatrex);
+	m = m.inverted();
+	return QVector3D(m(3, 0), m(3, 1), m(3, 2));
 }

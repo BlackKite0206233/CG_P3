@@ -6,7 +6,7 @@
 #include <QFileDialog>
 #include "ui_AppMain.h"
 #include <qgl.h>
-#include "TrainView.h"  
+#include "TrainView.h"
 #include "Track.h"
 
 class CTrack;
@@ -16,11 +16,9 @@ enum Mode {
 	InsertPath,
 	InsertPoint,
 	InsertTrain,
-	RotatePoint,
 };
 
-class AppMain : public QMainWindow
-{
+class AppMain : public QMainWindow {
 	Q_OBJECT
 
 public:
@@ -39,28 +37,30 @@ public:
 
 public:
 	// keep track of the stuff in the world
-	CTrack				m_Track;
+	CTrack m_Track;
 
 	// the widgets that make up the Window
-	TrainView*			trainview;
+	TrainView *trainview;
 
 	bool canpan;
 	bool isHover;
+	bool rotatePoint;
+	bool moveUpAndDown;
 
 private:
 	Ui::AppMainClass ui;
 
-	private slots:
-		void LoadTrackPath();
-		void SaveTrackPath();
-		void ExitApp();
+private slots:
+	void LoadTrackPath();
+	void SaveTrackPath();
+	void ExitApp();
 
-		void SwitchPlayAndPause();
+	void SwitchPlayAndPause();
 
-		void changeMode(int& currentMode, Mode newMode);
+	void changeMode(int &currentMode, Mode newMode);
 
 protected:
-	bool eventFilter(QObject *watched, QEvent *e); 
+	bool eventFilter(QObject *watched, QEvent *e);
 
 	int currentMode;
 };

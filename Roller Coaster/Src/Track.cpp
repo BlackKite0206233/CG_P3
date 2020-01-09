@@ -34,27 +34,25 @@ using namespace std;
 //
 // * Constructor
 //============================================================================
-CTrack::
-CTrack()
+CTrack::CTrack()
 //============================================================================
 {
-	resetPoints();
+	// resetPoints();
 }
 
 //****************************************************************************
 //
 // * provide a default set of points
 //============================================================================
-void CTrack::
-resetPoints()
+void CTrack::resetPoints()
 //============================================================================
 {
 
 	points.clear();
-	points[pointCount++] = ControlPoint(Pnt3f(50,5,0));
-	points[pointCount++] = ControlPoint(Pnt3f(0,5,50));
-	points[pointCount++] = ControlPoint(Pnt3f(-50,5,0));
-	points[pointCount++] = ControlPoint(Pnt3f(0,5,-50));
+	points[pointCount++] = ControlPoint(Pnt3f(50, 5, 0));
+	points[pointCount++] = ControlPoint(Pnt3f(0, 5, 50));
+	points[pointCount++] = ControlPoint(Pnt3f(-50, 5, 0));
+	points[pointCount++] = ControlPoint(Pnt3f(0, 5, -50));
 
 	// we had better put the train back at the start of the track...
 }
@@ -66,8 +64,7 @@ resetPoints()
 //	  other lines: one line per control point
 //   either 3 (X,Y,Z) numbers on the line, or 6 numbers (X,Y,Z, orientation)
 //============================================================================
-void CTrack::
-readPoints(const char* filename)
+void CTrack::readPoints(const char* filename)
 //============================================================================
 {
 	ifstream fs = ifstream(filename);
@@ -85,9 +82,11 @@ readPoints(const char* filename)
 			// get lines until EOF or we have enough points
 			for (int i = 0; i < n; i++) {
 				ControlPoint p;
+				CtrlPoint center;
 				double x, y, z, ox, oy, oz;
-				fs >> p.pos.x >> p.pos.y >> p.pos.z >> p.orient.x >> p.orient.y >> p.orient.z;
-				p.orient.normalize();
+				fs >> center.pos.x >> center.pos.y >> center.pos.z >> center.orient.x >> center.orient.y >> center.orient.z;
+				center.orient.normalize();
+				p.center = center;
 				points[pointCount++] = p;
 			}
 		}
@@ -116,8 +115,7 @@ readPoints(const char* filename)
 //
 // * write the control points to our simple format
 //============================================================================
-void CTrack::
-writePoints(const char* filename)
+void CTrack::writePoints(const char* filename)
 //============================================================================
 {
 	ofstream fs = ofstream(filename);
@@ -126,7 +124,7 @@ writePoints(const char* filename)
 	} else {
 		fs << points.size() << endl;
 		for (const auto& v : points) {
-			ControlPoint p = v.second;
+			CtrlPoint p = v.second.center;
 			fs << p.pos.x << " " << p.pos.y << " " << p.pos.z << " " << p.orient.x << " " << p.orient.y << " " << p.orient.z << endl;
 		}
 		fs << paths.size() << endl;
@@ -137,7 +135,7 @@ writePoints(const char* filename)
 	}
 }
 
-void calParam(const ControlPoint& p0, const ControlPoint& p1, const ControlPoint& p2, const ControlPoint& p3, PathData& pd) {
+void calParam(const CtrlPoint& p0, const CtrlPoint& p1, const CtrlPoint& p2, const CtrlPoint& p3, PathData& pd) {
 	if (PathData::curve == Cardinal) {
 		pd.a.pos = -0.5 * p0.pos + 1.5 * p1.pos - 1.5 * p2.pos + 0.5 * p3.pos;
 		pd.b.pos =        p0.pos - 2.5 * p1.pos + 2   * p2.pos - 0.5 * p3.pos;
@@ -161,14 +159,24 @@ void calParam(const ControlPoint& p0, const ControlPoint& p1, const ControlPoint
 	}
 }
 
+void subdivision(PathData &pd, CtrlPoint p1, CtrlPoint p2) {
+	double t = (p1.inter + p2.inter) / 2;
+	CtrlPoint mid = pd.CalInterpolation(t);
+	Pnt3f pos = (p1.pos + p2.pos) * 0.5;
+	Pnt3f orient = (p1.orient + p2.orient) * 0.5;
+	if ((pos - mid.pos).Lenth() > 0.05 || (orient - mid.orient).Lenth() > 0.05) {
+		subdivision(pd, p1, mid);
+		pd.pointSet.push_back(mid);
+		subdivision(pd, mid, p2);
+	}
+}
+
 void CTrack::BuildTrack() {
 	paths.clear();
 	for (auto& p : points) {
 		p.second.visited = false;
 	}
 
-	double percent = 1.0 / DIVIDE_LINE;
-	double t;
 	int start;
 	queue<int> q;
 	for (auto it = points.begin(); it != points.end(); it++) {
@@ -218,30 +226,32 @@ void CTrack::BuildTrack() {
 						isFirst = false;
 
 						PathData pd;
-						pd.p0 = p0Id;
-						pd.p1 = idx;
-						pd.p2 = child;
-						pd.p3 = p3Id;
+						pd.p0    = p0Id;
+						pd.p1    = idx;
+						pd.p2    = child;
+						pd.p3    = p3Id;
 
 						p3 = points[p3Id];
 						if (PathData::curve != Linear) {
-							calParam(p0, p1, p2, p3, pd);
+							calParam(p0.center, p1.center, p2.center, p3.center, pd);
 						}
 						else {
-							pd.a = p1;
-							pd.b = p2;
+							pd.a = p1.center;
+							pd.b = p2.center;
 						}
 
-						t = 0;
+						CtrlPoint p1, p2;
+						p1 = pd.CalInterpolation(0);
+						p2 = pd.CalInterpolation(1);
+						pd.pointSet.push_back(p1);
+						subdivision(pd, p1, p2);
+						pd.pointSet.push_back(p2);
+
 						pd.length = 0;
-						for (int j = 0; j <= DIVIDE_LINE; j++, t += percent) {
-							pd.pointSet.push_back(pd.CalInterpolation(t));
-							if (j) {
-								pd.length += (pd.pointSet[j].pos - pd.pointSet[j - 1].pos).Lenth();
-							}
+						for (int i = 1; i < pd.pointSet.size(); i++) {
+							pd.length += (pd.pointSet[i - 1].pos - pd.pointSet[i].pos).Lenth();
 						}
-
-						path[key]  = pd;
+						path[key] = pd;
 					}
 				}
 				paths[pair<int, int>(idx, child)] = path;
@@ -356,10 +366,16 @@ PathData CTrack::GetPrevPath(const PathData& curr) {
 	return prevPath[key];
 }
 
-PathData CTrack::GetPath(int p0, int p1, int p2, int p3) {
+PathData CTrack::GetPath(int& p0, int& p1, int& p2, int& p3) {
 	pair<int, int> key(p1, p2);
 	pair<int, int> key2(p0, p3);
-	if (paths.find(key) == paths.end() || paths[key].find(key2) == paths[key].end())
-		return GetRandomPath();
+	if (paths.find(key) == paths.end() || paths[key].find(key2) == paths[key].end()) {
+		PathData pd = GetRandomPath();
+		p0 = pd.p0;
+		p1 = pd.p1;
+		p2 = pd.p2;
+		p3 = pd.p3;
+		return pd;
+	}
 	return paths[key][key2];
 }

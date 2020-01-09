@@ -1,18 +1,22 @@
-#ifndef TRAINVIEW_H  
-#define TRAINVIEW_H  
-#include <QGLWidget> 
+#ifndef TRAINVIEW_H
+#define TRAINVIEW_H
+#include <QGLWidget>
 #include <vector>
-#include <QtGui>  
-#include <QtOpenGL>  
+#include <QtGui>
+#include <QtOpenGL>
 #include <GL/GLU.h>
-#pragma comment(lib,"opengl32.lib")
-#pragma comment(lib,"glu32.lib") 
+#pragma comment(lib, "opengl32.lib")
+#pragma comment(lib, "glu32.lib")
 #include "Utilities/ArcBallCam.h"
 #include "Utilities/3DUtils.h"
 #include "Track.H"
 #include "Triangle.h"
 #include "Square.h"
 #include "Train.h"
+#include "SkyBox.h"
+#include "Light.h"
+#include "Water.h"
+#include "WaterFrameBuffer.h"
 
 using namespace std;
 
@@ -31,13 +35,11 @@ enum CameraType {
 	Train
 };
 
-
-class TrainView : public QGLWidget, protected QOpenGLFunctions_4_3_Core
-{  
-	Q_OBJECT  
-public:  
-	explicit TrainView(QWidget *parent = 0);  
-	~TrainView();  
+class TrainView : public QGLWidget, protected QOpenGLFunctions_4_3_Core {
+	Q_OBJECT
+public:
+	explicit TrainView(QWidget *parent = 0);
+	~TrainView();
 
 public:
 	// overrides of important window things
@@ -47,7 +49,8 @@ public:
 	// all of the actual drawing happens in this routine
 	// it has to be encapsulated, since we draw differently if
 	// we're drawing shadows (no colors, for example)
-	void drawStuff(bool doingShadows=false);
+	void drawStuff(QVector4D& clipplane = QVector4D(0, 0, 0, 0), bool doingShadows = false);
+	void drawSkyBox();
 
 	// setup the projection - assuming that the projection stack has been
 	// cleared for you
@@ -68,23 +71,29 @@ public:
 	void RemoveTrain(int index);
 	void MoveTrain();
 
+	QVector3D getCameraPosition();
+
 public:
-	ArcBallCam*		arcball;			// keep an ArcBall for the UI
+	ArcBallCam *arcball; // keep an ArcBall for the UI
 	vector<ArcBallCam> cameras;
-	int				selectedPoint;  // simple - just remember which cube is selected
+	int selectedPoint; // simple - just remember which cube is selected
 	int lastSelectedPoint;
 	int selectedPath;
 	int selectedTrain;
 
-	CTrack*			m_pTrack;		// The track of the entire scene
+	CTrack *m_pTrack; // The track of the entire scene
 
 	CameraType camera;
-	Triangle* triangle;
-	Square* square;
+	Triangle *triangle;
+	Square *square;
+	SkyBox *skybox;
 	GLfloat ProjectionMatrex[16];
 	GLfloat ModelViewMatrex[16];
-	QVector<QOpenGLTexture*> Textures;
+	QVector<QOpenGLTexture *> Textures;
 	vector<CTrain> trains;
 	int currentTrain = 0;
-};  
-#endif // TRAINVIEW_H  
+	Light light;
+	Water *water;
+	WaterFrameBuffer *fbos;
+};
+#endif // TRAINVIEW_H

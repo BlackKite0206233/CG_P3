@@ -24,30 +24,72 @@
 
 *************************************************************************/
 #pragma once
+#include <QtGui/QOpenGLFunctions_4_3_Core>
+#include <QtGui/QOpenGLVertexArrayObject>
+#include <QtGui/QOpenGLBuffer>
+#include <QtGui/QOpenGLShader>
+#include <QtGui/QOpenGLShaderProgram>
 #include <set>
 #include "Utilities/Pnt3f.h"
+#include "Utilities/Quat.h"
+#include "Light.h"
 
 using namespace std;
 
+struct CtrlPoint {
+	CtrlPoint();
+	CtrlPoint(Pnt3f& pos);
+	CtrlPoint(Pnt3f& pos, Pnt3f& orient);
+	Pnt3f pos;
+	Pnt3f orient;
+	double inter;
+};
+
 class ControlPoint {
 public:
-		// constructors
-		// need a default constructor for making arrays
-		ControlPoint();					
-		
-		// create in a position
-		ControlPoint(const Pnt3f& pos);	
+	// constructors
+	// need a default constructor for making arrays
+	ControlPoint();
 
-		// Create in a position and orientation
-		ControlPoint(const Pnt3f& pos, const Pnt3f& orient);
+	// create in a position
+	ControlPoint(Pnt3f &pos);
 
-		// draw the control point - assumes the color is correct
-		void draw();
+	// Create in a position and orientation
+	ControlPoint(Pnt3f &pos, Pnt3f &orient);
 
+	// draw the control point - assumes the color is correct
+	void draw(QVector3D color, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, QVector4D& clipPlane = QVector4D(0, 0, 0, 0));
+
+	void getMouseNDC(float mx, float my, float &x, float &y);
+	void getMatrix(HMatrix) const;
+	void computeNow(const float nowX, const float nowY);
+	void down(const float x, const float y);
+	void setCenter(float x, float y);
+
+	void Init();
+	void InitVAO();
+	void InitVBO();
 public:
-		Pnt3f pos;         // Position of this control point
-		Pnt3f orient;		 // Orientation of this control point
-		set<int> children;
-		set<int> parents;
-		bool visited = false;
+	CtrlPoint center;
+	set<int> children;
+	set<int> parents;
+	bool visited = false;
+
+	Quat start;
+	Quat now;
+
+	float downX;
+	float downY;
+
+	float centerX;
+	float centerY;
+
+	QMatrix4x4 ModelMatrix;
+
+	QOpenGLShaderProgram* shaderProgram;
+	QVector<QVector3D> vertices;
+	QVector<QVector3D> normals;
+	QOpenGLVertexArrayObject* vao;
+	QOpenGLBuffer vvbo;
+	QOpenGLBuffer nvbo;
 };

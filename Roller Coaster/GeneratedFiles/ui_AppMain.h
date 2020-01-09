@@ -87,7 +87,6 @@ public:
         label = new QLabel(centralWidget);
         label->setObjectName(QString::fromUtf8("label"));
 				label->setFixedHeight(10);
-
         verticalLayout_2->addWidget(label);
 
         mainLayout = new QVBoxLayout();

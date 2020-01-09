@@ -1,3 +1,5 @@
+#pragma once
+
 #include <QtGui/QOpenGLFunctions_4_3_Core>
 #include <QtGui/QOpenGLVertexArrayObject>
 #include <QtGui/QOpenGLBuffer>
@@ -8,20 +10,25 @@
 #include <QFileInfo>
 #include <QDebug>
 #include <QString>
+#include <QGLWidget>
 
-class Triangle {
+class SkyBox {
 public:
-	QOpenGLShaderProgram *shaderProgram;
-	QVector<QVector3D> vertices;
-	QVector<QVector3D> colors;
-	QOpenGLVertexArrayObject vao;
-	QOpenGLBuffer vvbo;
-	QOpenGLBuffer cvbo;
+	SkyBox();
 
-public:
-	Triangle();
 	void Init();
+	void Begin();
+	void Render(GLfloat *ProjectionMatrix, GLfloat *viewMatrix);
+	void End();
+
+private:
 	void InitVAO();
 	void InitVBO();
-	void Paint(GLfloat *ProjectionMatrix, GLfloat *ModelViewMatrix);
+	void InitTexture();
+
+	QOpenGLShaderProgram *shaderProgram;
+	QOpenGLVertexArrayObject vao;
+	GLuint texture;
+	QVector<QVector3D> vertices;
+	QOpenGLBuffer vbo;
 };

@@ -3,18 +3,17 @@
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
 #include <QtCore/QVarLengthArray>
-
+#include <QColor>
 #include <QtOpenGL/QtOpenGL>
+#include "Utilities/3DUtils.h"
 
-Model::Model(const QString &filePath, int s, Point3d p)
-	: m_fileName(QFileInfo(filePath).fileName())
-{
+Model::Model(const QString &filePath) : m_fileName(QFileInfo(filePath).fileName()) {
 	QFile file(filePath);
 	if (!file.open(QIODevice::ReadOnly))
 		return;
 
-	Point3d boundsMin( 1e9, 1e9, 1e9);
-	Point3d boundsMax(-1e9,-1e9,-1e9);
+	Point3d boundsMin(1e9, 1e9, 1e9);
+	Point3d boundsMax(-1e9, -1e9, -1e9);
 
 	QTextStream in(&file);
 	while (!in.atEnd()) {
@@ -33,8 +32,17 @@ Model::Model(const QString &filePath, int s, Point3d p)
 				boundsMax[i] = qMax(boundsMax[i], p[i]);
 			}
 			m_points << p;
-		} else if (id == "f" || id == "fo") {
+		}
+		else if (id == "vn") {
+			Point3d n;
+			for (int i = 0; i < 3; ++i) {
+				ts >> n[i];
+			}
+			m_normals << n;
+		}
+		else if (id == "f" || id == "fo") {
 			QVarLengthArray<int, 4> p;
+			QVarLengthArray<int, 4> n;
 
 			while (!ts.atEnd()) {
 				QString vertex;
@@ -42,6 +50,10 @@ Model::Model(const QString &filePath, int s, Point3d p)
 				const int vertexIndex = vertex.split('/').value(0).toInt();
 				if (vertexIndex)
 					p.append(vertexIndex > 0 ? vertexIndex - 1 : m_points.size() + vertexIndex);
+
+				const int normalIndex = vertex.split('/').value(2).toInt();
+				if (normalIndex)
+					n.append(normalIndex > 0 ? normalIndex - 1 : m_normals.size() + normalIndex);
 			}
 
 			for (int i = 0; i < p.size(); ++i) {
@@ -58,61 +70,102 @@ Model::Model(const QString &filePath, int s, Point3d p)
 			if (p.size() == 4)
 				for (int i = 0; i < 3; ++i)
 					m_pointIndices << p[(i + 2) % 4];
+
+			for (int i = 0; i < 3; ++i)
+				m_normalIndices << n[i];
+
+			if (n.size() == 4)
+				for (int i = 0; i < 3; ++i)
+					m_normalIndices << n[(i + 2) % 4];
 		}
 	}
 
-	const Point3d bounds = boundsMax - boundsMin;
-	const qreal scale = s / qMax(bounds.x, qMax(bounds.y, bounds.z));
+	bounds = boundsMax - boundsMin;
+	
 	for (int i = 0; i < m_points.size(); ++i)
-		m_points[i] = (m_points[i] + p - (boundsMin + bounds * 0.5)) * scale;
+		m_points[i] = (m_points[i] - (boundsMin + bounds * 0.5));
 
-	m_normals.resize(m_points.size());
-	for (int i = 0; i < m_pointIndices.size(); i += 3) {
-		const Point3d a = m_points.at(m_pointIndices.at(i));
-		const Point3d b = m_points.at(m_pointIndices.at(i+1));
-		const Point3d c = m_points.at(m_pointIndices.at(i+2));
-
-		const Point3d normal = cross(b - a, c - a).normalize();
-
-		for (int j = 0; j < 3; ++j)
-			m_normals[m_pointIndices.at(i + j)] += normal;
-	}
-
-	for (int i = 0; i < m_normals.size(); ++i)
-		m_normals[i] = m_normals[i].normalize();
+	Init();
 }
 
-void Model::render(bool wireframe, bool normals) const
-{
-	glEnable(GL_DEPTH_TEST);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	if (wireframe) {
-		glVertexPointer(3, GL_FLOAT, 0, (float *)m_points.data());
-		glDrawElements(GL_LINES, m_edgeIndices.size(), GL_UNSIGNED_INT, m_edgeIndices.data());
-	} else {
-		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT0);
-		glEnable(GL_COLOR_MATERIAL);
-		glShadeModel(GL_SMOOTH);
+void Model::render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, Light& light, QVector3D& eyePos, QVector4D clipPlane, double s, bool wireframe, bool normals) {
+	GLfloat P[4][4];
+	GLfloat V[4][4];
+	DimensionTransformation(ProjectionMatrix, P);
+	DimensionTransformation(ViewMatrix, V);
 
-		glEnableClientState(GL_NORMAL_ARRAY);
-		glVertexPointer(3, GL_FLOAT, 0, (float *)m_points.data());
-		glNormalPointer(GL_FLOAT, 0, (float *)m_normals.data());
-		glDrawElements(GL_TRIANGLES, m_pointIndices.size(), GL_UNSIGNED_INT, m_pointIndices.data());
+	//Bind the shader we want to draw with
+	shaderProgram->bind();
+	//Bind the VAO we want to draw
+	vao.bind();
 
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glDisable(GL_COLOR_MATERIAL);
-		glDisable(GL_LIGHT0);
-		glDisable(GL_LIGHTING);
+	//pass projection matrix to shader
+	shaderProgram->setUniformValue("ProjectionMatrix", P);
+	//pass modelview matrix to shader
+	shaderProgram->setUniformValue("ViewMatrix", V);
+	shaderProgram->setUniformValue("ModelMatrix", ModelMatrix);
+
+	shaderProgram->setUniformValue("color_ambient", light.ambientColor);
+	shaderProgram->setUniformValue("color_diffuse", light.diffuseColor);
+	shaderProgram->setUniformValue("color_specular", light.specularColor);
+	shaderProgram->setUniformValue("light_position", light.position);
+	shaderProgram->setUniformValue("eye_position", eyePos);
+	shaderProgram->setUniformValue("clipPlane", clipPlane);
+
+	shaderProgram->setUniformValue("Color", color);
+
+	const GLfloat scale = s / qMax(bounds.x, qMax(bounds.y, bounds.z));
+	shaderProgram->setUniformValue("Scale", scale);
+
+	vvbo.bind();
+	shaderProgram->enableAttributeArray(0);
+	shaderProgram->setAttributeArray(0, GL_FLOAT, 0, 3, NULL);
+	vvbo.release();
+
+	nvbo.bind();
+	shaderProgram->enableAttributeArray(1);
+	shaderProgram->setAttributeArray(1, GL_FLOAT, 0, 3, NULL);
+	nvbo.release();
+
+	//Draw a triangle with 3 indices starting from the 0th index
+	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+	//Disable Attribute 0&1
+	shaderProgram->disableAttributeArray(0);
+	shaderProgram->disableAttributeArray(1);
+
+	//unbind vao
+	vao.release();
+	//unbind vao
+	shaderProgram->release();
+}
+
+void Model::Init() {
+	shaderProgram = InitShader("./Shader/Model.vs", "./Shader/Model.fs");
+	InitVAO();
+	InitVBO();
+}
+
+void Model::InitVAO() {
+	vao.create();
+	vao.bind();
+}
+
+void Model::InitVBO() {
+	for (int i = 0; i < m_pointIndices.size(); i++) {
+		Point3d p = m_points.at(m_pointIndices[i]);
+		vertices << QVector3D(p.x, p.y, p.z);
 	}
+	vvbo.create();
+	vvbo.bind();
+	vvbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+	vvbo.allocate(vertices.constData(), vertices.size() * sizeof(QVector3D));
 
-	if (normals) {
-		QVector<Point3d> normals;
-		for (int i = 0; i < m_normals.size(); ++i)
-			normals << m_points.at(i) << (m_points.at(i) + m_normals.at(i) * 0.02f);
-		glVertexPointer(3, GL_FLOAT, 0, (float *)normals.data());
-		glDrawArrays(GL_LINES, 0, normals.size());
+	for (int i = 0; i < m_normalIndices.size(); i++) {
+		Point3d n = m_normals.at(m_normalIndices[i]);
+		normals << QVector3D(n.x, n.y, n.z);
 	}
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisable(GL_DEPTH_TEST);
+	nvbo.create();
+	nvbo.bind();
+	nvbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+	nvbo.allocate(normals.constData(), normals.size() * sizeof(QVector3D));
 }
