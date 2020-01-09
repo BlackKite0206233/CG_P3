@@ -17,9 +17,9 @@ uniform float moveFactor;
 uniform vec3 color_specular;
 uniform vec4 light_position;
 uniform vec3 eye_position;
-uniform float shininess = 32.0;
+uniform float shininess = 64.0;
 uniform float ambientStrength  = 0.4;
-uniform float specularStrength = 0.7;
+uniform float specularStrength = 0.5;
 uniform vec3 Color = vec3(0.0, 0.0, 1.0);
 
 
@@ -40,7 +40,7 @@ void main(void) {
     vec4 refractionColor = texture(refractionTexture, ndc);
 
     vec4 normalMapColor = texture(normalMap, distortedTexCoords);
-    vec3 normal = vec3(normalMapColor.r * 2.0 - 1.0, normalMapColor.b, normalMapColor.g * 2.0 - 1.0);
+    vec3 normal = vec3(normalMapColor.r * 2.0 - 1.0, normalMapColor.b * 3.0, normalMapColor.g * 2.0 - 1.0);
     normal = normalize(normal);
 
     vec3 eye_direction = normalize(eye_position - vs_worldpos);

@@ -13,7 +13,7 @@ uniform mat4 ViewMatrix;
 uniform float width;
 uniform float height;
 
-const float tiling = 30.0;
+const float tiling = 5.0;
 
 void main(void) {
     vs_worldpos = vec3(position.x * width, position.y, position.z * height);
