@@ -40,8 +40,8 @@ void TrainView::initializeGL() {
 	water = new Water(1000, 1000);
 	water->Init();
 
-	terrian = new Terrian(2048, 2048);
-	terrian->Init();
+	terrain = new Terrain(2048, 2048);
+	terrain->Init();
 
 	fbos = new WaterFrameBuffer(this);
 	//Initialize texture
@@ -59,7 +59,7 @@ void TrainView::initializeTexture()
 	Textures.push_back(texture);
 	texture = new QOpenGLTexture(QImage("./Textures/height_map.jpg"));
 	Textures.push_back(texture);
-	texture = new QOpenGLTexture(QImage("./Textures/terrian.jpg"));
+	texture = new QOpenGLTexture(QImage("./Textures/terrain.jpg"));
 	Textures.push_back(texture);
 }
 
@@ -301,7 +301,7 @@ void TrainView::drawSkyBox() {
 void TrainView::drawStuff(QVector4D& clipPlane, bool doingShadows)
 {
 
-	this->terrian->Render(ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), Textures, clipPlane);
+	this->terrain->Render(ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), Textures, clipPlane);
 	this->m_pTrack->Draw(doingShadows, selectedPath);
 
 	// Draw the control points

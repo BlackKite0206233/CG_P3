@@ -96,6 +96,6 @@ public:
 	Light light;
 	Water *water;
 	WaterFrameBuffer *fbos;
-	Terrian *terrian;
+	Terrain *terrain;
 };
 #endif // TRAINVIEW_H

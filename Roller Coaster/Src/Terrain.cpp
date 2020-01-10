@@ -1,10 +1,10 @@
 #include "Terrain.h"
 #include "Utilities/3dUtils.h"
 
-int Terrian::MAX_HEIGHT = 100;
-int Terrian::MAX_PIXEL_COLOR = 256;
+int Terrain::MAX_HEIGHT = 100;
+int Terrain::MAX_PIXEL_COLOR = 256;
 
-Terrian::Terrian(int w, int h) {
+Terrain::Terrain(int w, int h) {
 	initializeOpenGLFunctions();
 	width = w;
 	height = h;
@@ -12,14 +12,14 @@ Terrian::Terrian(int w, int h) {
 }
 
 
-void Terrian::Init() {
-	GeneratorTerrian();
+void Terrain::Init() {
+	GeneratorTerrain();
 	shaderProgram = InitShader("./Shader/Terrain.vs", "./Shader/Terrain.fs");
 	InitVAO();
 	InitVBO();
 }
 
-void Terrian::GeneratorTerrian() {
+void Terrain::GeneratorTerrain() {
 	QImage heightMap = QImage("./Textures/height_map.jpg");
 	int VERTEX_COUNT = heightMap.height();
 	int count = VERTEX_COUNT * VERTEX_COUNT;
@@ -32,7 +32,7 @@ void Terrian::GeneratorTerrian() {
 	for (int i = 0; i < VERTEX_COUNT; i++) {
 		for (int j = 0; j < VERTEX_COUNT; j++) {
 			vertices[vertexPointer] = QVector3D((float)(j - VERTEX_COUNT / 2) / ((float)VERTEX_COUNT / 2 - 1) * width, getHeight(heightMap, j, i), (float)(i - VERTEX_COUNT / 2) / ((float)VERTEX_COUNT / 2 - 1) * height);
-			normals[vertexPointer] = QVector3D(0, 1, 0);
+			normals[vertexPointer] = calculateNormal(heightMap, j, i);
 			textureCoords[vertexPointer] = QVector2D((float)j / (float)VERTEX_COUNT - 1, (float)i / (float)VERTEX_COUNT - 1);
 			vertexPointer++;
 		}
@@ -54,7 +54,7 @@ void Terrian::GeneratorTerrian() {
 	}
 }
 
-float Terrian::getHeight(QImage& image, int x, int y) {
+float Terrain::getHeight(QImage& image, int x, int y) {
 	if (x < 0 || x > image.width() || y < 0 || y > image.height()) {
 		return 0;
 	}
@@ -65,12 +65,22 @@ float Terrian::getHeight(QImage& image, int x, int y) {
 	return height;
 }
 
-void Terrian::InitVAO() {
+QVector3D Terrain::calculateNormal(QImage& image, int x, int y) {
+	float heightL = getHeight(image, x - 1, y);
+	float heightR = getHeight(image, x + 1, y);
+	float heightD = getHeight(image, x, y - 1);
+	float heightU = getHeight(image, x, y + 1);
+	QVector3D normal = QVector3D(heightL - heightR, 2, heightD - heightU);
+	normal.normalize();
+	return normal;
+}
+
+void Terrain::InitVAO() {
 	vao->create();
 	vao->bind();
 }
 
-void Terrian::InitVBO() {
+void Terrain::InitVBO() {
 	vvbo.create();
 	vvbo.bind();
 	vvbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
@@ -87,11 +97,11 @@ void Terrian::InitVBO() {
 	tvbo.allocate(textureCoords.constData(), textureCoords.size() * sizeof(QVector2D));
 }
 //
-//void Terrian::InitShader() {
-//	QString vertexShaderPath         = "./Shader/Terrian.vs";
-//	QString tessControlShaderPath    = "./Shader/Terrian.tcs";
-//	QString tessEvaluationShaderPath = "./Shader/Terrian.tes";
-//	QString fragmentShaderPath       = "./Shader/Terrian.fs";
+//void Terrain::InitShader() {
+//	QString vertexShaderPath         = "./Shader/Terrain.vs";
+//	QString tessControlShaderPath    = "./Shader/Terrain.tcs";
+//	QString tessEvaluationShaderPath = "./Shader/Terrain.tes";
+//	QString fragmentShaderPath       = "./Shader/Terrain.fs";
 //
 //	shaderProgram = new QOpenGLShaderProgram();
 //
@@ -141,7 +151,7 @@ void Terrian::InitVBO() {
 //	shaderProgram->link();
 //}
 
-void Terrian::Render(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, QVector<QOpenGLTexture*>& textures, QVector4D clipPlane) {
+void Terrain::Render(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, QVector<QOpenGLTexture*>& textures, QVector4D clipPlane) {
 	GLfloat P[4][4];
 	GLfloat V[4][4];
 	DimensionTransformation(ProjectionMatrix, P);
@@ -158,7 +168,7 @@ void Terrian::Render(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& ligh
 	shaderProgram->setUniformValue("ViewMatrix", V);
 
 	//shaderProgram->setUniformValue("heightMap", 0);
-	shaderProgram->setUniformValue("terrianTexture", 0);
+	shaderProgram->setUniformValue("terrainTexture", 0);
 
 	shaderProgram->setUniformValue("color_ambient", light.ambientColor);
 	shaderProgram->setUniformValue("color_diffuse", light.diffuseColor);

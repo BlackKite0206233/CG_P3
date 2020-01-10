@@ -11,23 +11,24 @@
 #include "Light.h"
 #include "WaterFrameBuffer.h"
 
-class Terrian : protected QOpenGLFunctions_4_3_Core {
+class Terrain : protected QOpenGLFunctions_4_3_Core {
 public:
 	static int MAX_HEIGHT;
 	static int MAX_PIXEL_COLOR;
 
-	Terrian(int w, int h);
+	Terrain(int w, int h);
 
 	void Init();
 	void Render(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, QVector<QOpenGLTexture*>& textures, QVector4D clipPlane);
 
 private:
-	void GeneratorTerrian();
+	void GeneratorTerrain();
 	void InitVAO();
 	void InitVBO();
 	//void InitShader();
 	
 	float getHeight(QImage& image, int x, int y);
+	QVector3D calculateNormal(QImage& image, int x, int y);
 
 	int width;
 	int height;
