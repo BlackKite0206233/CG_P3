@@ -17,6 +17,7 @@
 #include "Light.h"
 #include "Water.h"
 #include "WaterFrameBuffer.h"
+#include "Terrain.h"
 
 using namespace std;
 
@@ -95,5 +96,6 @@ public:
 	Light light;
 	Water *water;
 	WaterFrameBuffer *fbos;
+	Terrian *terrian;
 };
 #endif // TRAINVIEW_H
