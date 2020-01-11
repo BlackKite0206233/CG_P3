@@ -11,6 +11,10 @@ uniform sampler2D reflectionTexture;
 uniform sampler2D refractionTexture;
 uniform sampler2D dudvMap;
 uniform sampler2D normalMap;
+uniform sampler2D depthMap;
+
+uniform float near;
+uniform float far;
 
 uniform float moveFactor;
 
@@ -27,6 +31,12 @@ const float waveStrength = 0.01;
 
 void main(void) {
     vec2 ndc = (clipSpace.xy / clipSpace.w) / 2.0 + 0.5;
+
+    float depth = texture(depthMap, ndc).r;
+    float floorDistance = 2.0 * near * far / (far + near - (2.0 * depth - 1.0) * (far - near));
+    depth = gl_FragCoord.z
+    float waterDistance = 2.0 * near * far / (far + near - (2.0 * depth - 1.0) * (far - near));
+    float waterDepth = floorDistance - waterDistance;
 
     vec2 distortedTexCoords = texture(dudvMap, vec2(textureCoords.x + moveFactor, textureCoords.y)).rg * 0.1;
 	distortedTexCoords = textureCoords + vec2(distortedTexCoords.x, distortedTexCoords.y + moveFactor);
@@ -54,4 +64,5 @@ void main(void) {
 
 	fColor = mix(reflectionColor, refractionColor, reflectiveFactor);
 	fColor = mix(fColor, vec4(0, 0.3, 0.5, 1.0), 0.2) + vec4(specular_highlight, 0.0);
+    fColor = vec4(waterDepth / 50.0);
 }
