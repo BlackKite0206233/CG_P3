@@ -9,29 +9,28 @@
 
 #include "Utilities/Pnt3f.h"
 #include "Light.h"
-#include "WaterFrameBuffer.h"
+#include "HeightGenerator.h"
 
 class Terrain : protected QOpenGLFunctions_4_3_Core {
 public:
-	static int MAX_HEIGHT;
-	static int MAX_PIXEL_COLOR;
-
 	Terrain(int w, int h);
 
 	void Init();
 	void Render(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, QVector<QOpenGLTexture*>& textures, QVector4D clipPlane);
+	float getHeightOfTerrain(float worldX, float worldY);
 
 private:
 	void GeneratorTerrain();
 	void InitVAO();
 	void InitVBO();
-	//void InitShader();
 	
-	float getHeight(QImage& image, int x, int y);
-	QVector3D calculateNormal(QImage& image, int x, int y);
+	float getHeight(HeightGenerator& generator, int x, int y);
+	QVector3D calculateNormal(HeightGenerator& generator, int x, int y);
 
 	int width;
 	int height;
+
+	QVector<QVector<float>> terrainHeight;
 
 	QOpenGLShaderProgram* shaderProgram;
 	QVector<QVector3D> vertices;

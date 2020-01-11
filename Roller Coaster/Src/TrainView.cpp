@@ -37,11 +37,13 @@ void TrainView::initializeGL() {
 	skybox = new SkyBox();
 	skybox->Init();
 
-	water = new Water(1000, 1000);
+	water = new Water(1024, 1024);
 	water->Init();
 
-	terrain = new Terrain(2048, 2048);
+	terrain = new Terrain(1024, 1024);
 	terrain->Init();
+
+	PathData::terrain = terrain;
 
 	fbos = new WaterFrameBuffer(this);
 	//Initialize texture
@@ -59,7 +61,9 @@ void TrainView::initializeTexture()
 	Textures.push_back(texture);
 	texture = new QOpenGLTexture(QImage("./Textures/height_map.jpg"));
 	Textures.push_back(texture);
-	texture = new QOpenGLTexture(QImage("./Textures/terrain.jpg"));
+	texture = new QOpenGLTexture(QImage("./Textures/grassy2.png"));
+	Textures.push_back(texture);
+	texture = new QOpenGLTexture(QImage("./Textures/mud.png"));
 	Textures.push_back(texture);
 }
 

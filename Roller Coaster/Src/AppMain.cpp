@@ -108,7 +108,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 					rx, ry, rz,
 					false);
 
-				p.center = CtrlPoint(Pnt3f(rx, 5, rz), Pnt3f(0, 1, 0));
+				p.center = CtrlPoint(Pnt3f(rx, trainview->terrain->getHeightOfTerrain(rx, rz) + 5, rz), Pnt3f(0, 1, 0));
 				trainview->m_pTrack->AddPoint(p);
 			}
 				break;

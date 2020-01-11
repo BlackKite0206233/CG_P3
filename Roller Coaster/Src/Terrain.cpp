@@ -1,8 +1,8 @@
 #include "Terrain.h"
 #include "Utilities/3dUtils.h"
-
-int Terrain::MAX_HEIGHT = 100;
-int Terrain::MAX_PIXEL_COLOR = 256;
+#include <ctime>
+#include <iostream>
+using namespace std;
 
 Terrain::Terrain(int w, int h) {
 	initializeOpenGLFunctions();
@@ -20,9 +20,11 @@ void Terrain::Init() {
 }
 
 void Terrain::GeneratorTerrain() {
-	QImage heightMap = QImage("./Textures/height_map.jpg");
-	int VERTEX_COUNT = heightMap.height();
+	HeightGenerator heightGenerator(time(NULL));
+
+	int VERTEX_COUNT = 128;
 	int count = VERTEX_COUNT * VERTEX_COUNT;
+	terrainHeight = QVector<QVector<float>>(VERTEX_COUNT, QVector<float>(VERTEX_COUNT));
 	vertices = QVector<QVector3D>(count);
 	normals = QVector<QVector3D>(count);
 	textureCoords = QVector<QVector2D>(count);
@@ -31,8 +33,9 @@ void Terrain::GeneratorTerrain() {
 
 	for (int i = 0; i < VERTEX_COUNT; i++) {
 		for (int j = 0; j < VERTEX_COUNT; j++) {
-			vertices[vertexPointer] = QVector3D((float)(j - VERTEX_COUNT / 2) / ((float)VERTEX_COUNT / 2 - 1) * width, getHeight(heightMap, j, i), (float)(i - VERTEX_COUNT / 2) / ((float)VERTEX_COUNT / 2 - 1) * height);
-			normals[vertexPointer] = calculateNormal(heightMap, j, i);
+			terrainHeight[j][i] = getHeight(heightGenerator, j, i);
+			vertices[vertexPointer] = QVector3D((float)(j - VERTEX_COUNT / 2) / ((float)VERTEX_COUNT / 2 - 1) * width, terrainHeight[j][i], (float)(i - VERTEX_COUNT / 2) / ((float)VERTEX_COUNT / 2 - 1) * height);
+			normals[vertexPointer] = calculateNormal(heightGenerator, j, i);
 			textureCoords[vertexPointer] = QVector2D((float)j / (float)VERTEX_COUNT - 1, (float)i / (float)VERTEX_COUNT - 1);
 			vertexPointer++;
 		}
@@ -54,22 +57,48 @@ void Terrain::GeneratorTerrain() {
 	}
 }
 
-float Terrain::getHeight(QImage& image, int x, int y) {
-	if (x < 0 || x > image.width() || y < 0 || y > image.height()) {
-		return 0;
-	}
-	float height = image.pixelColor(x, y).red();
-	height -= MAX_PIXEL_COLOR / 2;
-	height /= MAX_PIXEL_COLOR / 2;
-	height *= MAX_HEIGHT;
-	return height;
+float barryCentric(QVector3D p1, QVector3D p2, QVector3D p3, QVector2D pos) {
+	float det = (p2.z() - p3.z()) * (p1.x() - p3.x()) + (p3.x() - p2.x()) * (p1.z() - p3.z());
+	float l1 = ((p2.z() - p3.z()) * (pos.x() - p3.x()) + (p3.x() - p2.x()) * (pos.y() - p3.z())) / det;
+	float l2 = ((p3.z() - p1.z()) * (pos.x() - p3.x()) + (p1.x() - p3.x()) * (pos.y() - p3.z())) / det;
+	float l3 = 1.0f - l1 - l2;
+	return l1 * p1.y() + l2 * p2.y() + l3 * p3.y();
 }
 
-QVector3D Terrain::calculateNormal(QImage& image, int x, int y) {
-	float heightL = getHeight(image, x - 1, y);
-	float heightR = getHeight(image, x + 1, y);
-	float heightD = getHeight(image, x, y - 1);
-	float heightU = getHeight(image, x, y + 1);
+float Terrain::getHeightOfTerrain(float worldX, float worldY) {
+	float terrainX = worldX + width;
+	float terrainY = worldY + height;
+	float gridWidth = (float)width * 2 / (terrainHeight.size() - 1);
+	float gridHeight = (float)height * 2 / (terrainHeight.size() - 1);
+	int gridX = floor(terrainX / gridWidth);
+	int gridY = floor(terrainY / gridHeight);
+	if (gridX >= terrainHeight.size() - 1 || gridY >= terrainHeight.size() - 1 || gridX < 0 || gridY < 0) {
+		return 0;
+	}
+	float xCoord = fmod(terrainX, gridWidth) / gridWidth;
+	float yCoord = fmod(terrainY, gridHeight) / gridHeight;
+	float answer;
+	if (xCoord <= 1 - yCoord) {
+		answer = barryCentric(QVector3D(0, terrainHeight[gridX][gridY], 0), QVector3D(1, terrainHeight[gridX + 1][gridY], 0),
+			QVector3D(0, terrainHeight[gridX][gridY + 1], 1), QVector2D(xCoord, yCoord));
+	}
+	else {
+		answer = barryCentric(QVector3D(1, terrainHeight[gridX + 1][gridY], 0), QVector3D(1, terrainHeight[gridX + 1][gridY + 1], 1),
+			QVector3D(0, terrainHeight[gridX][gridY + 1], 1), QVector2D(xCoord, yCoord));
+	}
+
+	return answer;
+}
+
+float Terrain::getHeight(HeightGenerator& generator, int x, int y) {
+	return generator.GenerateHeight(x, y);
+}
+
+QVector3D Terrain::calculateNormal(HeightGenerator& generator, int x, int y) {
+	float heightL = getHeight(generator, x - 1, y);
+	float heightR = getHeight(generator, x + 1, y);
+	float heightD = getHeight(generator, x, y - 1);
+	float heightU = getHeight(generator, x, y + 1);
 	QVector3D normal = QVector3D(heightL - heightR, 2, heightD - heightU);
 	normal.normalize();
 	return normal;
@@ -96,60 +125,6 @@ void Terrain::InitVBO() {
 	tvbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
 	tvbo.allocate(textureCoords.constData(), textureCoords.size() * sizeof(QVector2D));
 }
-//
-//void Terrain::InitShader() {
-//	QString vertexShaderPath         = "./Shader/Terrain.vs";
-//	QString tessControlShaderPath    = "./Shader/Terrain.tcs";
-//	QString tessEvaluationShaderPath = "./Shader/Terrain.tes";
-//	QString fragmentShaderPath       = "./Shader/Terrain.fs";
-//
-//	shaderProgram = new QOpenGLShaderProgram();
-//
-//	QFileInfo vertexShaderFile(vertexShaderPath);
-//	if (vertexShaderFile.exists()) {
-//		QOpenGLShader* vertexShader = new QOpenGLShader(QOpenGLShader::Vertex);
-//		if (vertexShader->compileSourceFile(vertexShaderPath))
-//			shaderProgram->addShader(vertexShader);
-//		else
-//			qWarning() << "Vertex Shader Error " << vertexShader->log();
-//	}
-//	else
-//		qDebug() << vertexShaderFile.filePath() << " can't be found";
-//
-//	QFileInfo tessControlShaderFile(tessControlShaderPath);
-//	if (tessControlShaderFile.exists()) {
-//		QOpenGLShader* tessControlShader = new QOpenGLShader(QOpenGLShader::TessellationControl);
-//		if (tessControlShader->compileSourceFile(tessControlShaderPath))
-//			shaderProgram->addShader(tessControlShader);
-//		else
-//			qWarning() << "Vertex Shader Error " << tessControlShader->log();
-//	}
-//	else
-//		qDebug() << tessControlShaderFile.filePath() << " can't be found";
-//
-//	QFileInfo tessEvaluationShaderFile(vertexShaderPath);
-//	if (tessEvaluationShaderFile.exists()) {
-//		QOpenGLShader* tessEvaluationShader = new QOpenGLShader(QOpenGLShader::TessellationEvaluation);
-//		if (tessEvaluationShader->compileSourceFile(tessEvaluationShaderPath))
-//			shaderProgram->addShader(tessEvaluationShader);
-//		else
-//			qWarning() << "Vertex Shader Error " << tessEvaluationShader->log();
-//	}
-//	else
-//		qDebug() << tessEvaluationShaderFile.filePath() << " can't be found";
-//
-//	QFileInfo fragmentShaderFile(fragmentShaderPath);
-//	if (fragmentShaderFile.exists()) {
-//		QOpenGLShader* fragmentShader = new QOpenGLShader(QOpenGLShader::Fragment);
-//		if (fragmentShader->compileSourceFile(fragmentShaderPath))
-//			shaderProgram->addShader(fragmentShader);
-//		else
-//			qWarning() << "fragment Shader Error " << fragmentShader->log();
-//	}
-//	else
-//		qDebug() << fragmentShaderFile.filePath() << " can't be found";
-//	shaderProgram->link();
-//}
 
 void Terrain::Render(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, QVector<QOpenGLTexture*>& textures, QVector4D clipPlane) {
 	GLfloat P[4][4];
@@ -168,7 +143,8 @@ void Terrain::Render(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& ligh
 	shaderProgram->setUniformValue("ViewMatrix", V);
 
 	//shaderProgram->setUniformValue("heightMap", 0);
-	shaderProgram->setUniformValue("terrainTexture", 0);
+	shaderProgram->setUniformValue("grass", 0);
+	shaderProgram->setUniformValue("mud", 1);
 
 	shaderProgram->setUniformValue("color_ambient", light.ambientColor);
 	shaderProgram->setUniformValue("color_diffuse", light.diffuseColor);
@@ -199,6 +175,8 @@ void Terrain::Render(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& ligh
 	//textures[3]->bind();
 	glActiveTexture(GL_TEXTURE0);
 	textures[4]->bind();
+	glActiveTexture(GL_TEXTURE1);
+	textures[5]->bind();
 
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, indices.data());
 	//Disable Attribute 0&1
