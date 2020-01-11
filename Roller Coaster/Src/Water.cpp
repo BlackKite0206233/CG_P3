@@ -62,6 +62,7 @@ void Water::Render(double t, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Lig
 	shaderProgram->setUniformValue("refractionTexture", 1);
 	shaderProgram->setUniformValue("dudvMap", 2);
 	shaderProgram->setUniformValue("normalMap", 3);
+	shaderProgram->setUniformValue("depthMap", 4);
 
 	moveFactor += WAVE_SPEED * t;
 	moveFactor = fmod(moveFactor, 1);
@@ -73,6 +74,9 @@ void Water::Render(double t, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Lig
 
 	shaderProgram->setUniformValue("width", GLfloat(width));
 	shaderProgram->setUniformValue("height", GLfloat(height));
+
+	shaderProgram->setUniformValue("near", GLfloat(0.1));
+	shaderProgram->setUniformValue("far", GLfloat(1e10));
 
 	vbo.bind();
 	shaderProgram->enableAttributeArray(0);
@@ -87,8 +91,13 @@ void Water::Render(double t, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Lig
 	textures[1]->bind();
 	glActiveTexture(GL_TEXTURE3);
 	textures[2]->bind();
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, fbo.getRefractionDepthTexture());
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+	glDisable(GL_BLEND);
 	//Disable Attribute 0&1
 	shaderProgram->disableAttributeArray(0);
 	shaderProgram->disableAttributeArray(1);

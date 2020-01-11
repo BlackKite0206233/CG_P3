@@ -4,6 +4,7 @@
 #include <map>
 #include <utility>
 #include "ControlPoint.h"
+#include "Terrain.h"
 
 using namespace std;
 
@@ -31,6 +32,7 @@ struct MapComp {
 
 class PathData {
 public:
+	static Terrain* terrain;
 	static CurveType curve;
 	static TrackType track;
 	static double speed;

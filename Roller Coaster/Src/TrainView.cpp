@@ -24,6 +24,7 @@ TrainView::~TrainView() {
 
 void TrainView::initializeGL() {
 	initializeOpenGLFunctions();
+	initializeTexture();
 	//Create a triangle object
 	triangle = new Triangle();
 	//Initialize the triangle object
@@ -36,12 +37,16 @@ void TrainView::initializeGL() {
 	skybox = new SkyBox();
 	skybox->Init();
 
-	water = new Water(1000, 1000);
+	water = new Water(1024, 1024);
 	water->Init();
+
+	terrain = new Terrain(1024, 1024);
+	terrain->Init();
+
+	PathData::terrain = terrain;
 
 	fbos = new WaterFrameBuffer(this);
 	//Initialize texture
-	initializeTexture();
 
 }
 
@@ -53,6 +58,12 @@ void TrainView::initializeTexture()
 	texture = new QOpenGLTexture(QImage("./Textures/dudv_map.png"));
 	Textures.push_back(texture);
 	texture = new QOpenGLTexture(QImage("./Textures/normal_map.png"));
+	Textures.push_back(texture);
+	texture = new QOpenGLTexture(QImage("./Textures/height_map.jpg"));
+	Textures.push_back(texture);
+	texture = new QOpenGLTexture(QImage("./Textures/grassy2.png"));
+	Textures.push_back(texture);
+	texture = new QOpenGLTexture(QImage("./Textures/mud.png"));
 	Textures.push_back(texture);
 }
 
@@ -122,7 +133,7 @@ void TrainView::paintGL()
 
 	drawSkyBox();
 	setupObjects();
-	GLdouble reflectionClipPlane[] = { 0, 1, 0, 0 };
+	GLdouble reflectionClipPlane[] = { 0, 1, 0, -1 };
 	glClipPlane(GL_CLIP_PLANE0, reflectionClipPlane);
 	glEnable(GL_CLIP_PLANE0);
 	glEnable(GL_CLIP_DISTANCE0);
@@ -165,7 +176,7 @@ void TrainView::paintGL()
 	
 	drawSkyBox();
 	setupObjects();
-	GLdouble refractionClipPlane[] = { 0, -1, 0, 0 };
+	GLdouble refractionClipPlane[] = { 0, -1, 0, 1 };
 	glClipPlane(GL_CLIP_PLANE0, refractionClipPlane);
 	glEnable(GL_CLIP_PLANE0);
 	glEnable(GL_CLIP_DISTANCE0);
@@ -234,7 +245,7 @@ void TrainView::setProjection()
 		CTrain train = trains[currentTrain];
 		glMatrixMode(GL_PROJECTION);
 		double aspect = ((double)width() / (double)height());
-		gluPerspective(40, aspect, .1, INFINITE);
+		gluPerspective(40, aspect, .1, 1e10);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 		Pnt3f n = train.v - train.pos;
@@ -293,6 +304,8 @@ void TrainView::drawSkyBox() {
 //========================================================================
 void TrainView::drawStuff(QVector4D& clipPlane, bool doingShadows)
 {
+
+	this->terrain->Render(ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), Textures, clipPlane);
 	this->m_pTrack->Draw(doingShadows, selectedPath);
 
 	// Draw the control points
