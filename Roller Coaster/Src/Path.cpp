@@ -96,7 +96,7 @@ void PathData::DrawRoad() {
 
 void DrawStick(CtrlPoint p0, CtrlPoint p1) {
 	float terrainH = PathData::terrain->getHeightOfTerrain(p0.pos.x, p0.pos.z);
-	if (p0.pos.y <= terrainH || p0.orient.y < 0)
+	if (p0.pos.y <= terrainH - 5 || p0.orient.y < 0)
 		return;
 	Pnt3f w, v, u, p;
 	glBegin(GL_LINES);
@@ -107,9 +107,9 @@ void DrawStick(CtrlPoint p0, CtrlPoint p1) {
 	w = w * 2.5;
 	p = p0.pos + u;
 	glVertex3dv((p0.pos + w).v());
-	glVertex3d(p0.pos.x + w.x, terrainH, p0.pos.z + w.z);
+	glVertex3d(p0.pos.x + w.x, terrainH - 5, p0.pos.z + w.z);
 	glVertex3dv((p0.pos - w).v());
-	glVertex3d(p0.pos.x - w.x, terrainH, p0.pos.z - w.z);
+	glVertex3d(p0.pos.x - w.x, terrainH - 5, p0.pos.z - w.z);
 	glEnd();
 }
 

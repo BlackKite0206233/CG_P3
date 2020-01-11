@@ -30,7 +30,7 @@
 #include <queue>
 using namespace std;
 
-Tarrain* CTrack::tarrain;
+Terrain* CTrack::terrain;
 
 //****************************************************************************
 //
