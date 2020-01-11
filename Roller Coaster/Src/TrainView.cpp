@@ -44,6 +44,7 @@ void TrainView::initializeGL() {
 	terrain->Init();
 
 	PathData::terrain = terrain;
+	CTrack::terrain = terrain;
 
 	fbos = new WaterFrameBuffer(this);
 	//Initialize texture
