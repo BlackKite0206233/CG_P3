@@ -133,7 +133,7 @@ void TrainView::paintGL()
 
 	drawSkyBox();
 	setupObjects();
-	GLdouble reflectionClipPlane[] = { 0, 1, 0, 0 };
+	GLdouble reflectionClipPlane[] = { 0, 1, 0, -1 };
 	glClipPlane(GL_CLIP_PLANE0, reflectionClipPlane);
 	glEnable(GL_CLIP_PLANE0);
 	glEnable(GL_CLIP_DISTANCE0);
@@ -176,7 +176,7 @@ void TrainView::paintGL()
 	
 	drawSkyBox();
 	setupObjects();
-	GLdouble refractionClipPlane[] = { 0, -1, 0, 0 };
+	GLdouble refractionClipPlane[] = { 0, -1, 0, 1 };
 	glClipPlane(GL_CLIP_PLANE0, refractionClipPlane);
 	glEnable(GL_CLIP_PLANE0);
 	glEnable(GL_CLIP_DISTANCE0);
@@ -245,7 +245,7 @@ void TrainView::setProjection()
 		CTrain train = trains[currentTrain];
 		glMatrixMode(GL_PROJECTION);
 		double aspect = ((double)width() / (double)height());
-		gluPerspective(40, aspect, .1, INFINITE);
+		gluPerspective(40, aspect, .1, 1e10);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 		Pnt3f n = train.v - train.pos;
