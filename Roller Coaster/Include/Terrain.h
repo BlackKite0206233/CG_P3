@@ -25,7 +25,7 @@ private:
 	void InitVBO();
 	
 	float getHeight(HeightGenerator& generator, int x, int y);
-	QVector3D calculateNormal(HeightGenerator& generator, int x, int y);
+	QVector3D calculateNormal(int x, int y);
 
 	int width;
 	int height;

@@ -100,7 +100,6 @@ void Water::Render(double t, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Lig
 	glDisable(GL_BLEND);
 	//Disable Attribute 0&1
 	shaderProgram->disableAttributeArray(0);
-	shaderProgram->disableAttributeArray(1);
 
 	//unbind vao
 	vao->release();

@@ -22,37 +22,44 @@ void Terrain::Init() {
 void Terrain::GeneratorTerrain() {
 	HeightGenerator heightGenerator(time(NULL));
 
-	int VERTEX_COUNT = 128;
+	int VERTEX_COUNT = 256;
 	int count = VERTEX_COUNT * VERTEX_COUNT;
 	terrainHeight = QVector<QVector<float>>(VERTEX_COUNT, QVector<float>(VERTEX_COUNT));
 	vertices = QVector<QVector3D>(count);
 	normals = QVector<QVector3D>(count);
 	textureCoords = QVector<QVector2D>(count);
 	indices = QVector<int>(6 * (VERTEX_COUNT - 1) * (VERTEX_COUNT - 1));
-	int vertexPointer = 0;
 
+	int vertexPointer = 0;
 	for (int i = 0; i < VERTEX_COUNT; i++) {
 		for (int j = 0; j < VERTEX_COUNT; j++) {
 			terrainHeight[j][i] = getHeight(heightGenerator, j, i);
 			vertices[vertexPointer] = QVector3D((float)(j - VERTEX_COUNT / 2) / ((float)VERTEX_COUNT / 2 - 1) * width, terrainHeight[j][i], (float)(i - VERTEX_COUNT / 2) / ((float)VERTEX_COUNT / 2 - 1) * height);
-			normals[vertexPointer] = calculateNormal(heightGenerator, j, i);
-			textureCoords[vertexPointer] = QVector2D((float)j / (float)VERTEX_COUNT - 1, (float)i / (float)VERTEX_COUNT - 1);
+			textureCoords[vertexPointer] = QVector2D(j, i);
 			vertexPointer++;
 		}
 	}
+	vertexPointer = 0;
+	for (int i = 0; i < VERTEX_COUNT; i++) {
+		for (int j = 0; j < VERTEX_COUNT; j++) {
+			normals[vertexPointer] = calculateNormal(j, i);
+			vertexPointer++;
+		}
+	}
+
 	int pointer = 0;
 	for (int gz = 0; gz < VERTEX_COUNT - 1; gz++) {
 		for (int gx = 0; gx < VERTEX_COUNT - 1; gx++) {
 			int topLeft = (gz * VERTEX_COUNT) + gx;
 			int topRight = topLeft + 1;
-			int buttomLeft = ((gz + 1) * VERTEX_COUNT) + gx;
-			int buttonRight = buttomLeft + 1;
+			int bottomLeft = ((gz + 1) * VERTEX_COUNT) + gx;
+			int bottomRight = bottomLeft + 1;
 			indices[pointer++] = topLeft;
-			indices[pointer++] = buttomLeft;
+			indices[pointer++] = bottomLeft;
 			indices[pointer++] = topRight;
 			indices[pointer++] = topRight;
-			indices[pointer++] = buttomLeft;
-			indices[pointer++] = buttonRight;
+			indices[pointer++] = bottomLeft;
+			indices[pointer++] = bottomRight;
 		}
 	}
 }
@@ -94,11 +101,32 @@ float Terrain::getHeight(HeightGenerator& generator, int x, int y) {
 	return generator.GenerateHeight(x, y);
 }
 
-QVector3D Terrain::calculateNormal(HeightGenerator& generator, int x, int y) {
-	float heightL = getHeight(generator, x - 1, y);
-	float heightR = getHeight(generator, x + 1, y);
-	float heightD = getHeight(generator, x, y - 1);
-	float heightU = getHeight(generator, x, y + 1);
+QVector3D Terrain::calculateNormal(int x, int y) {
+	float heightL, heightR, heightD, heightU;
+	if (x - 1 < 0 || x - 1 >= terrainHeight.size()) {
+		heightL = 0;
+	}
+	else {
+		heightL = terrainHeight[x - 1][y];
+	}
+	if (x + 1 < 0 || x + 1 >= terrainHeight.size()) {
+		heightR = 0;
+	}
+	else {
+		heightR = terrainHeight[x + 1][y];
+	}
+	if (y - 1 < 0 || y - 1 >= terrainHeight.size()) {
+		heightD = 0;
+	}
+	else {
+		heightD = terrainHeight[x][y - 1];
+	}
+	if (y + 1 < 0 || y + 1 >= terrainHeight.size()) {
+		heightU = 0;
+	}
+	else {
+		heightU = terrainHeight[x][y + 1];
+	}
 	QVector3D normal = QVector3D(heightL - heightR, 2, heightD - heightU);
 	normal.normalize();
 	return normal;

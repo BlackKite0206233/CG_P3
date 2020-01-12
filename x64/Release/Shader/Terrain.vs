@@ -22,5 +22,5 @@ void main(void)
     gl_Position = ProjectionMatrix * ViewMatrix * position;
     vs_worldpos = position.xyz;
     vs_normal = normal;
-    pass_textureCoords = textureCoords * 64;
+    pass_textureCoords = textureCoords / 2.0;
 }

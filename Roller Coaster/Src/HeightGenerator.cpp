@@ -3,18 +3,18 @@
 
 int HeightGenerator::AMPLITUDE = 200;
 int HeightGenerator::OCTAVES = 3;
-float HeightGenerator::ROUGHNESS = 0.3;
+float HeightGenerator::ROUGHNESS = 0.25;
 
 HeightGenerator::HeightGenerator(int s) {
-	dist = uniform_real_distribution<float>(-1, 1);
+	dist = normal_distribution<float>(0, 1);
 	seed = s;
 }
 
 float HeightGenerator::GenerateHeight(int x, int y) {
 	float total = 0;
-	float d = pow(2, OCTAVES - 1);
+	float d = pow(4, OCTAVES - 1);
 	for (int i = 0; i < OCTAVES; i++) {
-		float freq = pow(2, i) / d;
+		float freq = pow(4, i) / d;
 		float ampl = pow(ROUGHNESS, i) * AMPLITUDE;
 		total += getInterpolationNoise(x * freq, y * freq) * ampl;
 	}
@@ -22,8 +22,12 @@ float HeightGenerator::GenerateHeight(int x, int y) {
 }
 
 float HeightGenerator::getNoise(int x, int y) {
-	rng.seed(x * 468165 + y * 125047 + seed);
-	return dist(rng);
+	int randomSeed = x * 468165 + y * 125047 + seed;
+	if (randomMap.find(randomSeed) == randomMap.end()) {
+		rng.seed(randomSeed);
+		randomMap[randomSeed] = dist(rng);
+	}
+	return randomMap[randomSeed];
 }
 
 float HeightGenerator::getSmoothNoise(int x, int y) {

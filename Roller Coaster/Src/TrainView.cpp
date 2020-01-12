@@ -66,6 +66,8 @@ void TrainView::initializeTexture()
 	Textures.push_back(texture);
 	texture = new QOpenGLTexture(QImage("./Textures/mud.png"));
 	Textures.push_back(texture);
+	texture = new QOpenGLTexture(QImage("./Textures/water_height_map.jpg"));
+	Textures.push_back(texture);
 }
 
 void TrainView::resetArcball()
@@ -305,7 +307,6 @@ void TrainView::drawSkyBox() {
 //========================================================================
 void TrainView::drawStuff(QVector4D& clipPlane, bool doingShadows)
 {
-
 	this->terrain->Render(ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), Textures, clipPlane);
 	this->m_pTrack->Draw(doingShadows, selectedPath);
 

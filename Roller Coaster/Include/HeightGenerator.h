@@ -1,5 +1,5 @@
 #include <random>
-
+#include <map>
 using namespace std;
 
 class HeightGenerator {
@@ -21,5 +21,6 @@ private:
 	float interpolation(float a, float b, float blend);
 
 	default_random_engine rng;
-	uniform_real_distribution<float> dist;
+	normal_distribution<float> dist;
+	map<int, float> randomMap;
 };
