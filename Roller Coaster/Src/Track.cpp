@@ -51,6 +51,7 @@ void CTrack::resetPoints()
 {
 
 	points.clear();
+	pointCount = 0;
 	points[pointCount++] = ControlPoint(Pnt3f(50, 5, 0));
 	points[pointCount++] = ControlPoint(Pnt3f(0, 5, 50));
 	points[pointCount++] = ControlPoint(Pnt3f(-50, 5, 0));
@@ -81,6 +82,7 @@ void CTrack::readPoints(const char* filename)
 			printf("Illegal Number of Points Specified in File");
 		} else {
 			points.clear();
+			pointCount = 0;
 			// get lines until EOF or we have enough points
 			for (int i = 0; i < n; i++) {
 				ControlPoint p;

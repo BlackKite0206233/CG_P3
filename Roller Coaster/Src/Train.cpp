@@ -34,8 +34,8 @@ void CTrain::Move() {
 	Pnt3f n = v - pos;
 	n.normalize();
 	carSpeed -= Pnt3f::DotProduct(n, Pnt3f(0, 1, 0)) * 0.3;
-	if (carSpeed > 5) {
-		carSpeed = 5;
+	if (carSpeed > 10) {
+		carSpeed = 10;
 	}
 	else if (carSpeed < 0) {
 		carSpeed = 0;

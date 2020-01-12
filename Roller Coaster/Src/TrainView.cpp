@@ -76,7 +76,7 @@ void TrainView::resetArcball()
 	// Set up the camera to look at the world
 	// these parameters might seem magical, and they kindof are
 	// a little trial and error goes a long way
-	cameras[0].setup(this, 40, 0, 0, 250, M_PI / 4, 0, 0);
+	cameras[0].setup(this, 40, 0, 0, 500, M_PI / 4, 0, 0);
 	cameras[1].setup(this, 40, 0, 0, 250);
 	cameras[2].setup(this, 40, 0, 0, 250);
 }

@@ -20,7 +20,9 @@ void Terrain::Init() {
 }
 
 void Terrain::GeneratorTerrain() {
-	HeightGenerator heightGenerator(time(NULL));
+	//int seed = time(NULL);
+	//cout << seed << endl;
+	HeightGenerator heightGenerator(1578846500);
 
 	int VERTEX_COUNT = 256;
 	int count = VERTEX_COUNT * VERTEX_COUNT;
