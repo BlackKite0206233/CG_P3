@@ -9,6 +9,8 @@ out vec4 fColor;
 
 uniform sampler2D grass;
 uniform sampler2D mud;
+
+uniform int renderMode;
 uniform sampler2D ssaoColorBufferBlur;
 
 uniform vec3 color_ambient;
@@ -24,6 +26,9 @@ void main() {
 	vec2 ndc = (clipSpace.xy / clipSpace.w) / 2.0 + 0.5;
 
 	float AmbientOcclusion = texture(ssaoColorBufferBlur, ndc).r;
+	if (renderMode == 0) {
+		AmbientOcclusion = 1;
+	}
 
     vec3 light_direction = normalize(light_position.xyz - vs_worldpos);
 	vec3 eye_direction = normalize(eye_position - vs_worldpos);
@@ -37,9 +42,11 @@ void main() {
 	vec4 colorGrass = texture(grass, pass_textureCoords) * blend;
 	vec4 colorMud = texture(mud, pass_textureCoords) * (1 - blend);
 	vec3 color = (colorGrass + colorMud).rgb;
+	if (renderMode == 2) {
+		color = vec3(AmbientOcclusion, AmbientOcclusion, AmbientOcclusion);
+	}
 	if (vs_worldpos.y < 0) {
 		color *= pow(1 + clamp(vs_worldpos.y, -100, 0) / 400, 8);
 	}
-	//color = vec3(0, 1, 0);
 	fColor = min(vec4(color * result, 1), vec4(1));
 }

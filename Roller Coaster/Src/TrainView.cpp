@@ -177,7 +177,7 @@ void TrainView::paintGL()
 	drawGeometry();
 	ssao->GeometryShaderEnd();
 	ssaoFrameBuffer->UnbindCurrentFrameBuffer();
-
+	
 	ssaoFrameBuffer->BindSSAOFrameBuffer();
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -297,7 +297,7 @@ void TrainView::drawSkyBox() {
 //========================================================================
 void TrainView::drawStuff(QVector4D& clipPlane, bool doingShadows)
 {
-	this->terrain->Render(ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), Textures, *ssaoFrameBuffer, clipPlane);
+	this->terrain->Render(ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), Textures, ssaoFrameBuffer, renderMode, clipPlane);
 	this->m_pTrack->Draw(false, selectedPath);
 	
 	if (this->camera != Train) {
@@ -307,13 +307,13 @@ void TrainView::drawStuff(QVector4D& clipPlane, bool doingShadows)
 				color = QVector3D(240 / 255.0, 60 / 255.0, 60 / 255.0);
 			else
 				color = QVector3D(240 / 255.0, 240 / 255.0, 30 / 255.0);
-			p.second.draw(color, ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), *ssaoFrameBuffer, clipPlane);
+			p.second->draw(color, ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), ssaoFrameBuffer, renderMode, clipPlane);
 		}
 		update();
 	}
 
 	for (int i = 0; i < trains.size(); i++) {
-		trains[i].Draw(false, i == selectedTrain, light, getCameraPosition(), *ssaoFrameBuffer, clipPlane);
+		trains[i].Draw(false, i == selectedTrain, light, getCameraPosition(), ssaoFrameBuffer, renderMode, clipPlane);
 	}
 }
 
@@ -321,7 +321,7 @@ void TrainView::drawGeometry() {
 	this->terrain->DrawGeometry(ssao->currentShader);
 	if (this->camera != Train) {
 		for (auto &p : this->m_pTrack->points) {
-			p.second.DrawGeometry(ssao->currentShader);
+			p.second->DrawGeometry(ssao->currentShader);
 		}
 	}
 	for (int i = 0; i < trains.size(); i++) {
@@ -364,7 +364,7 @@ void TrainView::doPick(int mx, int my)
 	auto it1 = m_pTrack->points.begin();
 	for (int i = 0; it1 != m_pTrack->points.end(); i++, it1++) {
 		glLoadName((GLuint)(i + 1));
-		it1->second.draw(QVector3D(0, 0, 0), ProjectionMatrex, ModelViewMatrex, light, getCameraPosition());
+		it1->second->draw(QVector3D(0, 0, 0), ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), ssaoFrameBuffer, 0);
 	}
 
 	auto it2 = m_pTrack->paths.begin();
@@ -377,7 +377,7 @@ void TrainView::doPick(int mx, int my)
 
 	for (int i = 0; i < trains.size(); i++) {
 		glLoadName((GLuint)(i + 1 + m_pTrack->points.size() + m_pTrack->paths.size()));
-		trains[i].Draw(false, false, light, getCameraPosition());
+		trains[i].Draw(false, false, light, getCameraPosition(), ssaoFrameBuffer, 0);
 	}
 
 	// go back to drawing mode, and see how picking did
@@ -420,7 +420,7 @@ void TrainView::AddTrain() {
 
 	PathData pd;
 	if (selectedPoint >= 0) {
-		auto children = m_pTrack->points[selectedPoint].children;
+		auto children = m_pTrack->points[selectedPoint]->children;
 		if (children.size()) {
 			auto it1 = children.begin();
 			advance(it1, rand() % children.size());

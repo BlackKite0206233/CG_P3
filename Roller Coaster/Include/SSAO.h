@@ -11,37 +11,39 @@
 
 #include "SSAOFrameBuffer.h"
 
-class SSAO: protected QOpenGLFunctions_4_3_Core {
+using namespace std;
+
+class SSAO : protected QOpenGLFunctions_4_3_Core {
 public:
-    SSAO();
+	SSAO();
 
-    void Init();
-    void GeometryShaderBegin(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix);
-    void GeometryShaderEnd();
+	void Init();
+	void GeometryShaderBegin(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix);
+	void GeometryShaderEnd();
 
-    void SSAOPass(GLfloat* ProjectionMatrix, SSAOFrameBuffer& fbo, int width, int height);
-    void BlurPass(SSAOFrameBuffer& fbo);
+	void SSAOPass(GLfloat* ProjectionMatrix, SSAOFrameBuffer& fbo, int width, int height);
+	void BlurPass(SSAOFrameBuffer& fbo);
 
-    QOpenGLShaderProgram* geometryShaderProgram;
-    QOpenGLShaderProgram* SSAOShaderProgram;
-    QOpenGLShaderProgram* blurShaderProgram;
-    QOpenGLShaderProgram* currentShader;
+	QOpenGLShaderProgram* geometryShaderProgram;
+	QOpenGLShaderProgram* SSAOShaderProgram;
+	QOpenGLShaderProgram* blurShaderProgram;
+	QOpenGLShaderProgram* currentShader;
 
 private:
-    void InitVAO();
+	void InitVAO();
 	void InitVBO();
-    void CreateNoiseTextureAttachment();
-    void CreateKernel();
+	void CreateNoiseTextureAttachment();
+	void CreateKernel();
 
-    uniform_real_distribution<GLfloat> randomFloat;
-    default_random_engine generator;
+	uniform_real_distribution<GLfloat> randomFloat;
+	default_random_engine generator;
 
-    QVector<Qvector3D> ssaoKernel;
+	QVector<QVector3D> ssaoKernel;
 
-    GLuint noiseTexture;
+	GLuint noiseTexture;
 
-    QVector<QVector3D> vertices;
-    QVector<QVector2D> textureCoords;
+	QVector<QVector3D> vertices;
+	QVector<QVector2D> textureCoords;
 	QOpenGLVertexArrayObject* vao;
 	QOpenGLBuffer vbo;
-}
+};

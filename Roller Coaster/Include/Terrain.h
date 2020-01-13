@@ -17,7 +17,7 @@ public:
 	Terrain(int w, int h);
 
 	void Init();
-	void Render(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, QVector<QOpenGLTexture*>& textures, SSAOFrameBuffer* ssaoFrameBuffer, QVector4D clipPlane);
+	void Render(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, QVector<QOpenGLTexture*>& textures, SSAOFrameBuffer* ssaoFrameBuffer, int renderMode, QVector4D clipPlane);
 	void DrawGeometry(QOpenGLShaderProgram* shader);
 	float getHeightOfTerrain(float worldX, float worldY);
 

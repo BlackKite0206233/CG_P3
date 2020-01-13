@@ -65,6 +65,7 @@ GLuint SSAOFrameBuffer::getBlurTexture() {
 
 void SSAOFrameBuffer::initGeometryFrameBuffer() {
     geometryFrameBuffer = createFrameBuffer();
+
     positionTexture = createTextureAttachment(WIDTH, HEIGHT, GL_RGB16F, GL_FLOAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -75,7 +76,8 @@ void SSAOFrameBuffer::initGeometryFrameBuffer() {
 
     albedoTexture = createTextureAttachment(WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_BYTE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, albedoTexture, 0);
-    unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+
+    unsigned int attachments[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
     glDrawBuffers(3, attachments);
     depthRenderBuffer = createDepthBufferAttachment(WIDTH, HEIGHT);
 
@@ -94,7 +96,7 @@ void SSAOFrameBuffer::initBlurFrameBuffer() {
     blurFrameBuffer = createFrameBuffer();
     blurTexture = createTextureAttachment(WIDTH, HEIGHT, GL_RED, GL_FLOAT);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, blurTexture, 0);
-    
+
     UnbindCurrentFrameBuffer();
 }
 
@@ -116,9 +118,9 @@ GLuint SSAOFrameBuffer::createTextureAttachment(int width, int height, int forma
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGB, type, NULL);
-    gglTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    
+
     return texture;
 }
 

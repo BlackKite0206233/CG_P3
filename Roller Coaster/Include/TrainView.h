@@ -19,7 +19,7 @@
 #include "WaterFrameBuffer.h"
 #include "Terrain.h"
 #include "SSAO.h"
-#include "SSAOFrameBuffer"
+#include "SSAOFrameBuffer.h"
 
 using namespace std;
 
@@ -31,6 +31,12 @@ class CTrack;
 // You might change the TrainView in order to add different objects to
 // be drawn, or adjust the lighting, or ...
 //#######################################################################
+
+enum RenderMode {
+	Normal_Mode,
+	SSAO_Mode,
+	NPR_Mode
+};
 
 enum CameraType {
 	World,
@@ -88,6 +94,8 @@ public:
 	CTrack *m_pTrack; // The track of the entire scene
 
 	CameraType camera;
+	RenderMode renderMode;
+
 	Triangle *triangle;
 	Square *square;
 	SkyBox *skybox;

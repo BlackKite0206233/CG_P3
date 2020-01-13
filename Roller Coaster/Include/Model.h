@@ -17,12 +17,14 @@
 #include "Light.h"
 #include "SSAOFrameBuffer.h"
 
-class Model {
+class Model: protected QOpenGLFunctions_4_3_Core {
 public:
-	Model() {}
+	Model() {
+		initializeOpenGLFunctions();
+	}
 	Model(const QString &filePath);
 
-	void render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, Light& light, QVector3D& eyePos, SSAOFrameBuffer* ssaoFrameBuffer, QVector4D clipPlane = QVector4D(0, 0, 0, 0), double s = 1, bool wireframe = false, bool normals = false);
+	void render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, Light& light, QVector3D& eyePos, SSAOFrameBuffer* ssaoFrameBuffer, int renderMode, QVector4D clipPlane = QVector4D(0, 0, 0, 0), double s = 1, bool wireframe = false, bool normals = false);
 	void DrawGeometry(QMatrix4x4 ModelMatrix, QOpenGLShaderProgram* shader, double s);
 
 	QString fileName() const { return m_fileName; }

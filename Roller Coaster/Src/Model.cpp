@@ -8,6 +8,7 @@
 #include "Utilities/3DUtils.h"
 
 Model::Model(const QString &filePath) : m_fileName(QFileInfo(filePath).fileName()) {
+	initializeOpenGLFunctions();
 	QFile file(filePath);
 	if (!file.open(QIODevice::ReadOnly))
 		return;
@@ -88,7 +89,7 @@ Model::Model(const QString &filePath) : m_fileName(QFileInfo(filePath).fileName(
 	Init();
 }
 
-void Model::render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, Light& light, QVector3D& eyePos, SSAOFrameBuffer* ssaoFrameBuffer, QVector4D clipPlane, double s, bool wireframe, bool normals) {
+void Model::render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, Light& light, QVector3D& eyePos, SSAOFrameBuffer* ssaoFrameBuffer, int renderMode, QVector4D clipPlane, double s, bool wireframe, bool normals) {
 	GLfloat P[4][4];
 	GLfloat V[4][4];
 	DimensionTransformation(ProjectionMatrix, P);
@@ -117,6 +118,7 @@ void Model::render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatr
 	const GLfloat scale = s / qMax(bounds.x, qMax(bounds.y, bounds.z));
 	shaderProgram->setUniformValue("Scale", scale);
 
+	shaderProgram->setUniformValue("renderMode", renderMode);
 	shaderProgram->setUniformValue("ssaoColorBufferBlur", 0);
 
 	vvbo.bind();
@@ -130,7 +132,7 @@ void Model::render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatr
 	nvbo.release();
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, ssaoFrameBuffer.getBlurTexture());
+	glBindTexture(GL_TEXTURE_2D, ssaoFrameBuffer->getBlurTexture());
 
 	//Draw a triangle with 3 indices starting from the 0th index
 	glDrawArrays(GL_TRIANGLES, 0, vertices.size());

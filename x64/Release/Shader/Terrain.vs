@@ -20,7 +20,8 @@ void main(void)
 
     gl_ClipDistance[0] = dot(position, clipPlane);
 
-    gl_Position = ProjectionMatrix * ViewMatrix * position;
+    clipSpace = ProjectionMatrix * ViewMatrix * position;
+    gl_Position = clipSpace;
     vs_worldpos = position.xyz;
     vs_normal = normal;
     pass_textureCoords = textureCoords / 4.0;

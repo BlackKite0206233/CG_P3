@@ -46,7 +46,7 @@ struct CtrlPoint {
 	double inter;
 };
 
-class ControlPoint {
+class ControlPoint : protected QOpenGLFunctions_4_3_Core {
 public:
 	// constructors
 	// need a default constructor for making arrays
@@ -59,7 +59,7 @@ public:
 	ControlPoint(Pnt3f &pos, Pnt3f &orient);
 
 	// draw the control point - assumes the color is correct
-	void draw(QVector3D color, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, SSAOFrameBuffer* ssaoFrameBuffer, QVector4D& clipPlane = QVector4D(0, 0, 0, 0));
+	void draw(QVector3D color, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, SSAOFrameBuffer* ssaoFrameBuffer, int renderMode, QVector4D& clipPlane = QVector4D(0, 0, 0, 0));
 	void DrawGeometry(QOpenGLShaderProgram* shader);
 
 	void getMouseNDC(float mx, float my, float &x, float &y);

@@ -155,7 +155,7 @@ void Terrain::InitVBO() {
 	tvbo.allocate(textureCoords.constData(), textureCoords.size() * sizeof(QVector2D));
 }
 
-void Terrain::Render(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, QVector<QOpenGLTexture*>& textures, SSAOFrameBuffer* ssaoFrameBuffer, QVector4D clipPlane) {
+void Terrain::Render(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, QVector<QOpenGLTexture*>& textures, SSAOFrameBuffer* ssaoFrameBuffer, int renderMode, QVector4D clipPlane) {
 	GLfloat P[4][4];
 	GLfloat V[4][4];
 	DimensionTransformation(ProjectionMatrix, P);
@@ -174,6 +174,8 @@ void Terrain::Render(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& ligh
 	//shaderProgram->setUniformValue("heightMap", 0);
 	shaderProgram->setUniformValue("grass", 0);
 	shaderProgram->setUniformValue("mud", 1);
+
+	shaderProgram->setUniformValue("renderMode", renderMode);
 	shaderProgram->setUniformValue("ssaoColorBufferBlur", 2);
 
 	shaderProgram->setUniformValue("color_ambient", light.ambientColor);
@@ -208,7 +210,7 @@ void Terrain::Render(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& ligh
 	glActiveTexture(GL_TEXTURE1);
 	textures[5]->bind();
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, ssaoFrameBuffer.getBlurTexture());
+	glBindTexture(GL_TEXTURE_2D, ssaoFrameBuffer->getBlurTexture());
 
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, indices.data());
 	//Disable Attribute 0&1
@@ -228,7 +230,7 @@ void Terrain::DrawGeometry(QOpenGLShaderProgram* shader) {
 	QMatrix4x4 modelMatrix;
 	modelMatrix.setToIdentity();
 	shader->setUniformValue("ModelMatrix", modelMatrix);
-	shader->setUniformValue("scale", 1);
+	shader->setUniformValue("scale", GLfloat(1));
 
 	vvbo.bind();
 	shader->enableAttributeArray(0);

@@ -91,10 +91,10 @@ void Water::Render(double t, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Lig
 	shaderProgram->setUniformValue("near", GLfloat(0.1));
 	shaderProgram->setUniformValue("far", GLfloat(1e10));
 
-	vbo.bind();
+	vvbo.bind();
 	shaderProgram->enableAttributeArray(0);
 	shaderProgram->setAttributeArray(0, GL_FLOAT, 0, 3, NULL);
-	vbo.release();
+	vvbo.release();
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, fbo.getReflectionTexture());

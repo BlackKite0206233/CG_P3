@@ -58,7 +58,7 @@ public:
 	void readPoints(const char *filename);
 	void writePoints(const char *filename);
 
-	void AddPoint(const ControlPoint &p);
+	void AddPoint(ControlPoint &p);
 	void RemovePoint(int index);
 	void AddPath(int p1, int p2);
 	void RemovePath(int p1, int p2);
@@ -76,7 +76,7 @@ public:
 	// rather than have generic objects, we make a special case for these few
 	// objects that we know that all implementations are going to need and that
 	// we're going to have to handle specially
-	map<int, ControlPoint> points;
+	map<int, ControlPoint*> points;
 	map<pair<int, int>, Path, MapComp> paths;
 	int pointCount = 0;
 
