@@ -30,6 +30,8 @@
 #include <queue>
 using namespace std;
 
+Terrain* CTrack::terrain;
+
 //****************************************************************************
 //
 // * Constructor
@@ -49,6 +51,7 @@ void CTrack::resetPoints()
 {
 
 	points.clear();
+	pointCount = 0;
 	points[pointCount++] = ControlPoint(Pnt3f(50, 5, 0));
 	points[pointCount++] = ControlPoint(Pnt3f(0, 5, 50));
 	points[pointCount++] = ControlPoint(Pnt3f(-50, 5, 0));
@@ -79,12 +82,14 @@ void CTrack::readPoints(const char* filename)
 			printf("Illegal Number of Points Specified in File");
 		} else {
 			points.clear();
+			pointCount = 0;
 			// get lines until EOF or we have enough points
 			for (int i = 0; i < n; i++) {
 				ControlPoint p;
 				CtrlPoint center;
 				double x, y, z, ox, oy, oz;
 				fs >> center.pos.x >> center.pos.y >> center.pos.z >> center.orient.x >> center.orient.y >> center.orient.z;
+				center.pos.y += terrain->getHeightOfTerrain(center.pos.x, center.pos.z);
 				center.orient.normalize();
 				p.center = center;
 				points[pointCount++] = p;
@@ -125,7 +130,7 @@ void CTrack::writePoints(const char* filename)
 		fs << points.size() << endl;
 		for (const auto& v : points) {
 			CtrlPoint p = v.second.center;
-			fs << p.pos.x << " " << p.pos.y << " " << p.pos.z << " " << p.orient.x << " " << p.orient.y << " " << p.orient.z << endl;
+			fs << p.pos.x << " " << p.pos.y - terrain->getHeightOfTerrain(p.pos.x, p.pos.z) << " " << p.pos.z << " " << p.orient.x << " " << p.orient.y << " " << p.orient.z << endl;
 		}
 		fs << paths.size() << endl;
 		for (auto p : points)

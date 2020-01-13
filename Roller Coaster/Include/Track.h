@@ -30,6 +30,7 @@
 #include <vector>
 #include "ControlPoint.h"
 #include "Path.h"
+#include "Terrain.h"
 
 #define DIVIDE_LINE 100
 
@@ -41,6 +42,7 @@ using std::vector; // avoid having to say std::vector all of the time
 
 class CTrack {
 public:
+	static Terrain* terrain;
 	// Constructor
 	CTrack();
 

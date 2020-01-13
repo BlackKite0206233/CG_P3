@@ -14,7 +14,7 @@ uniform vec3 color_diffuse;
 uniform vec3 color_specular;
 uniform vec4 light_position;
 uniform vec3 eye_position;
-uniform float shininess = 4.0;
+uniform float shininess = 2.0;
 uniform float ambientStrength  = 0.4;
 uniform float specularStrength = 0.4;
 
@@ -31,6 +31,9 @@ void main() {
 	vec4 colorGrass = texture(grass, pass_textureCoords) * blend;
 	vec4 colorMud = texture(mud, pass_textureCoords) * (1 - blend);
 	vec3 color = (colorGrass + colorMud).rgb;
+	if (vs_worldpos.y < 0) {
+		color *= pow(1 + clamp(vs_worldpos.y, -100, 0) / 400, 8);
+	}
 	//color = vec3(0, 1, 0);
 	fColor = min(vec4(color * result, 1), vec4(1));
 }

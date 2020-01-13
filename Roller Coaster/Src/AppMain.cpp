@@ -108,7 +108,10 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 					rx, ry, rz,
 					false);
 
-				p.center = CtrlPoint(Pnt3f(rx, trainview->terrain->getHeightOfTerrain(rx, rz) + 5, rz), Pnt3f(0, 1, 0));
+				float height = trainview->terrain->getHeightOfTerrain(rx, rz);
+				if (height < 0)
+					height = 0;
+				p.center = CtrlPoint(Pnt3f(rx, height + 5, rz), Pnt3f(0, 1, 0));
 				trainview->m_pTrack->AddPoint(p);
 			}
 				break;
@@ -185,6 +188,10 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 
 				cp->center.pos.x = (float)rx;
 				cp->center.pos.z = (float)rz;
+				float height = trainview->terrain->getHeightOfTerrain(rx, rz);
+				if (cp->center.pos.y < height + 5) {
+					cp->center.pos.y = height + 5;
+				}
 			}
 			else if (!isHover) {
 				float x, y;
@@ -227,14 +234,14 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 		case Qt::Key_Up:
 			if (trainview->selectedPoint >= 0) {
 				ControlPoint *cp = &trainview->m_pTrack->points[trainview->selectedPoint];
-				cp->center.pos.y += 0.5;
+				cp->center.pos.y += 1;
 				trainview->m_pTrack->BuildTrack();
 			}
 			break;
 		case Qt::Key_Down:
 			if (trainview->selectedPoint >= 0) {
 				ControlPoint *cp = &trainview->m_pTrack->points[trainview->selectedPoint];
-				cp->center.pos.y -= 0.5;
+				cp->center.pos.y -= 1;
 				trainview->m_pTrack->BuildTrack();
 			}
 			break;
