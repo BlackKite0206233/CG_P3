@@ -19,6 +19,7 @@ AppMain::AppMain(QWidget *parent) : QMainWindow(parent) {
 	this->isHover = false;
 	this->rotatePoint = false;
 	this->trainview->camera = World;
+	this->trainview->renderMode = Normal_Mode;
 	PathData::curve = Linear;
 	PathData::track = Line;
 	CTrain::isMove = false;
@@ -127,15 +128,15 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			}
 
 			if (this->rotatePoint && trainview->selectedPoint >= 0) {
-				trainview->m_pTrack->points[trainview->selectedPoint].setCenter((float)event->localPos().x(), (float)event->localPos().y());
+				trainview->m_pTrack->points[trainview->selectedPoint]->setCenter((float)event->localPos().x(), (float)event->localPos().y());
 			}
 		}
 		if (event->button() == Qt::RightButton) {
 			if (!(rotatePoint && trainview->selectedPoint >= 0))
 				trainview->arcball->mode = trainview->arcball->Rotate;
 			else {
-				trainview->m_pTrack->points[trainview->selectedPoint].getMouseNDC((float)event->localPos().x(), (float)event->localPos().y(), x, y);
-				trainview->m_pTrack->points[trainview->selectedPoint].down(x, y);
+				trainview->m_pTrack->points[trainview->selectedPoint]->getMouseNDC((float)event->localPos().x(), (float)event->localPos().y(), x, y);
+				trainview->m_pTrack->points[trainview->selectedPoint]->down(x, y);
 			}
 		}
 	}
@@ -161,7 +162,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			if (trainview->camera == Train) {
 				return QWidget::eventFilter(watched, e);
 			}
-			ControlPoint *cp = &trainview->m_pTrack->points[trainview->selectedPoint];
+			ControlPoint *cp = trainview->m_pTrack->points[trainview->selectedPoint];
 			if (!rotatePoint) {
 				double r1x, r1y, r1z, r2x, r2y, r2z;
 				int x = event->localPos().x();
@@ -195,8 +196,8 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			}
 			else if (!isHover) {
 				float x, y;
-				trainview->m_pTrack->points[trainview->selectedPoint].getMouseNDC((float)event->localPos().x(), (float)event->localPos().y(), x, y);
-				trainview->m_pTrack->points[trainview->selectedPoint].computeNow(x, y);
+				trainview->m_pTrack->points[trainview->selectedPoint]->getMouseNDC((float)event->localPos().x(), (float)event->localPos().y(), x, y);
+				trainview->m_pTrack->points[trainview->selectedPoint]->computeNow(x, y);
 			}
 
 			trainview->m_pTrack->BuildTrack();
@@ -233,14 +234,14 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 
 		case Qt::Key_Up:
 			if (trainview->selectedPoint >= 0) {
-				ControlPoint *cp = &trainview->m_pTrack->points[trainview->selectedPoint];
+				ControlPoint *cp = trainview->m_pTrack->points[trainview->selectedPoint];
 				cp->center.pos.y += 1;
 				trainview->m_pTrack->BuildTrack();
 			}
 			break;
 		case Qt::Key_Down:
 			if (trainview->selectedPoint >= 0) {
-				ControlPoint *cp = &trainview->m_pTrack->points[trainview->selectedPoint];
+				ControlPoint *cp = trainview->m_pTrack->points[trainview->selectedPoint];
 				cp->center.pos.y -= 1;
 				trainview->m_pTrack->BuildTrack();
 			}
@@ -341,6 +342,16 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 
 		case Qt::Key_Space:
 			SwitchPlayAndPause();
+			break;
+
+		case Qt::Key_F1:
+			trainview->renderMode = Normal_Mode;
+			break;
+		case Qt::Key_F2:
+			trainview->renderMode = SSAO_Mode;
+			break;
+		case Qt::Key_F3:
+			trainview->renderMode = NPR_Mode;
 			break;
 		}
 	}

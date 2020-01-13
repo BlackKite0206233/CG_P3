@@ -52,6 +52,7 @@ CtrlPoint::CtrlPoint(Pnt3f& _pos, Pnt3f& _orient) : pos(_pos), orient(_orient) {
 ControlPoint::ControlPoint() : center(), children(set<int>()), parents(set<int>())
 //============================================================================
 {
+	initializeOpenGLFunctions();
 	vao = new QOpenGLVertexArrayObject();
 	Init();
 }
@@ -63,6 +64,7 @@ ControlPoint::ControlPoint() : center(), children(set<int>()), parents(set<int>(
 ControlPoint::ControlPoint(Pnt3f &_pos) : center(_pos), children(set<int>()), parents(set<int>())
 //============================================================================
 {
+	initializeOpenGLFunctions();
 	vao = new QOpenGLVertexArrayObject();
 	Init();
 }
@@ -74,6 +76,7 @@ ControlPoint::ControlPoint(Pnt3f &_pos) : center(_pos), children(set<int>()), pa
 ControlPoint::ControlPoint(Pnt3f &_pos, Pnt3f &_orient) : center(_pos, _orient), children(set<int>()), parents(set<int>())
 //============================================================================
 {
+	initializeOpenGLFunctions();
 	vao = new QOpenGLVertexArrayObject();
 	Init();
 }
@@ -82,7 +85,7 @@ ControlPoint::ControlPoint(Pnt3f &_pos, Pnt3f &_orient) : center(_pos, _orient),
 //
 // * Draw the control point
 //============================================================================
-void ControlPoint::draw(QVector3D color, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, QVector4D& clipPlane)
+void ControlPoint::draw(QVector3D color, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, SSAOFrameBuffer* ssaoFrameBuffer, int renderMode, QVector4D& clipPlane)
 //============================================================================
 {
 	ModelMatrix.setToIdentity();
@@ -119,6 +122,9 @@ void ControlPoint::draw(QVector3D color, GLfloat* ProjectionMatrix, GLfloat* Vie
 
 	shaderProgram->setUniformValue("Scale", GLfloat(2.0));
 
+	shaderProgram->setUniformValue("renderMode", renderMode);
+	shaderProgram->setUniformValue("ssaoColorBufferBlur", 0);
+
 	vvbo.bind();
 	shaderProgram->enableAttributeArray(0);
 	shaderProgram->setAttributeArray(0, GL_FLOAT, 0, 3, NULL);
@@ -128,6 +134,9 @@ void ControlPoint::draw(QVector3D color, GLfloat* ProjectionMatrix, GLfloat* Vie
 	shaderProgram->enableAttributeArray(1);
 	shaderProgram->setAttributeArray(1, GL_FLOAT, 0, 3, NULL);
 	nvbo.release();
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, ssaoFrameBuffer->getBlurTexture());
 
 	//Draw a triangle with 3 indices starting from the 0th index
 	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
@@ -139,6 +148,36 @@ void ControlPoint::draw(QVector3D color, GLfloat* ProjectionMatrix, GLfloat* Vie
 	vao->release();
 	//unbind vao
 	shaderProgram->release();
+}
+
+void ControlPoint::DrawGeometry(QOpenGLShaderProgram* shader) {
+	ModelMatrix.setToIdentity();
+	ModelMatrix.translate(center.pos.x, center.pos.y, center.pos.z);
+	float theta1 = -radiansToDegrees(atan2(center.orient.z, center.orient.x));
+	ModelMatrix.rotate(theta1, 0, 1, 0);
+	float theta2 = -radiansToDegrees(acos(center.orient.y));
+	ModelMatrix.rotate(theta2, 0, 0, 1);
+
+	vao->bind();
+
+	shader->setUniformValue("ModelMatrix", ModelMatrix);
+	shader->setUniformValue("scale", GLfloat(2.0));
+
+	vvbo.bind();
+	shader->enableAttributeArray(0);
+	shader->setAttributeArray(0, GL_FLOAT, 0, 3, NULL);
+	vvbo.release();
+
+	nvbo.bind();
+	shader->enableAttributeArray(1);
+	shader->setAttributeArray(1, GL_FLOAT, 0, 3, NULL);
+	nvbo.release();
+
+	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+
+	shader->disableAttributeArray(0);
+	shader->disableAttributeArray(1);
+	vao->release();
 }
 
 void ControlPoint::setCenter(float x, float y) {

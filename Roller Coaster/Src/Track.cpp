@@ -52,10 +52,10 @@ void CTrack::resetPoints()
 
 	points.clear();
 	pointCount = 0;
-	points[pointCount++] = ControlPoint(Pnt3f(50, 5, 0));
-	points[pointCount++] = ControlPoint(Pnt3f(0, 5, 50));
-	points[pointCount++] = ControlPoint(Pnt3f(-50, 5, 0));
-	points[pointCount++] = ControlPoint(Pnt3f(0, 5, -50));
+	//points[pointCount++] = new ControlPoint(Pnt3f(50, 5, 0));
+	//points[pointCount++] = new ControlPoint(Pnt3f(0, 5, 50));
+	//points[pointCount++] = new ControlPoint(Pnt3f(-50, 5, 0));
+	//points[pointCount++] = new ControlPoint(Pnt3f(0, 5, -50));
 
 	// we had better put the train back at the start of the track...
 }
@@ -85,13 +85,13 @@ void CTrack::readPoints(const char* filename)
 			pointCount = 0;
 			// get lines until EOF or we have enough points
 			for (int i = 0; i < n; i++) {
-				ControlPoint p;
+				ControlPoint *p = new ControlPoint();
 				CtrlPoint center;
 				double x, y, z, ox, oy, oz;
 				fs >> center.pos.x >> center.pos.y >> center.pos.z >> center.orient.x >> center.orient.y >> center.orient.z;
 				center.pos.y += terrain->getHeightOfTerrain(center.pos.x, center.pos.z);
 				center.orient.normalize();
-				p.center = center;
+				p->center = center;
 				points[pointCount++] = p;
 			}
 		}
@@ -107,8 +107,8 @@ void CTrack::readPoints(const char* filename)
 				advance(it1, parent);
 				auto it2 = points.begin();
 				advance(it2, child);
-				points[it1->first].children.insert(it2->first);
-				points[it2->first].parents.insert(it1->first);
+				points[it1->first]->children.insert(it2->first);
+				points[it2->first]->parents.insert(it1->first);
 			}
 		}
 		fs.close();
@@ -129,12 +129,12 @@ void CTrack::writePoints(const char* filename)
 	} else {
 		fs << points.size() << endl;
 		for (const auto& v : points) {
-			CtrlPoint p = v.second.center;
+			CtrlPoint p = v.second->center;
 			fs << p.pos.x << " " << p.pos.y - terrain->getHeightOfTerrain(p.pos.x, p.pos.z) << " " << p.pos.z << " " << p.orient.x << " " << p.orient.y << " " << p.orient.z << endl;
 		}
 		fs << paths.size() << endl;
 		for (auto p : points)
-			for (const auto& c : p.second.children)
+			for (const auto& c : p.second->children)
 				fs << p.first << " " << c << endl;
 		fs.close();
 	}
@@ -179,13 +179,13 @@ void subdivision(PathData &pd, CtrlPoint p1, CtrlPoint p2) {
 void CTrack::BuildTrack() {
 	paths.clear();
 	for (auto& p : points) {
-		p.second.visited = false;
+		p.second->visited = false;
 	}
 
 	int start;
 	queue<int> q;
 	for (auto it = points.begin(); it != points.end(); it++) {
-		if (points[it->first].visited)
+		if (points[it->first]->visited)
 			continue;
 		q.push(it->first);
 		start = it->first;
@@ -193,28 +193,28 @@ void CTrack::BuildTrack() {
 			int idx = q.front();
 			q.pop();
 
-			if (points[idx].visited)
+			if (points[idx]->visited)
 				continue;
 
-			points[idx].visited = true;
-			for (const auto& child : points[idx].children) {
-				if (!points[child].visited)
+			points[idx]->visited = true;
+			for (const auto& child : points[idx]->children) {
+				if (!points[child]->visited)
 					q.push(child);
 
-				ControlPoint p0, p1, p2, p3;
+				ControlPoint *p0, *p1, *p2, *p3;
 				p1 = points[idx];
 				p2 = points[child];
 
 				set<int> p0Set;
 				set<int> p3Set;
-				if (p1.parents.empty())
+				if (p1->parents.empty())
 					p0Set.insert(start);
 				else
-					p0Set = p1.parents;
-				if (p2.children.empty())
+					p0Set = p1->parents;
+				if (p2->children.empty())
 					p3Set.insert(start);
 				else
-					p3Set = p2.children;
+					p3Set = p2->children;
 				
 				Path path;
 				bool isFirst = true;
@@ -238,11 +238,11 @@ void CTrack::BuildTrack() {
 
 						p3 = points[p3Id];
 						if (PathData::curve != Linear) {
-							calParam(p0.center, p1.center, p2.center, p3.center, pd);
+							calParam(p0->center, p1->center, p2->center, p3->center, pd);
 						}
 						else {
-							pd.a = p1.center;
-							pd.b = p2.center;
+							pd.a = p1->center;
+							pd.b = p2->center;
 						}
 
 						CtrlPoint p1, p2;
@@ -284,28 +284,28 @@ void CTrack::SetCurve(CurveType type) {
 	BuildTrack();
 }
 
-void CTrack::AddPoint(const ControlPoint& p) {
-	points[pointCount++] = p;
+void CTrack::AddPoint(ControlPoint& p) {
+	points[pointCount++] = &p;
 }
 
 void CTrack::RemovePoint(int index) {
-	ControlPoint p = points[index];
-	auto child  = p.children.begin();
-	auto parent = p.parents.begin();
+	ControlPoint *p = points[index];
+	auto child  = p->children.begin();
+	auto parent = p->parents.begin();
 	int lastChild, lastParent;
-	for (; child != p.children.end() && parent != p.parents.end(); ++child, ++parent) {
-		points[*child].parents.insert(*parent);
-		points[*parent].children.insert(*child);
+	for (; child != p->children.end() && parent != p->parents.end(); ++child, ++parent) {
+		points[*child]->parents.insert(*parent);
+		points[*parent]->children.insert(*child);
 		lastChild  = *child;
 		lastParent = *parent;
 	}
-	if (child != p.children.end()) {
-		for (; child != p.children.end(); ++child) {
-			points[lastParent].children.insert(*child);
+	if (child != p->children.end()) {
+		for (; child != p->children.end(); ++child) {
+			points[lastParent]->children.insert(*child);
 		}
 	} else {
-		for (; parent != p.parents.end(); ++parent) {
-			points[lastChild].parents.insert(*parent);
+		for (; parent != p->parents.end(); ++parent) {
+			points[lastChild]->parents.insert(*parent);
 		}
 	}
 
@@ -315,14 +315,14 @@ void CTrack::RemovePoint(int index) {
 }
 
 void CTrack::AddPath(int p1, int p2) {
-	points[p1].children.insert(p2);
-	points[p2].parents.insert(p1);
+	points[p1]->children.insert(p2);
+	points[p2]->parents.insert(p1);
 	BuildTrack();
 }
 
 void CTrack::RemovePath(int p1, int p2) {
-	points[p1].children.erase(p2);
-	points[p2].parents.erase(p1);
+	points[p1]->children.erase(p2);
+	points[p2]->parents.erase(p1);
 	BuildTrack();
 }
 

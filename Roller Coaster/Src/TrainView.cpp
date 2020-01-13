@@ -43,10 +43,14 @@ void TrainView::initializeGL() {
 	terrain = new Terrain(1024, 1024);
 	terrain->Init();
 
+	ssao = new SSAO();
+	ssao->Init();
+
 	PathData::terrain = terrain;
 	CTrack::terrain = terrain;
 
 	fbos = new WaterFrameBuffer(this);
+	ssaoFrameBuffer = new SSAOFrameBuffer(this);
 	//Initialize texture
 
 }
@@ -153,29 +157,6 @@ void TrainView::paintGL()
 	glLoadIdentity();
 	setProjection();
 	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
-	//QMatrix4x4 rotationMatrix = QMatrix4x4({ 
-	//	ModelViewMatrex[0], ModelViewMatrex[1], ModelViewMatrex[2], 0,
-	//	ModelViewMatrex[4], ModelViewMatrex[5], ModelViewMatrex[6], 0,
-	//	ModelViewMatrex[8], ModelViewMatrex[9], ModelViewMatrex[10], 0,
-	//	0, 0, 0, 1
-	//	});
-	//rotationMatrix = rotationMatrix.transposed();
-	//QVector4D ray(0, 0, 1, 0);
-	//ray = rotationMatrix.inverted() * ray;
-	//ray.normalize();
-	//double angle1 = acos(QVector3D::dotProduct(QVector3D(ray), QVector3D(0, -1, 0)));
-	//double angle2 = asin(sin(angle1) / 1.3);
-	//rotationMatrix.rotate(angle1 - angle2, QVector3D::crossProduct(QVector3D(ray), QVector3D(0, -1, 0)));
-
-	//QVector3D cameraPos = getCameraPosition();
-	//double dx = tan(angle1) * cameraPos[1];
-	//double dy = dx / tan(angle2);
-	//m.setToIdentity();
-	//m.translate(ModelViewMatrex[12], ModelViewMatrex[13], ModelViewMatrex[14]);
-	//m = m * rotationMatrix;
-	//m = m.transposed();
-	//m.copyDataTo(ModelViewMatrex);
-	//glLoadMatrixf(ModelViewMatrex);
 	
 	drawSkyBox();
 	setupObjects();
@@ -188,13 +169,29 @@ void TrainView::paintGL()
 	glDisable(GL_CLIP_DISTANCE0);
 	fbos->UnbindCurrentFrameBuffer();
 
+	ssaoFrameBuffer->BindGeometryFrameBuffer();
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	ssao->GeometryShaderBegin(ProjectionMatrex, ModelViewMatrex);
+	setupObjects();
+	drawGeometry();
+	ssao->GeometryShaderEnd();
+	ssaoFrameBuffer->UnbindCurrentFrameBuffer();
+	
+	ssaoFrameBuffer->BindSSAOFrameBuffer();
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	ssao->SSAOPass(ProjectionMatrex, *ssaoFrameBuffer, width(), height());
+	ssaoFrameBuffer->UnbindCurrentFrameBuffer();
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	setProjection();
-	glGetFloatv(GL_MODELVIEW_MATRIX, ModelViewMatrex);
+	ssaoFrameBuffer->BindBlurFrameBuffer();
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	ssao->BlurPass(*ssaoFrameBuffer);
+	ssaoFrameBuffer->UnbindCurrentFrameBuffer();
+
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	drawSkyBox();
 	setupObjects();
@@ -208,13 +205,6 @@ void TrainView::paintGL()
 		}
 		light.Move();
 	}
-
-	// this time drawing is for shadows (except for top view)
-	/*if (this->camera != Top) {
-		setupShadows();
-		drawStuff(true);
-		unsetupShadows();
-	}*/
 
 	
 	//Call triangle's render function, pass ModelViewMatrex and ProjectionMatrex
@@ -307,50 +297,36 @@ void TrainView::drawSkyBox() {
 //========================================================================
 void TrainView::drawStuff(QVector4D& clipPlane, bool doingShadows)
 {
-	this->terrain->Render(ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), Textures, clipPlane);
-	this->m_pTrack->Draw(doingShadows, selectedPath);
-
-	// Draw the control points
-	// don't draw the control points if you're driving
-	// (otherwise you get sea-sick as you drive through them)
+	this->terrain->Render(ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), Textures, ssaoFrameBuffer, renderMode, clipPlane);
+	this->m_pTrack->Draw(false, selectedPath);
+	
 	if (this->camera != Train) {
-		int i = 0;
 		QVector3D color;
 		for (auto &p : this->m_pTrack->points) {
-			if (!doingShadows) {
-				if (p.first != selectedPoint)
-					color = QVector3D(240 / 255.0, 60 / 255.0, 60 / 255.0);
-				else
-					color = QVector3D(240 / 255.0, 240 / 255.0, 30 / 255.0);
-			}
-			p.second.draw(color, ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), clipPlane);
-			i++;
+			if (p.first != selectedPoint)
+				color = QVector3D(240 / 255.0, 60 / 255.0, 60 / 255.0);
+			else
+				color = QVector3D(240 / 255.0, 240 / 255.0, 30 / 255.0);
+			p.second->draw(color, ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), ssaoFrameBuffer, renderMode, clipPlane);
 		}
 		update();
 	}
-	// draw the track
-	//####################################################################
-	// TODO:
-	// call your own track drawing code
-	//####################################################################
-
-#ifdef EXAMPLE_SOLUTION
-	drawTrack(this, doingShadows);
-#endif
 
 	for (int i = 0; i < trains.size(); i++) {
-		trains[i].Draw(false, i == selectedTrain, light, getCameraPosition(), clipPlane);
+		trains[i].Draw(false, i == selectedTrain, light, getCameraPosition(), ssaoFrameBuffer, renderMode, clipPlane);
 	}
-	// draw the train
-	//####################################################################
-	// TODO:
-	//	call your own train drawing code
-	//####################################################################
-#ifdef EXAMPLE_SOLUTION
-	// don't draw the train if you're looking out the front window
-	if (!tw->trainCam->value())
-		drawTrain(this, doingShadows);
-#endif
+}
+
+void TrainView::drawGeometry() {
+	this->terrain->DrawGeometry(ssao->currentShader);
+	if (this->camera != Train) {
+		for (auto &p : this->m_pTrack->points) {
+			p.second->DrawGeometry(ssao->currentShader);
+		}
+	}
+	for (int i = 0; i < trains.size(); i++) {
+		trains[i].DrawGeometry(ssao->currentShader);
+	}
 }
 
 void TrainView::doPick(int mx, int my)
@@ -388,7 +364,7 @@ void TrainView::doPick(int mx, int my)
 	auto it1 = m_pTrack->points.begin();
 	for (int i = 0; it1 != m_pTrack->points.end(); i++, it1++) {
 		glLoadName((GLuint)(i + 1));
-		it1->second.draw(QVector3D(0, 0, 0), ProjectionMatrex, ModelViewMatrex, light, getCameraPosition());
+		it1->second->draw(QVector3D(0, 0, 0), ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), ssaoFrameBuffer, 0);
 	}
 
 	auto it2 = m_pTrack->paths.begin();
@@ -401,7 +377,7 @@ void TrainView::doPick(int mx, int my)
 
 	for (int i = 0; i < trains.size(); i++) {
 		glLoadName((GLuint)(i + 1 + m_pTrack->points.size() + m_pTrack->paths.size()));
-		trains[i].Draw(false, false, light, getCameraPosition());
+		trains[i].Draw(false, false, light, getCameraPosition(), ssaoFrameBuffer, 0);
 	}
 
 	// go back to drawing mode, and see how picking did
@@ -444,7 +420,7 @@ void TrainView::AddTrain() {
 
 	PathData pd;
 	if (selectedPoint >= 0) {
-		auto children = m_pTrack->points[selectedPoint].children;
+		auto children = m_pTrack->points[selectedPoint]->children;
 		if (children.size()) {
 			auto it1 = children.begin();
 			advance(it1, rand() % children.size());

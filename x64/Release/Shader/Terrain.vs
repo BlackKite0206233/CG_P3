@@ -7,6 +7,7 @@ layout(location = 2) in vec2 textureCoords;
 out vec3 vs_worldpos;
 out vec3 vs_normal;
 out vec2 pass_textureCoords;
+out vec4 clipSpace;
 
 uniform mat4 ProjectionMatrix;
 uniform mat4 ViewMatrix;
@@ -19,7 +20,8 @@ void main(void)
 
     gl_ClipDistance[0] = dot(position, clipPlane);
 
-    gl_Position = ProjectionMatrix * ViewMatrix * position;
+    clipSpace = ProjectionMatrix * ViewMatrix * position;
+    gl_Position = clipSpace;
     vs_worldpos = position.xyz;
     vs_normal = normal;
     pass_textureCoords = textureCoords / 4.0;

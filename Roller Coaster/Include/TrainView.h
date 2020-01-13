@@ -18,6 +18,8 @@
 #include "Water.h"
 #include "WaterFrameBuffer.h"
 #include "Terrain.h"
+#include "SSAO.h"
+#include "SSAOFrameBuffer.h"
 
 using namespace std;
 
@@ -29,6 +31,12 @@ class CTrack;
 // You might change the TrainView in order to add different objects to
 // be drawn, or adjust the lighting, or ...
 //#######################################################################
+
+enum RenderMode {
+	Normal_Mode,
+	SSAO_Mode,
+	NPR_Mode
+};
 
 enum CameraType {
 	World,
@@ -51,6 +59,7 @@ public:
 	// it has to be encapsulated, since we draw differently if
 	// we're drawing shadows (no colors, for example)
 	void drawStuff(QVector4D& clipplane = QVector4D(0, 0, 0, 0), bool doingShadows = false);
+	void drawGeometry();
 	void drawSkyBox();
 
 	// setup the projection - assuming that the projection stack has been
@@ -85,6 +94,8 @@ public:
 	CTrack *m_pTrack; // The track of the entire scene
 
 	CameraType camera;
+	RenderMode renderMode;
+
 	Triangle *triangle;
 	Square *square;
 	SkyBox *skybox;
@@ -97,5 +108,7 @@ public:
 	Water *water;
 	WaterFrameBuffer *fbos;
 	Terrain *terrain;
+	SSAO *ssao;
+	SSAOFrameBuffer *ssaoFrameBuffer;
 };
 #endif // TRAINVIEW_H
