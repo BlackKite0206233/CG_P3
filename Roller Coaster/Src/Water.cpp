@@ -36,10 +36,23 @@ void Water::InitVBO() {
 		<< QVector3D(-1, 0,  1)
 		<< QVector3D( 1, 0,  1);
 
-	vbo.create();
-	vbo.bind();
-	vbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
-	vbo.allocate(vertices.constData(), vertices.size() * sizeof(QVector3D));
+	vvbo.create();
+	vvbo.bind();
+	vvbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+	vvbo.allocate(vertices.constData(), vertices.size() * sizeof(QVector3D));
+
+	normals 
+		<< QVector3D(0, 1, 0)
+		<< QVector3D(0, 1, 0)
+		<< QVector3D(0, 1, 0)
+		<< QVector3D(0, 1, 0)
+		<< QVector3D(0, 1, 0)
+		<< QVector3D(0, 1, 0);
+
+	nvbo.create();
+	nvbo.bind();
+	nvbo.setUsagePattern(QOpenGLBuffer::StaticDraw);
+	nvbo.allocate(normals.constData(), normals.size() * sizeof(QVector3D));
 }
 
 void Water::Render(double t, GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, WaterFrameBuffer& fbo, QVector<QOpenGLTexture*>& textures) {

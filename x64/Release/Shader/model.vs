@@ -5,6 +5,7 @@ layout(location = 1) in vec3 normal;
 
 out vec3 vs_worldpos;
 out vec3 vs_normal;
+out vec4 clipSpace;
 
 uniform mat4 ProjectionMatrix;
 uniform mat4 ViewMatrix;
@@ -18,8 +19,8 @@ void main(void)
     vec4 position = ModelMatrix * vec4(Scale * vertex, 1.0);
 
     gl_ClipDistance[0] = dot(position, clipPlane);
-
-    gl_Position = ProjectionMatrix * ViewMatrix * position;
+    clipSpace = ProjectionMatrix * ViewMatrix * position;
+    gl_Position = clipSpace;
     vs_worldpos = position.xyz;
     vs_normal = mat3(transpose(inverse(ModelMatrix))) * normal;
 }

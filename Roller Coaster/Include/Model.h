@@ -15,13 +15,15 @@
 #include "Point3d.h"
 #include "Utilities/Pnt3f.h"
 #include "Light.h"
+#include "SSAOFrameBuffer.h"
 
 class Model {
 public:
 	Model() {}
 	Model(const QString &filePath);
 
-	void render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, Light& light, QVector3D& eyePos, QVector4D clipPlane = QVector4D(0, 0, 0, 0), double s = 1, bool wireframe = false, bool normals = false);
+	void render(QVector3D color, GLfloat *ProjectionMatrix, GLfloat *ViewMatrix, QMatrix4x4 ModelMatrix, Light& light, QVector3D& eyePos, SSAOFrameBuffer* ssaoFrameBuffer, QVector4D clipPlane = QVector4D(0, 0, 0, 0), double s = 1, bool wireframe = false, bool normals = false);
+	void DrawGeometry(QMatrix4x4 ModelMatrix, QOpenGLShaderProgram* shader, double s);
 
 	QString fileName() const { return m_fileName; }
 	int faces() const { return m_pointIndices.size() / 3; }

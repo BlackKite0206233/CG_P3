@@ -18,6 +18,8 @@
 #include "Water.h"
 #include "WaterFrameBuffer.h"
 #include "Terrain.h"
+#include "SSAO.h"
+#include "SSAOFrameBuffer"
 
 using namespace std;
 
@@ -51,6 +53,7 @@ public:
 	// it has to be encapsulated, since we draw differently if
 	// we're drawing shadows (no colors, for example)
 	void drawStuff(QVector4D& clipplane = QVector4D(0, 0, 0, 0), bool doingShadows = false);
+	void drawGeometry();
 	void drawSkyBox();
 
 	// setup the projection - assuming that the projection stack has been
@@ -97,5 +100,7 @@ public:
 	Water *water;
 	WaterFrameBuffer *fbos;
 	Terrain *terrain;
+	SSAO *ssao;
+	SSAOFrameBuffer *ssaoFrameBuffer;
 };
 #endif // TRAINVIEW_H

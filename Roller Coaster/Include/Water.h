@@ -32,5 +32,6 @@ private:
 	QOpenGLShaderProgram* shaderProgram;
 	QVector<QVector3D> vertices;
 	QOpenGLVertexArrayObject* vao;
-	QOpenGLBuffer vbo;
+	QOpenGLBuffer vvbo;
+	QOpenGLBuffer nvbo;
 };

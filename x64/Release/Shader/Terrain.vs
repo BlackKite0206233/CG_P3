@@ -7,6 +7,7 @@ layout(location = 2) in vec2 textureCoords;
 out vec3 vs_worldpos;
 out vec3 vs_normal;
 out vec2 pass_textureCoords;
+out vec4 clipSpace;
 
 uniform mat4 ProjectionMatrix;
 uniform mat4 ViewMatrix;

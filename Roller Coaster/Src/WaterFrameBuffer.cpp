@@ -58,6 +58,7 @@ void WaterFrameBuffer::initRefractionFrameBuffer() {
     refractionFrameBuffer = createFrameBuffer();
     refractionTexture = createTextureAttachment(REFRACTION_WIDTH, REFRACTION_HEIGHT);
     refractionDepthTexture = createDepthTextureAttachment(REFRACTION_WIDTH, REFRACTION_HEIGHT);
+    UnbindCurrentFrameBuffer();
 }
 
 void WaterFrameBuffer::bindFrameBuffer(GLuint framebuffer, int width, int height) {
