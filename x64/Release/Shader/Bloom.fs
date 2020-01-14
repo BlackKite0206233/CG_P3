@@ -14,22 +14,29 @@ uniform sampler2D depthMap;
 uniform float near;
 uniform float far;
 
+uniform float width;
+uniform float height;
+
 uniform float intensity;
 
 const int smapleNum = 10;
 const float threshold = 0.009;
 
-float f(float x, float y){
-    return exp(-0.5 * x * x * 0.05) * 0.5 * exp(-0.5 * y * y * 0.05) * 0.5;
+const vec2 invImageSize = vec2(1 / 1920.0, 1 / 1080.0);
+
+float f(float x, float y) {
+    return exp(-(x * x + y * y));
 }
 
 void main() {
     fColor = texture(colorMap, TexCoords);
-    float threshold = (100-intensity) * 0.01;
-    for(int x = -8; x <= 8;x++ ){
-        for(int y = -8; y <= 8;y++ ){
-            vec4 color = texture(colorMap, TexCoords + vec2(x * 0.00135 * intensity, y * 0.001 * intensity));
-            if(color.r > threshold && color.g > threshold && color.b > threshold){
+    float threshold = (100 - intensity) * 0.01;
+    float step = intensity * 0.1;
+    float clampStep = clamp(step, 1, 10);
+    for (int x = -8 - int(step); x <= 8 + int(step); x++){
+        for (int y = -8 - int(step); y <= 8 + int(step); y++){
+            vec4 color = texture(colorMap, TexCoords + vec2(x / width * clampStep, y / height * clampStep));
+            if (color.r > threshold && color.g > threshold && color.b > threshold){
                 fColor.xyz += f(x,y) * color.xyz * 0.08;
             }
         }

@@ -277,7 +277,6 @@ void TrainView::paintGL()
 	Render(bloomShader, bloomIntensity, bloomTexture);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-
 	float blur;
 	if (camera != Train) {
 		blur = 0;
@@ -402,6 +401,9 @@ void TrainView::Render(QOpenGLShaderProgram* currentShader, float intensity, GLu
 
 	currentShader->setUniformValue("near", GLfloat(0.1));
 	currentShader->setUniformValue("far", GLfloat(1e10));
+
+	currentShader->setUniformValue("width", GLfloat(width()));
+	currentShader->setUniformValue("height", GLfloat(height()));
 
 	currentShader->setUniformValue("intensity", intensity);
 
