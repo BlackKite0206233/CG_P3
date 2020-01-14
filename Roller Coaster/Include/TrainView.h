@@ -86,7 +86,11 @@ public:
 private:
 	void InitVAO();
 	void InitVBO();
-	void Render();
+	void Render(QOpenGLShaderProgram* currentShader, float intensity, GLuint texture);
+
+	GLuint createFrameBuffer();
+	GLuint createTexture();
+	GLuint createDepthTexture();
 
 public:
 	ArcBallCam *arcball; // keep an ArcBall for the UI
@@ -118,16 +122,20 @@ public:
 	SSAOFrameBuffer *ssaoFrameBuffer;
 	QVector3D fogColor;
 
-	GLuint finalFrameBuffer;
-	GLuint finalTexture;
+	GLuint motionBlurFrameBuffer;
+	GLuint motionBlurTexture;
+	GLuint bloomFrameBuffer;
+	GLuint bloomTexture;
 	GLuint depthTexture;
 
-	QOpenGLShaderProgram* shaderProgram;
+	QOpenGLShaderProgram* motionBlurShader;
+	QOpenGLShaderProgram* bloomShader;
 	QVector<QVector3D> vertices;
-	QVector<QVector2D> textureCoords;
 	QOpenGLVertexArrayObject* vao;
 	QOpenGLBuffer vbo;
 
 	bool drawTrain;
+	float blurIntensity;
+	float bloomIntensity;
 };
 #endif // TRAINVIEW_H

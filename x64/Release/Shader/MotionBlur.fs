@@ -14,8 +14,11 @@ uniform sampler2D depthMap;
 uniform float near;
 uniform float far;
 
+uniform float intensity;
+
 const int smapleNum = 10;
 const float threshold = 0.009;
+
 
 
 void main() {
@@ -33,10 +36,9 @@ void main() {
     depth = 2.0 * near * far / (far + near - (2.0 * (1 - depth) - 1.0) * (far - near)) + 8;
     vec2 velocity = (currPos - lastPos).xy / depth;
 
-
     fColor = texture(colorMap, TexCoords);
     if (length(velocity) > threshold) {
-        velocity = velocity * (1 - exp(-length(velocity) * 10));
+        velocity = velocity * (1 - exp(-length(velocity) * 10)) * intensity;
         vec2 texCoord = TexCoords;
         for (int i = 0; i < smapleNum; i++, texCoord += velocity) {
             fColor += texture(colorMap, texCoord);

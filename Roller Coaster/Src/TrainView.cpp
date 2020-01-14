@@ -54,29 +54,51 @@ void TrainView::initializeGL() {
 	ssaoFrameBuffer = new SSAOFrameBuffer(this);
 	//Initialize texture
 
-	glGenFramebuffers(1, &finalFrameBuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, finalFrameBuffer);
-	glGenTextures(1, &finalTexture);
-	glBindTexture(GL_TEXTURE_2D, finalTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, finalTexture, 0);
-	glGenTextures(1, &depthTexture);
-	glBindTexture(GL_TEXTURE_2D, depthTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, 1920, 1080, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0);
+	bloomFrameBuffer = createFrameBuffer();
+	bloomTexture = createTexture();
+	depthTexture = createDepthTexture();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	motionBlurFrameBuffer = createFrameBuffer();
+	motionBlurTexture = createTexture();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	vao = new QOpenGLVertexArrayObject();
 
 	InitVAO();
 	InitVBO();
-	shaderProgram = InitShader("./Shader/MotionBlur.vs", "./Shader/MotionBlur.fs");
+	bloomShader = InitShader("./Shader/After.vs", "./Shader/Bloom.fs");
+	motionBlurShader = InitShader("./Shader/After.vs", "./Shader/MotionBlur.fs");
+}
+
+GLuint TrainView::createFrameBuffer() {
+	GLuint frameBuffer;
+	glGenFramebuffers(1, &frameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	return frameBuffer;
+}
+
+GLuint TrainView::createTexture() {
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture, 0);
+	return texture;
+}
+
+GLuint TrainView::createDepthTexture() {
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, 1920, 1080, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture, 0);
+	return texture;
 }
 
 void TrainView::InitVAO() {
@@ -237,7 +259,7 @@ void TrainView::paintGL()
 	ssao->BlurPass(*ssaoFrameBuffer);
 	ssaoFrameBuffer->UnbindCurrentFrameBuffer();
 
-	glBindFramebuffer(GL_FRAMEBUFFER, finalFrameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, bloomFrameBuffer);
 	glViewport(0, 0, 1920, 1080);
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -248,10 +270,25 @@ void TrainView::paintGL()
 	this->water->Render((clock() - lastRedraw) / 65.0, ProjectionMatrix, ModelViewMatrix, light, getCameraPosition(), *fbos, Textures);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, motionBlurFrameBuffer);
+	glViewport(0, 0, 1920, 1080);
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	Render(bloomShader, bloomIntensity, bloomTexture);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+	float blur;
+	if (camera != Train) {
+		blur = 0;
+	}
+	else {
+		blur = blurIntensity;
+	}
 	glViewport(0, 0, width(), height());
 	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	Render();
+	glClear(GL_COLOR_BUFFER_BIT);
+	Render(motionBlurShader, blur, motionBlurTexture);
 
 
 	skybox->Rotate((float)(clock() - lastRedraw) / 65.0);
@@ -345,7 +382,7 @@ void TrainView::drawSkyBox() {
 	skybox->Render(ProjectionMatrix, viewMatrix, fogColor, light.position);
 }
 
-void TrainView::Render() {
+void TrainView::Render(QOpenGLShaderProgram* currentShader, float intensity, GLuint texture) {
 	GLfloat P[4][4];
 	GLfloat V[4][4];
 	GLfloat lastV[4][4];
@@ -353,35 +390,37 @@ void TrainView::Render() {
 	DimensionTransformation(ModelViewMatrix, V);
 	DimensionTransformation(lastModelViewMatrix, lastV);
 
-	shaderProgram->bind();
+	currentShader->bind();
 	vao->bind();
 
-	shaderProgram->setUniformValue("projection", P);
-	shaderProgram->setUniformValue("view", V);
-	shaderProgram->setUniformValue("lastView", lastV);
+	currentShader->setUniformValue("projection", P);
+	currentShader->setUniformValue("view", V);
+	currentShader->setUniformValue("lastView", lastV);
 
-	shaderProgram->setUniformValue("colorMap", 0);
-	shaderProgram->setUniformValue("depthMap", 1);
+	currentShader->setUniformValue("colorMap", 0);
+	currentShader->setUniformValue("depthMap", 1);
 
-	shaderProgram->setUniformValue("near", GLfloat(0.1));
-	shaderProgram->setUniformValue("far", GLfloat(1e10));
+	currentShader->setUniformValue("near", GLfloat(0.1));
+	currentShader->setUniformValue("far", GLfloat(1e10));
+
+	currentShader->setUniformValue("intensity", intensity);
 
 	vbo.bind();
-	shaderProgram->enableAttributeArray(0);
-	shaderProgram->setAttributeArray(0, GL_FLOAT, 0, 3, NULL);
+	currentShader->enableAttributeArray(0);
+	currentShader->setAttributeArray(0, GL_FLOAT, 0, 3, NULL);
 	vbo.release();
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, finalTexture);
+	glBindTexture(GL_TEXTURE_2D, texture);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, vertices.size());
 
-	shaderProgram->disableAttributeArray(0);
+	currentShader->disableAttributeArray(0);
 
 	vao->release();
-	shaderProgram->release();
+	currentShader->release();
 }
 
 //************************************************************************
