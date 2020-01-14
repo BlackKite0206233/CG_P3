@@ -4,6 +4,7 @@ in vec3 vs_worldpos;
 in vec3 vs_normal;
 in vec2 pass_textureCoords;
 in vec4 clipSpace;
+in float visibility;
 
 out vec4 fColor;
 
@@ -21,6 +22,7 @@ uniform vec3 eye_position;
 uniform float shininess = 2.0;
 uniform float ambientStrength  = 0.4;
 uniform float specularStrength = 0.4;
+uniform vec3 fogColor;
 
 void main() {
 	vec2 ndc = (clipSpace.xy / clipSpace.w) / 2.0 + 0.5;
@@ -37,6 +39,13 @@ void main() {
 	float diffuse = max(0.0, dot(normal, light_direction));
 	float specular = pow(max(0.0, dot(normal, half_vector)), shininess);
 	vec3 result = ambientStrength * color_ambient * AmbientOcclusion + diffuse * color_diffuse + specularStrength * specular * color_specular;
+	if (renderMode == 2) {
+		float level = 4.0;
+		float q = 1.0 / level;
+		diffuse = pow(diffuse, 5.0);
+		diffuse = float(int(diffuse / q)) * q + q / 2.0;
+		result = diffuse * color_diffuse;
+	}
 
 	float blend = clamp(vs_worldpos.y, 0.0, 20.0) / 20.0;
 	vec4 colorGrass = texture(grass, pass_textureCoords) * blend;
@@ -49,4 +58,5 @@ void main() {
 		color *= pow(1 + clamp(vs_worldpos.y, -100, 0) / 400, 8);
 	}
 	fColor = min(vec4(color * result, 1), vec4(1));
+	fColor = mix(vec4(fogColor, 1), fColor, visibility);
 }

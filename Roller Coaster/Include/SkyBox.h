@@ -11,24 +11,31 @@
 #include <QDebug>
 #include <QString>
 #include <QGLWidget>
+#include <string>
 
-class SkyBox {
+using namespace std;
+
+class SkyBox: protected QOpenGLFunctions_4_3_Core {
+private:
+	static float ROTATION_SPEED;
 public:
 	SkyBox();
 
 	void Init();
-	void Begin();
-	void Render(GLfloat *ProjectionMatrix, GLfloat *viewMatrix);
-	void End();
+	void Rotate(float t);
+	void Render(GLfloat *ProjectionMatrix, GLfloat *viewMatrix, QVector3D& fogColor, QVector4D& lightPos);
 
 private:
 	void InitVAO();
 	void InitVBO();
-	void InitTexture();
+	GLuint InitTexture(string dir, GLenum texID);
 
 	QOpenGLShaderProgram *shaderProgram;
 	QOpenGLVertexArrayObject vao;
-	GLuint texture;
+	GLuint day;
+	GLuint night;
 	QVector<QVector3D> vertices;
 	QOpenGLBuffer vbo;
+
+	float rotation;
 };
