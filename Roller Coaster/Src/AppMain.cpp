@@ -74,7 +74,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			}
 			this->isHover = true;
 			trainview->doPick(event->localPos().x(), event->localPos().y());
-			ControlPoint p;
+			ControlPoint *p = new ControlPoint();
 			switch (currentMode) {
 			case None:
 				break;
@@ -112,7 +112,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 				float height = trainview->terrain->getHeightOfTerrain(rx, rz);
 				if (height < 0)
 					height = 0;
-				p.center = CtrlPoint(Pnt3f(rx, height + 5, rz), Pnt3f(0, 1, 0));
+				p->center = CtrlPoint(Pnt3f(rx, height + 5, rz), Pnt3f(0, 1, 0));
 				trainview->m_pTrack->AddPoint(p);
 			}
 				break;

@@ -10,6 +10,7 @@ out vec4 fColor;
 
 uniform sampler2D grass;
 uniform sampler2D mud;
+uniform sampler2D water;
 
 uniform int renderMode;
 uniform sampler2D ssaoColorBufferBlur;
@@ -50,7 +51,10 @@ void main() {
 	float blend = clamp(vs_worldpos.y, 0.0, 20.0) / 20.0;
 	vec4 colorGrass = texture(grass, pass_textureCoords) * blend;
 	vec4 colorMud = texture(mud, pass_textureCoords) * (1 - blend);
-	vec3 color = (colorGrass + colorMud).rgb;
+	float blend2 = clamp(vs_worldpos.y, -100.0, 0.0) / -100.0;
+	vec4 colorWater = texture(water, pass_textureCoords) * blend2;
+	vec3 color = (colorGrass + colorMud).rgb * (1 - blend2);
+	color = (color + colorWater.rgb);
 	if (renderMode == 2) {
 		color = vec3(AmbientOcclusion, AmbientOcclusion, AmbientOcclusion);
 	}

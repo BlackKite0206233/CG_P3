@@ -93,10 +93,10 @@ void SkyBox::Render(GLfloat *ProjectionMatrix, GLfloat *viewMatrix, QVector3D& f
 		shaderProgram->setUniformValue("night", 1);
 
 		float blendFactor;
-		if (lightPos.y() < 15000 && lightPos.y() > 0) {
-			blendFactor = lightPos.y() / 15000.0;
+		if (lightPos.y() < 20000 && lightPos.y() > -20000) {
+			blendFactor = (lightPos.y() + 20000) / 40000.0;
 		}
-		else if (lightPos.y() > 15000) {
+		else if (lightPos.y() > 20000) {
 			blendFactor = 1;
 		}
 		else {

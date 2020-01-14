@@ -73,6 +73,8 @@ void TrainView::initializeTexture()
 	Textures.push_back(texture);
 	texture = new QOpenGLTexture(QImage("./Textures/water_height_map.jpg"));
 	Textures.push_back(texture);
+	texture = new QOpenGLTexture(QImage("./Textures/water.jpg"));
+	Textures.push_back(texture);
 }
 
 void TrainView::resetArcball()
@@ -196,9 +198,13 @@ void TrainView::paintGL()
 
 	drawSkyBox();
 	setupObjects();
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
 	drawStuff();
+	//glDisable(GL_CULL_FACE);
 	this->water->Render((clock() - lastRedraw) / 65.0, ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), *fbos, Textures);
 	
+
 	skybox->Rotate((float)(clock() - lastRedraw) / 65.0);
 	if (clock() - lastRedraw > CLOCKS_PER_SEC / 65) {
 		lastRedraw = clock();
@@ -206,10 +212,10 @@ void TrainView::paintGL()
 			MoveTrain();
 		}
 		light.Move();
-		if (light.position.y() < 15000 && light.position.y() > 0) {
-			fogColor = QVector3D(0.5, 0.5, 0.5) * (light.position.y() / 15000.0);
+		if (light.position.y() < 20000 && light.position.y() > -20000) {
+			fogColor = QVector3D(0.5, 0.5, 0.5) * ((light.position.y() + 20000) / 40000.0);
 		}
-		else if (light.position.y() > 15000) {
+		else if (light.position.y() > 20000) {
 			fogColor = QVector3D(0.5, 0.5, 0.5);
 		}
 		else {

@@ -58,7 +58,7 @@ public:
 	void readPoints(const char *filename);
 	void writePoints(const char *filename);
 
-	void AddPoint(ControlPoint &p);
+	void AddPoint(ControlPoint *p);
 	void RemovePoint(int index);
 	void AddPath(int p1, int p2);
 	void RemovePath(int p1, int p2);
