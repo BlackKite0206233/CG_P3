@@ -174,9 +174,10 @@ void Terrain::Render(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& ligh
 	//shaderProgram->setUniformValue("heightMap", 0);
 	shaderProgram->setUniformValue("grass", 0);
 	shaderProgram->setUniformValue("mud", 1);
+	shaderProgram->setUniformValue("water", 2);
 
 	shaderProgram->setUniformValue("renderMode", renderMode);
-	shaderProgram->setUniformValue("ssaoColorBufferBlur", 2);
+	shaderProgram->setUniformValue("ssaoColorBufferBlur", 3);
 
 	shaderProgram->setUniformValue("color_ambient", light.ambientColor);
 	shaderProgram->setUniformValue("color_diffuse", light.diffuseColor);
@@ -212,6 +213,8 @@ void Terrain::Render(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& ligh
 	glActiveTexture(GL_TEXTURE1);
 	textures[5]->bind();
 	glActiveTexture(GL_TEXTURE2);
+	textures[7]->bind();
+	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, ssaoFrameBuffer->getBlurTexture());
 
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, indices.data());

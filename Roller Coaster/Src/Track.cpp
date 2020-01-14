@@ -284,26 +284,41 @@ void CTrack::SetCurve(CurveType type) {
 	BuildTrack();
 }
 
-void CTrack::AddPoint(ControlPoint& p) {
-	points[pointCount++] = &p;
+void CTrack::AddPoint(ControlPoint* p) {
+	points[pointCount++] = p;
 }
 
 void CTrack::RemovePoint(int index) {
 	ControlPoint *p = points[index];
 	auto child  = p->children.begin();
 	auto parent = p->parents.begin();
+
 	int lastChild, lastParent;
+	if (child != p->children.end())
+		lastChild = *child;
+	else
+		lastChild = -1;
+	if (parent != p->parents.end())
+		lastParent = *parent;
+	else
+		lastParent = -1;
+
+	for (auto point : points) {
+		point.second->parents.erase(index);
+		point.second->children.erase(index);
+	}
+
 	for (; child != p->children.end() && parent != p->parents.end(); ++child, ++parent) {
 		points[*child]->parents.insert(*parent);
 		points[*parent]->children.insert(*child);
 		lastChild  = *child;
 		lastParent = *parent;
 	}
-	if (child != p->children.end()) {
+	if (child != p->children.end() && lastParent != -1) {
 		for (; child != p->children.end(); ++child) {
 			points[lastParent]->children.insert(*child);
 		}
-	} else {
+	} else if (parent != p->parents.end() && lastChild != -1) {
 		for (; parent != p->parents.end(); ++parent) {
 			points[lastChild]->parents.insert(*parent);
 		}

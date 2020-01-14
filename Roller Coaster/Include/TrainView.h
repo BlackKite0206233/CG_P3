@@ -83,6 +83,15 @@ public:
 
 	QVector3D getCameraPosition();
 
+private:
+	void InitVAO();
+	void InitVBO();
+	void Render(QOpenGLShaderProgram* currentShader, float intensity, GLuint texture);
+
+	GLuint createFrameBuffer();
+	GLuint createTexture();
+	GLuint createDepthTexture();
+
 public:
 	ArcBallCam *arcball; // keep an ArcBall for the UI
 	vector<ArcBallCam> cameras;
@@ -99,8 +108,9 @@ public:
 	Triangle *triangle;
 	Square *square;
 	SkyBox *skybox;
-	GLfloat ProjectionMatrex[16];
-	GLfloat ModelViewMatrex[16];
+	GLfloat ProjectionMatrix[16];
+	GLfloat ModelViewMatrix[16];
+	GLfloat lastModelViewMatrix[16];
 	QVector<QOpenGLTexture *> Textures;
 	vector<CTrain> trains;
 	int currentTrain = 0;
@@ -111,5 +121,21 @@ public:
 	SSAO *ssao;
 	SSAOFrameBuffer *ssaoFrameBuffer;
 	QVector3D fogColor;
+
+	GLuint motionBlurFrameBuffer;
+	GLuint motionBlurTexture;
+	GLuint bloomFrameBuffer;
+	GLuint bloomTexture;
+	GLuint depthTexture;
+
+	QOpenGLShaderProgram* motionBlurShader;
+	QOpenGLShaderProgram* bloomShader;
+	QVector<QVector3D> vertices;
+	QOpenGLVertexArrayObject* vao;
+	QOpenGLBuffer vbo;
+
+	bool drawTrain;
+	float blurIntensity;
+	float bloomIntensity;
 };
 #endif // TRAINVIEW_H

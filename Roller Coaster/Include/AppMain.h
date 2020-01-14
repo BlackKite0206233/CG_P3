@@ -46,6 +46,8 @@ public:
 	bool isHover;
 	bool rotatePoint;
 	bool moveUpAndDown;
+	bool shift;
+	bool ctrl;
 
 private:
 	Ui::AppMainClass ui;

@@ -18,6 +18,9 @@ AppMain::AppMain(QWidget *parent) : QMainWindow(parent) {
 	this->canpan = false;
 	this->isHover = false;
 	this->rotatePoint = false;
+	this->trainview->drawTrain = false;
+	this->trainview->blurIntensity = 1;
+	this->trainview->bloomIntensity = 1;
 	this->trainview->camera = World;
 	this->trainview->renderMode = Normal_Mode;
 	PathData::curve = Linear;
@@ -74,7 +77,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			}
 			this->isHover = true;
 			trainview->doPick(event->localPos().x(), event->localPos().y());
-			ControlPoint p;
+			ControlPoint *p = new ControlPoint();
 			switch (currentMode) {
 			case None:
 				break;
@@ -112,7 +115,7 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 				float height = trainview->terrain->getHeightOfTerrain(rx, rz);
 				if (height < 0)
 					height = 0;
-				p.center = CtrlPoint(Pnt3f(rx, height + 5, rz), Pnt3f(0, 1, 0));
+				p->center = CtrlPoint(Pnt3f(rx, height + 5, rz), Pnt3f(0, 1, 0));
 				trainview->m_pTrack->AddPoint(p);
 			}
 				break;
@@ -213,19 +216,48 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 		QKeyEvent *event = static_cast<QKeyEvent *>(e);
 		// Set up the mode
 		switch (event->key()) {
+		case Qt::Key_Shift:
+			this->shift = true;
+			break;
+		case Qt::Key_Control:
+			this->ctrl = true;
+			break;
+
 		case Qt::Key_Alt:
 			this->canpan = true;
 			break;
 
 		case Qt::Key_Plus:
-			CTrain::speed0 += 0.2;
-			if (CTrain::speed0 > 5)
-				CTrain::speed0 = 5;
+			if (shift) {
+				trainview->blurIntensity += 0.1;
+			}
+			else if (ctrl) {
+				trainview->bloomIntensity += 0.1;
+			} 
+			else {
+				CTrain::speed0 += 0.2;
+				if (CTrain::speed0 > 5)
+					CTrain::speed0 = 5;
+			}
 			break;
 		case Qt::Key_Minus:
-			CTrain::speed0 -= 0.2;
-			if (CTrain::speed0 < 0.2)
-				CTrain::speed0 = 0.2;
+			if (shift) {
+				trainview->blurIntensity -= 0.1;
+				if (trainview->blurIntensity < 1) {
+					trainview->blurIntensity = 1;
+				}
+			}
+			else if (ctrl) {
+				trainview->bloomIntensity -= 0.1;
+				if (trainview->bloomIntensity < 1) {
+					trainview->bloomIntensity = 1;
+				}
+			}
+			else {
+				CTrain::speed0 -= 0.2;
+				if (CTrain::speed0 < 0.2)
+					CTrain::speed0 = 0.2;
+			}
 			break;
 
 		case Qt::Key_R:
@@ -253,6 +285,13 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 		QKeyEvent *event = static_cast<QKeyEvent *>(e);
 		// Set up the mode
 		switch (event->key()) {
+		case Qt::Key_Shift:
+			this->shift = false;
+			break;
+		case Qt::Key_Control:
+			this->ctrl = false;
+			break;
+
 		case Qt::Key_Alt:
 			this->canpan = false;
 			trainview->arcball->mode = trainview->arcball->None;
@@ -352,6 +391,10 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			break;
 		case Qt::Key_F3:
 			trainview->renderMode = NPR_Mode;
+			break;
+
+		case Qt::Key_F4:
+			trainview->drawTrain = !trainview->drawTrain;
 			break;
 		}
 	}

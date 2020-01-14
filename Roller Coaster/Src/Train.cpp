@@ -98,26 +98,28 @@ void CTrain::SetNewPos(PathData& pd) {
 	modelMatrix = modelMatrix.inverted();
 }
 
-void CTrain::Draw(bool doingShadows, bool isSelected, Light& light, QVector3D& eyePos, SSAOFrameBuffer* ssaoFrameBuffer, int renderMode, QVector4D& clipPlane) {
+void CTrain::Draw(bool doingShadows, bool isSelected, Light& light, QVector3D& eyePos, SSAOFrameBuffer* ssaoFrameBuffer, int renderMode, bool draw, QVector4D& clipPlane) {
 	PathData pd = track->GetPath(p0, p1, p2, p3);
 	SetNewPos(pd);
 
-	QVector3D color;
-	if (!doingShadows) {
-		if (isSelected && type == Head)
-			color = QVector3D(1, 1, 0);
-		else if (type == Head)
-			color = QVector3D(1, 0, 0);
-		else
-			color = QVector3D(0, 0, 1);
+	if (draw) {
+		QVector3D color;
+		if (!doingShadows) {
+			if (isSelected && type == Head)
+				color = QVector3D(1, 1, 0);
+			else if (type == Head)
+				color = QVector3D(1, 0, 0);
+			else
+				color = QVector3D(0, 0, 1);
+		}
+
+		GLfloat ProjectionMatrix[16];
+		GLfloat ViewMatrix[16];
+		glGetFloatv(GL_MODELVIEW_MATRIX, ViewMatrix);
+		glGetFloatv(GL_PROJECTION_MATRIX, ProjectionMatrix);
+
+		this->model->render(color, ProjectionMatrix, ViewMatrix, modelMatrix, light, eyePos, ssaoFrameBuffer, renderMode, clipPlane, 25);
 	}
-
-	GLfloat ProjectionMatrex[16];
-	GLfloat ViewMatrex[16];
-	glGetFloatv(GL_MODELVIEW_MATRIX, ViewMatrex);
-	glGetFloatv(GL_PROJECTION_MATRIX, ProjectionMatrex);
-
-	this->model->render(color, ProjectionMatrex, ViewMatrex, modelMatrix, light, eyePos, ssaoFrameBuffer, renderMode, clipPlane, 25);
 
 	for (int i = 0; i < car.size(); i++) {
 		CTrain prev = i ? car[i - 1] : *this;
@@ -133,7 +135,7 @@ void CTrain::Draw(bool doingShadows, bool isSelected, Light& light, QVector3D& e
 			car[i].p2 = prevPd.p2;
 			car[i].p3 = prevPd.p3;
 		}
-		car[i].Draw(doingShadows, isSelected, light, eyePos, ssaoFrameBuffer, renderMode, clipPlane);
+		car[i].Draw(doingShadows, isSelected, light, eyePos, ssaoFrameBuffer, renderMode, draw, clipPlane);
 	}
 }
 

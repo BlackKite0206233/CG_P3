@@ -23,7 +23,7 @@ public:
 
 public:
 	void Move();
-	void Draw(bool doingShadows, bool isSelected, Light& light, QVector3D& eyePos, SSAOFrameBuffer* ssaoFrameBuffer, int renderMode, QVector4D& clipPlane = QVector4D(0, 0, 0, 0));
+	void Draw(bool doingShadows, bool isSelected, Light& light, QVector3D& eyePos, SSAOFrameBuffer* ssaoFrameBuffer, int renderMode, bool draw, QVector4D& clipPlane = QVector4D(0, 0, 0, 0));
 	void DrawGeometry(QOpenGLShaderProgram* shader);
 	void AddCar();
 	void RemoveCar();
