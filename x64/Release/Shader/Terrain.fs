@@ -4,6 +4,7 @@ in vec3 vs_worldpos;
 in vec3 vs_normal;
 in vec2 pass_textureCoords;
 in vec4 clipSpace;
+in float visibility;
 
 out vec4 fColor;
 
@@ -21,6 +22,7 @@ uniform vec3 eye_position;
 uniform float shininess = 2.0;
 uniform float ambientStrength  = 0.4;
 uniform float specularStrength = 0.4;
+uniform vec3 fogColor;
 
 void main() {
 	vec2 ndc = (clipSpace.xy / clipSpace.w) / 2.0 + 0.5;
@@ -56,4 +58,5 @@ void main() {
 		color *= pow(1 + clamp(vs_worldpos.y, -100, 0) / 400, 8);
 	}
 	fColor = min(vec4(color * result, 1), vec4(1));
+	fColor = mix(vec4(fogColor, 1), fColor, visibility);
 }

@@ -110,5 +110,6 @@ public:
 	Terrain *terrain;
 	SSAO *ssao;
 	SSAOFrameBuffer *ssaoFrameBuffer;
+	QVector3D fogColor;
 };
 #endif // TRAINVIEW_H

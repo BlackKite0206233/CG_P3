@@ -17,6 +17,7 @@ TrainView::TrainView(QWidget *parent) : QGLWidget(parent) {
 	light.ambientColor = light.diffuseColor = light.specularColor = QVector3D(1, 1, 1);
 	light.rotationMatrix.setToIdentity();
 	light.rotationMatrix.rotate(0.1, 0, 0, 1);
+	fogColor = QVector3D(0.5, 0.5, 0.5);
 }
 
 TrainView::~TrainView() {
@@ -198,12 +199,22 @@ void TrainView::paintGL()
 	drawStuff();
 	this->water->Render((clock() - lastRedraw) / 65.0, ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), *fbos, Textures);
 	
+	skybox->Rotate((float)(clock() - lastRedraw) / 65.0);
 	if (clock() - lastRedraw > CLOCKS_PER_SEC / 65) {
 		lastRedraw = clock();
 		if (CTrain::isMove) {
 			MoveTrain();
 		}
 		light.Move();
+		if (light.position.y() < 15000 && light.position.y() > 0) {
+			fogColor = QVector3D(0.5, 0.5, 0.5) * (light.position.y() / 15000.0);
+		}
+		else if (light.position.y() > 15000) {
+			fogColor = QVector3D(0.5, 0.5, 0.5);
+		}
+		else {
+			fogColor = QVector3D(0, 0, 0);
+		}
 	}
 
 	
@@ -276,11 +287,7 @@ void TrainView::drawSkyBox() {
 	viewMatrix[14] = 0;
 	viewMatrix[15] = 1;
 
-
-	skybox->Begin();
-	glActiveTexture(GL_TEXTURE0);
-	skybox->Render(ProjectionMatrex, viewMatrix);
-	skybox->End();
+	skybox->Render(ProjectionMatrex, viewMatrix, fogColor, light.position);
 }
 
 //************************************************************************
@@ -297,7 +304,7 @@ void TrainView::drawSkyBox() {
 //========================================================================
 void TrainView::drawStuff(QVector4D& clipPlane, bool doingShadows)
 {
-	this->terrain->Render(ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), Textures, ssaoFrameBuffer, renderMode, clipPlane);
+	this->terrain->Render(ProjectionMatrex, ModelViewMatrex, light, getCameraPosition(), fogColor, Textures, ssaoFrameBuffer, renderMode, clipPlane);
 	this->m_pTrack->Draw(false, selectedPath);
 	
 	if (this->camera != Train) {

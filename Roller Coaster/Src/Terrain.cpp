@@ -155,7 +155,7 @@ void Terrain::InitVBO() {
 	tvbo.allocate(textureCoords.constData(), textureCoords.size() * sizeof(QVector2D));
 }
 
-void Terrain::Render(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, QVector<QOpenGLTexture*>& textures, SSAOFrameBuffer* ssaoFrameBuffer, int renderMode, QVector4D clipPlane) {
+void Terrain::Render(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& light, QVector3D& eyePos, QVector3D& fogColor, QVector<QOpenGLTexture*>& textures, SSAOFrameBuffer* ssaoFrameBuffer, int renderMode, QVector4D clipPlane) {
 	GLfloat P[4][4];
 	GLfloat V[4][4];
 	DimensionTransformation(ProjectionMatrix, P);
@@ -187,6 +187,8 @@ void Terrain::Render(GLfloat* ProjectionMatrix, GLfloat* ViewMatrix, Light& ligh
 
 	shaderProgram->setUniformValue("width", GLfloat(width));
 	shaderProgram->setUniformValue("height", GLfloat(height));
+
+	shaderProgram->setUniformValue("fogColor", fogColor);
 
 	vvbo.bind();
 	shaderProgram->enableAttributeArray(0);
