@@ -37,6 +37,13 @@ void main() {
 	float diffuse = max(0.0, dot(normal, light_direction));
 	float specular = pow(max(0.0, dot(normal, half_vector)), shininess);
 	vec3 result = ambientStrength * color_ambient * AmbientOcclusion + diffuse * color_diffuse + specularStrength * specular * color_specular;
+	if (renderMode == 2) {
+		float level = 4.0;
+		float q = 1.0 / level;
+		diffuse = pow(diffuse, 5.0);
+		diffuse = float(int(diffuse / q)) * q + q / 2.0;
+		result = diffuse * color_diffuse;
+	}
 
 	float blend = clamp(vs_worldpos.y, 0.0, 20.0) / 20.0;
 	vec4 colorGrass = texture(grass, pass_textureCoords) * blend;
