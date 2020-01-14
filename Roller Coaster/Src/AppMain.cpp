@@ -18,6 +18,7 @@ AppMain::AppMain(QWidget *parent) : QMainWindow(parent) {
 	this->canpan = false;
 	this->isHover = false;
 	this->rotatePoint = false;
+	this->trainview->drawTrain = false;
 	this->trainview->camera = World;
 	this->trainview->renderMode = Normal_Mode;
 	PathData::curve = Linear;
@@ -352,6 +353,10 @@ bool AppMain::eventFilter(QObject *watched, QEvent *e) {
 			break;
 		case Qt::Key_F3:
 			trainview->renderMode = NPR_Mode;
+			break;
+
+		case Qt::Key_F4:
+			trainview->drawTrain = !trainview->drawTrain;
 			break;
 		}
 	}
